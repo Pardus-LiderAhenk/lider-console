@@ -6,10 +6,10 @@ lider-console is the administration console of Lider Ahenk project built as an E
 
 ## Documentation
 
-* See [Lider Console](https://github.com/Pardus-Kurumsal/lider-console/wiki) wiki to get started!
-* See how to [setup development environment](https://github.com/Pardus-Kurumsal/lider-console/wiki/01.-Setup-Development-Environment)
-* Learn how to [build & run](https://github.com/Pardus-Kurumsal/lider-console/wiki/02.-Building-&-Running) Lider Console.
-* [Export Lider Console](https://github.com/Pardus-Kurumsal/lider-console/wiki/03.-Exporting-Lider-Console) as custom RCP application.
+* See [Lider Console](https://github.com/Pardus-LiderAhenk/lider-console/wiki) wiki to get started!
+* See how to [setup development environment](https://github.com/Pardus-LiderAhenk/lider-console/wiki/01.-Setup-Development-Environment)
+* Learn how to [build & run](https://github.com/Pardus-LiderAhenk/lider-console/wiki/02.-Building-&-Running) Lider Console.
+* [Export Lider Console](https://github.com/Pardus-LiderAhenk/lider-console/wiki/03.-Exporting-Lider-Console) as custom RCP application.
 
 ## Contribution
 
@@ -21,14 +21,14 @@ We encourage contributions to the project. To contribute:
 
 ## Other Lider Ahenk Projects
 
-* [Lider](https://github.com/Pardus-Kurumsal/lider): Business layer running on Karaf container.
-* [Ahenk](https://github.com/Pardus-Kurumsal/ahenk): Agent service running on remote machines.
-* [Lider Ahenk Installer](https://github.com/Pardus-Kurumsal/lider-ahenk-installer): Installation wizard for Ahenk and Lider (and also its LDAP, database, XMPP servers).
-* [Lider Ahenk Archetype](https://github.com/Pardus-Kurumsal/lider-ahenk-archetype): Maven archetype for easy plugin development.
+* [Lider](https://github.com/Pardus-LiderAhenk/lider): Business layer running on Karaf container.
+* [Ahenk](https://github.com/Pardus-LiderAhenk/ahenk): Agent service running on remote machines.
+* [Lider Ahenk Installer](https://github.com/Pardus-LiderAhenk/lider-ahenk-installer): Installation wizard for Ahenk and Lider (and also its LDAP, database, XMPP servers).
+* [Lider Ahenk Archetype](https://github.com/Pardus-LiderAhenk/lider-ahenk-archetype): Maven archetype for easy plugin development.
 
 ## Changelog
 
-See [changelog](https://github.com/Pardus-Kurumsal/lider/wiki/Changelog) to learn what we have been up to.
+See [changelog](https://github.com/Pardus-LiderAhenk/lider/wiki/Changelog) to learn what we have been up to.
 
 ## Roadmap
 
@@ -54,4 +54,4 @@ See [changelog](https://github.com/Pardus-Kurumsal/lider/wiki/Changelog) to lear
 
 ## License
 
-Lider Ahenk and its sub projects are licensed under the [LGPL v3](https://github.com/Pardus-Kurumsal/lider-console/blob/master/LICENSE).
+Lider Ahenk and its sub projects are licensed under the [LGPL v3](https://github.com/Pardus-LiderAhenk/lider-console/blob/master/LICENSE).
