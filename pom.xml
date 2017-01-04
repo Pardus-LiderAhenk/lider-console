@@ -25,7 +25,7 @@
 		<apache.ds.repo.url>http://directory.apache.org/studio/update</apache.ds.repo.url>
 		<mars.update.repo.url>http://download.eclipse.org/eclipse/updates/4.5</mars.update.repo.url>
 		<p2.maven.plugin.local.repo.url>http://localhost:8080/site/</p2.maven.plugin.local.repo.url>
-		<babel.update.repo.url>http://download.eclipse.org/technology/babel/update-site/R0.13.1/mars</babel.update.repo.url>
+		<babel.update.repo.url>http://download.eclipse.org/technology/babel/update-site/R0.14.1/mars</babel.update.repo.url>
 	</properties>
 
 	<repositories>
