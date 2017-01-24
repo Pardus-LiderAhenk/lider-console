@@ -32,7 +32,7 @@
          </property>
          <property
                name="aboutText"
-               value="Lider - Ahenk Merkezi Yonetim Sistemi&#x0A;&#x0A;Version: 1.0.0&#x0A;&#x0A;(c) Copyright Tübitak, 2014.  All rights reserved.&#x0A;Visit http://www.tubitak.org.tr/&#x0A;&#x0A;This product includes software developed by the&#x0A;Apache Software Foundation http://apache.org/">
+               value="Lider - Ahenk Merkezi Yonetim Sistemi&#x0A;&#x0A;Version: 1.0.0-beta&#x0A;&#x0A;(c) Copyright Tübitak, 2014.  All rights reserved.&#x0A;Visit http://www.tubitak.org.tr/&#x0A;&#x0A;This product includes software developed by the&#x0A;Apache Software Foundation http://apache.org/">
          </property>
          <property
                name="aboutImage"
@@ -50,9 +50,9 @@
                name="startupProgressRect"
                value="0,292,500,15">
          </property>
-		 <property
-               name="applicationCSS"
-               value="platform:/plugin/tr.org.liderahenk.liderconsole.rcp/css/e4_default_win7.css">
+         <property
+               name="preferenceCustomization"
+               value="plugin_customization.ini">
          </property>
       </product>
    </extension>
