@@ -225,7 +225,7 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 
 		// Activation date enable/disable checkbox
 		btnEnableDate = new Button(composite, SWT.CHECK);
-		btnEnableDate.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+		btnEnableDate.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
 		btnEnableDate.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -240,7 +240,7 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 
 		// Activation date label
 		Label lblActivationDate = new Label(composite, SWT.NONE);
-		lblActivationDate.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+		lblActivationDate.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		lblActivationDate.setText(Messages.getString("ACTIVATION_DATE_LABEL"));
 
 		// Activation date
