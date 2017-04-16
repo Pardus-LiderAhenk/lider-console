@@ -20,11 +20,17 @@
 package tr.org.liderahenk.liderconsole.core.dialogs;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.core.commands.Command;
 import org.eclipse.core.commands.ExecutionEvent;
+import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.commands.NotEnabledException;
+import org.eclipse.core.commands.NotHandledException;
+import org.eclipse.core.commands.common.NotDefinedException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IExtensionRegistry;
@@ -38,6 +44,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
@@ -47,7 +54,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
+import tr.org.liderahenk.liderconsole.core.editorinput.ProfileEditorInput;
+import tr.org.liderahenk.liderconsole.core.editors.LiderManagementEditor;
 import tr.org.liderahenk.liderconsole.core.editors.PolicyDefinitionEditor;
+import tr.org.liderahenk.liderconsole.core.exceptions.ValidationException;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.model.Policy;
 import tr.org.liderahenk.liderconsole.core.model.Profile;
@@ -72,6 +82,7 @@ public class PolicyDefinitionDialog extends DefaultLiderDialog {
 
 	private Policy selectedPolicy;
 	private PolicyDefinitionEditor editor;
+	private LiderManagementEditor liderManagementEditor;
 
 	private Text txtLabel;
 	private Text txtDesc;
@@ -79,9 +90,16 @@ public class PolicyDefinitionDialog extends DefaultLiderDialog {
 
 	private List<Combo> comboList = null;
 
+	/**
+	 * @wbp.parser.constructor
+	 */
 	public PolicyDefinitionDialog(Shell parentShell, PolicyDefinitionEditor editor) {
 		super(parentShell);
 		this.editor = editor;
+	}
+	public PolicyDefinitionDialog(Shell parentShell, LiderManagementEditor liderManagementEditor) {
+		super(parentShell);
+		this.liderManagementEditor = liderManagementEditor;
 	}
 
 	public PolicyDefinitionDialog(Shell parentShell, Policy selectedPolicy, PolicyDefinitionEditor editor) {
@@ -89,14 +107,24 @@ public class PolicyDefinitionDialog extends DefaultLiderDialog {
 		this.selectedPolicy = selectedPolicy;
 		this.editor = editor;
 	}
+	public PolicyDefinitionDialog(Shell parentShell, Policy selectedPolicy,  LiderManagementEditor liderManagementEditor) {
+		super(parentShell);
+		this.selectedPolicy = selectedPolicy;
+		this.liderManagementEditor = liderManagementEditor;
+	}
+	
+	protected void configureShell(Shell shell) {
+	      super.configureShell(shell);
+	      shell.setText(Messages.getString("policy_definition_dialog"));
+	   }
 
 	/**
 	 * Create policy input widgets
 	 */
 	@Override
-	protected Control createDialogArea(Composite parent) {
+	protected Control createDialogArea(final Composite parent) {
 
-		parent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
+		parent.setLayoutData(new GridData(SWT.FILL, SWT.FILL,  true, true));
 		parent.setLayout(new GridLayout(1, false));
 
 		Composite composite = (Composite) super.createDialogArea(parent);
@@ -160,10 +188,11 @@ public class PolicyDefinitionDialog extends DefaultLiderDialog {
 			for (IConfigurationElement e : config) {
 				try {
 					// Read extension point attributes
-					String label = e.getAttribute("label");
+					final String label = e.getAttribute("label");
 					final String pluginName = e.getAttribute("pluginName");
 					final String pluginVersion = e.getAttribute("pluginVersion");
 					final String profileCommandId = e.getAttribute("profileCommandId");
+					
 
 					// Plugin label
 					Label pluginLabel = new Label(childComposite, SWT.NONE);
@@ -174,16 +203,19 @@ public class PolicyDefinitionDialog extends DefaultLiderDialog {
 					final Combo combo = new Combo(childComposite, SWT.DROP_DOWN | SWT.READ_ONLY);
 					combo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 					// Populate combo with active profiles
-					List<Profile> profiles = ProfileRestUtils.list(pluginName, pluginVersion, null, true);
+					final List<Profile> profiles = ProfileRestUtils.list(pluginName, pluginVersion, null, true);
 					populateCombo(combo, profiles);
 					comboList.add(combo);
+					
+					Composite compositeForButtons = new Composite(childComposite, SWT.BORDER);
+					compositeForButtons.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
+					compositeForButtons.setLayout(new GridLayout(3, false));
 
 					// Add profile button
-					Button btnAdd = new Button(childComposite, SWT.NONE);
-					btnAdd.setText(Messages.getString("ADD"));
-					btnAdd.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
-					btnAdd.setImage(SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE,
-							"icons/16/add.png"));
+					Button btnAdd = new Button(compositeForButtons, SWT.NONE);
+					//btnAdd.setText(Messages.getString("ADD"));
+					btnAdd.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+					btnAdd.setImage(SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE,	"icons/16/add.png"));
 					btnAdd.addSelectionListener(new SelectionListener() {
 						@Override
 						public void widgetSelected(SelectionEvent e) {
@@ -191,7 +223,19 @@ public class PolicyDefinitionDialog extends DefaultLiderDialog {
 							// user add/create new profiles
 							Command command = commandService.getCommand(profileCommandId);
 							try {
-								command.executeWithChecks(new ExecutionEvent());
+								
+								Map<String, String> map= new HashMap<>();
+								map.put("action", "add");
+								command.executeWithChecks(new ExecutionEvent(command,map,null,null));
+					
+//								
+//								ProfileEditorInput editorInput = new ProfileEditorInput(label, pluginName, pluginVersion, (IProfileDialog) profileDialog);
+//								
+//								DefaultProfileDialog dialog = new DefaultProfileDialog(Display.getDefault().getActiveShell(), null,	editorInput);
+//								dialog.create();
+//								dialog.open();
+								
+								
 								// Refresh profile combo
 								List<Profile> profiles = ProfileRestUtils.list(pluginName, pluginVersion, null, true);
 								populateCombo(combo, profiles);
@@ -204,6 +248,98 @@ public class PolicyDefinitionDialog extends DefaultLiderDialog {
 						public void widgetDefaultSelected(SelectionEvent e) {
 						}
 					});
+					
+					// edit profile button
+					
+					Button btnEdit = new Button(compositeForButtons, SWT.NONE);
+					//btnEdit.setText(Messages.getString("ADD"));
+					btnEdit.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+					btnEdit.setImage(SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE,
+							"icons/16/edit.png"));
+					btnEdit.addSelectionListener(new SelectionListener() {
+						@Override
+						public void widgetSelected(SelectionEvent e) {
+							
+							
+							int selectedIndex= combo.getSelectionIndex();
+							Profile profile= profiles.get(selectedIndex-1);
+
+							if (null == profile) {
+								Notifier.warning(null, Messages.getString("PLEASE_SELECT_PROFILE"));
+								return;
+							}
+							
+							Command command = commandService.getCommand(profileCommandId);
+							
+							Map<String,String > map= new HashMap<>();
+							map.put("selectedProfileId", profile.getId().toString());
+							map.put("action", "update");
+							try {
+								
+								command.executeWithChecks(new ExecutionEvent(command,map,null,null));
+								
+								
+								List<Profile> profiles = ProfileRestUtils.list(pluginName, pluginVersion, null, true);
+								populateCombo(combo, profiles);
+								
+							} catch (Exception e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}
+							
+//							ProfileEditorInput editorInput = (ProfileEditorInput) getEditorInput();
+//							DefaultProfileDialog dialog = new DefaultProfileDialog(parent.getShell(), profile,	null, editorInput);
+//							dialog.open();
+						
+							
+							
+						}
+
+						@Override
+						public void widgetDefaultSelected(SelectionEvent e) {
+						}
+					});
+					
+					// delete
+					
+					Button btnDelete = new Button(compositeForButtons, SWT.NONE);
+					//btnEdit.setText(Messages.getString("ADD"));
+					btnDelete.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+					btnDelete.setImage(SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE,
+							"icons/16/delete.png"));
+					btnDelete.addSelectionListener(new SelectionListener() {
+						@Override
+						public void widgetSelected(SelectionEvent e) {
+							
+							try {
+							List<Profile> profiles = ProfileRestUtils.list(pluginName, pluginVersion, null, true);
+							int selectedIndex= combo.getSelectionIndex();
+							Profile profile= profiles.get(selectedIndex-1);
+
+							if (null == profile) {
+								Notifier.warning(null, Messages.getString("PLEASE_SELECT_PROFILE"));
+								return;
+							}
+							
+						
+								ProfileRestUtils.delete(profile.getId());
+								
+								profiles = ProfileRestUtils.list(pluginName, pluginVersion, null, true);
+								populateCombo(combo, profiles);
+							} catch (Exception e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}
+							
+						}
+
+						@Override
+						public void widgetDefaultSelected(SelectionEvent e) {
+						}
+					});
+					
+					// refresh
+					
 
 				} catch (Exception e1) {
 					logger.error(e1.getMessage(), e1);
@@ -287,7 +423,10 @@ public class PolicyDefinitionDialog extends DefaultLiderDialog {
 			} else {
 				PolicyRestUtils.add(policy);
 			}
+			if(editor!=null)
 			editor.refresh();
+			if(liderManagementEditor!=null)
+			liderManagementEditor.refreshPolicyArea();
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			Notifier.error(null, Messages.getString("ERROR_ON_SAVE"));

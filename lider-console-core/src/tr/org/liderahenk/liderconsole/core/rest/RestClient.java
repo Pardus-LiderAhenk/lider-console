@@ -181,8 +181,14 @@ public class RestClient {
 	private static IResponse doPost(final IRequest request, final String url) {
 		CloseableHttpResponse httpResponse = null;
 		response = null;
+		
+		String buildedUrl=buildUrl(url);
+		if(buildedUrl!=null)
+			
 		try {
-			HttpPost httpPost = new HttpPost(buildUrl(url));
+			
+			
+			HttpPost httpPost = new HttpPost(buildedUrl);
 			httpPost.setHeader(CONTENT_TYPE_HEADER, CONTENT_MIME_TYPE);
 			httpPost.setHeader(ACCEPT_HEADER, ACCEPT_MIME_TYPE);
 
@@ -329,6 +335,7 @@ public class RestClient {
 	private static String buildUrl(String base) {
 		String tmp = RestSettings.getServerUrl();
 		// Handle trailing/leading slash characters.
+		if(base!=null && tmp!=null)
 		if (!tmp.endsWith("/") && !base.startsWith("/")) {
 			tmp = tmp + "/" + base;
 		} else if (tmp.endsWith("/") && base.startsWith("/")) {

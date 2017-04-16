@@ -71,11 +71,12 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
 	@Override
 	public void preWindowOpen() {
 		IWorkbenchWindowConfigurer configurer = getWindowConfigurer();
-		configurer.setInitialSize(new Point(950, 700));
-		configurer.setShowCoolBar(false);
-		configurer.setShowStatusLine(true);
+		//configurer.setInitialSize(new Point(800, 600));
+		configurer.setShowCoolBar(true);
+		configurer.setShowStatusLine(false);
 		configurer.setShowPerspectiveBar(true);
-		configurer.setShowProgressIndicator(true);
+		configurer.setShowProgressIndicator(false);
+		configurer.setShowMenuBar(true);
 		hookTitleUpdateListeners(configurer);
 	}
 
@@ -106,71 +107,97 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
 	 * @param configurer
 	 */
 	private void hookTitleUpdateListeners(IWorkbenchWindowConfigurer configurer) {
+		
+		
 		configurer.getWindow().addPageListener(new IPageListener() {
+			
 			public void pageActivated(IWorkbenchPage page) {
+				System.out.println("page activated " + page.getLabel());
 				updateTitle(false);
 			}
 
 			public void pageClosed(IWorkbenchPage page) {
+				System.out.println("page closed " + page.getLabel());
 				updateTitle(false);
 			}
 
 			public void pageOpened(IWorkbenchPage page) {
+				System.out.println("page opened "+ page.getLabel());
 				// do nothing
 			}
 		});
+		
+		
+		
+		
 		configurer.getWindow().addPerspectiveListener(new PerspectiveAdapter() {
 			public void perspectiveActivated(IWorkbenchPage page, IPerspectiveDescriptor perspective) {
+				System.out.println("perspectiveActivated " + page.getLabel());
 				updateTitle(false);
 			}
 
 			public void perspectiveSavedAs(IWorkbenchPage page, IPerspectiveDescriptor oldPerspective,
 					IPerspectiveDescriptor newPerspective) {
+				System.out.println("perspectiveSavedAs "+ page.getLabel());
 				updateTitle(false);
 			}
 
 			public void perspectiveDeactivated(IWorkbenchPage page, IPerspectiveDescriptor perspective) {
+				System.out.println("perspectiveDeactivated "+ page.getLabel());
 				updateTitle(false);
 			}
 		});
+		
+		
+		
+		
 		configurer.getWindow().getPartService().addPartListener(new IPartListener2() {
 			public void partActivated(IWorkbenchPartReference ref) {
 				if (ref instanceof IEditorReference) {
+					System.out.println("partActivated"+ ref.getId());
 					updateTitle(false);
 				}
 			}
 
 			public void partBroughtToTop(IWorkbenchPartReference ref) {
 				if (ref instanceof IEditorReference) {
+					System.out.println("partBroughtToTop"+ ref.getId());
 					updateTitle(false);
 				}
 			}
 
 			public void partClosed(IWorkbenchPartReference ref) {
+				System.out.println("partClosed"+ ref.getId());
 				updateTitle(false);
 			}
 
 			public void partDeactivated(IWorkbenchPartReference ref) {
+				System.out.println("partDeactivated " + ref.getId());
 				// do nothing
 			}
 
 			public void partOpened(IWorkbenchPartReference ref) {
+				System.out.println("partOpened "+ ref.getId());
+				
 				// do nothing
 			}
 
 			public void partHidden(IWorkbenchPartReference ref) {
 				if (ref.getPart(false) == lastActiveEditor && lastActiveEditor != null) {
+					System.out.println("partHidden");
 					updateTitle(true);
 				}
 			}
 
 			public void partVisible(IWorkbenchPartReference ref) {
 				if (ref.getPart(false) == lastActiveEditor && lastActiveEditor != null) {
+					System.out.println("partVisible");
 					updateTitle(false);
 				}
 			}
 
 			public void partInputChanged(IWorkbenchPartReference ref) {
+				System.out.println("partInputChanged");
 				// do nothing
 			}
 		});

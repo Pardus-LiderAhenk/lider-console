@@ -813,8 +813,7 @@ public class SWTResourceManager {
 		if (exportable != null) {
 			Button btnExport = new Button(exportable.getButtonComposite(), SWT.PUSH);
 			btnExport.setText(Messages.getString("EXPORT_REPORT"));
-			btnExport.setImage(
-					SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE, "icons/16/save.png"));
+			btnExport.setImage(SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE, "icons/16/save.png"));
 			btnExport.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
 			btnExport.addSelectionListener(new SelectionListener() {
 				@Override

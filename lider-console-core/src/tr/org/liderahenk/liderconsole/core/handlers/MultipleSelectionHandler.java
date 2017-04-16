@@ -36,8 +36,10 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.handlers.HandlerUtil;
 
+import tr.org.liderahenk.liderconsole.core.editors.LiderManagementEditor;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.ldap.utils.LdapUtils;
+import tr.org.liderahenk.liderconsole.core.model.LiderLdapEntry;
 import tr.org.liderahenk.liderconsole.core.model.SearchGroup;
 import tr.org.liderahenk.liderconsole.core.model.SearchGroupEntry;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
@@ -57,7 +59,20 @@ public abstract class MultipleSelectionHandler extends AbstractHandler {
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 
 		Set<String> dnSet = null;
+		
+		List<LiderLdapEntry>	selectedDnList = LiderManagementEditor.getLiderLdapEntries();
+		
+		
+		if(selectedDnList !=null && selectedDnList.size()>0){
+			dnSet = new HashSet<String>();
+			
+			for (LiderLdapEntry liderLdapEntry : selectedDnList) {
+				dnSet.add(liderLdapEntry.getName());
+			}
+			
+		}
 
+		else{
 		IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindowChecked(event);
 		IWorkbenchPage page = window.getActivePage();
 		ISelection selection = page.getSelection();
@@ -106,6 +121,7 @@ public abstract class MultipleSelectionHandler extends AbstractHandler {
 				}
 			}
 
+		}
 		}
 
 		if (dnSet == null || dnSet.isEmpty()) {

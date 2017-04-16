@@ -737,6 +737,10 @@ Public License instead of this License.  But first, please read
       <plugin id="javax.servlet"/>
       <plugin id="javax.xml"/>
       <plugin id="javax.xml.stream"/>
+      <plugin id="lider-console-antivirus"/>
+      <plugin id="lider-console-backup"/>
+      <plugin id="lider-console-browser"/>
+      <plugin id="lider-console-conky"/>
       <plugin id="net.sf.ehcache"/>
       <plugin id="org.apache.batik.css"/>
       <plugin id="org.apache.batik.util"/>

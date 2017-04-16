@@ -53,5 +53,6 @@ public abstract class DefaultLiderDialog extends Dialog {
 	protected boolean isResizable() {
 		return true;
 	}
+	
 
 }

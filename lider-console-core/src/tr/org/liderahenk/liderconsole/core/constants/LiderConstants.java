@@ -28,6 +28,9 @@ import org.eclipse.e4.core.services.events.IEventBroker;
  *
  */
 public class LiderConstants {
+	
+	
+	public static String MAIN_PAGE_URL="http://www.google.com";
 
 	public static final class PLUGIN_IDS {
 		public static final String LIDER_CONSOLE_CORE = "tr.org.liderahenk.liderconsole.core";
@@ -40,6 +43,7 @@ public class LiderConstants {
 
 	public static final class VIEWS {
 		public static final String BROWSER_VIEW = "org.apache.directory.studio.ldapbrowser.ui.views.browser.BrowserView";
+		public static final String LIDER_LDAP_BROWSER_VIEW = "tr.org.liderahenk.liderconsole.core.views.LdapBrowserView";
 		public static final String SEARCH_GROUP_VIEW = "tr.org.liderahenk.liderconsole.core.views.SearchGroupView";
 		public static final String SYSTEM_LOGS_VIEW = "tr.org.liderahenk.liderconsole.core.views.SystemLogsView";
 	}
@@ -54,12 +58,16 @@ public class LiderConstants {
 		public static final String AGENT_INFO_EDITOR = "tr.org.liderahenk.liderconsole.core.editors.AgentInfoEditor";
 		public static final String REPORT_TEMPLATE_EDITOR = "tr.org.liderahenk.liderconsole.core.editors.ReportTemplateEditor";
 		public static final String REPORT_VIEW_EDITOR = "tr.org.liderahenk.liderconsole.core.editors.ReportViewEditor";
+		public static final String LIDER_MANAGEMENT_EDITOR = "tr.org.liderahenk.liderconsole.core.editors.LiderManagementEditor";
+		public static final String LIDER_MAINPAGE_EDITOR = "tr.org.liderahenk.liderconsole.core.editors.LiderMainEditor";
+		public static final String LIDER_MAILCONFIGURATION_EDITOR = "tr.org.liderahenk.liderconsole.core.editors.MailConfigurationEditor";
 	}
 
 	public static final class EXTENSION_POINTS {
 		public static final String I18N = "tr.org.liderahenk.liderconsole.core.i18n";
 		public static final String PROFILE_MENU = "tr.org.liderahenk.liderconsole.core.profilemenu";
 		public static final String POLICY_MENU = "tr.org.liderahenk.liderconsole.core.policymenu";
+		public static final String TASK_MENU = "tr.org.liderahenk.liderconsole.core.taskmenu";
 	}
 
 	/**

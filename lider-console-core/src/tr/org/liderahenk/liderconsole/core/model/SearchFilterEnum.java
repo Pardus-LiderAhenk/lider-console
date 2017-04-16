@@ -21,7 +21,7 @@ package tr.org.liderahenk.liderconsole.core.model;
 
 public enum SearchFilterEnum {
 
-	EQ("="), NOT_EQ("!="), GT(">"), LT("<");
+	EQ("="), NOT_EQ("!="), GT(">="), LT("<=");
 
 	private String operator;
 

@@ -26,6 +26,7 @@ import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
+import java.util.Hashtable;
 import java.util.Map;
 
 import javax.net.ssl.KeyManager;
@@ -35,6 +36,11 @@ import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 
 import org.jivesoftware.smack.ConnectionConfiguration.SecurityMode;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 import org.jivesoftware.smack.ConnectionListener;
 import org.jivesoftware.smack.ReconnectionManager;
 import org.jivesoftware.smack.ReconnectionManager.ReconnectionPolicy;
@@ -67,6 +73,7 @@ import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.ldap.listeners.LdapConnectionListener;
 import tr.org.liderahenk.liderconsole.core.ldap.listeners.TreePaintListener;
 import tr.org.liderahenk.liderconsole.core.ldap.utils.LdapUtils;
+import tr.org.liderahenk.liderconsole.core.views.LdapBrowserView;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier.NotifierMode;
 import tr.org.liderahenk.liderconsole.core.widgets.NotifierColorsFactory.NotifierTheme;
@@ -192,7 +199,7 @@ public class XMPPClient {
 			builder.setSecurityMode(SecurityMode.disabled);
 		}
 		config = builder.build();
-		logger.debug("XMPP configuration finished: {}", config.toString());
+		logger.info("XMPP configuration finished: {}", config.toString());
 	}
 
 	/**
@@ -304,6 +311,8 @@ public class XMPPClient {
 				Collection<RosterEntry> entries = roster.getEntries();
 				Map<String, String> uidMap = LdapUtils.getInstance().getUidMap(LdapConnectionListener.getConnection(),
 						LdapConnectionListener.getMonitor());
+				
+				Map<String, Boolean> presenceMap=  new Hashtable<String, Boolean>();;
 
 				if (entries != null && !entries.isEmpty()) {
 					for (RosterEntry entry : entries) {
@@ -316,6 +325,7 @@ public class XMPPClient {
 							} else {
 								try {
 									String uid = jid.substring(0, jid.indexOf('@'));
+									
 									String dn = uidMap.containsKey(uid) ? uidMap.get(uid)
 											: LdapUtils.getInstance().findDnByUid(uid,
 													LdapConnectionListener.getConnection(),
@@ -323,8 +333,10 @@ public class XMPPClient {
 									if (dn != null && !dn.isEmpty()) {
 										if (presence.getType() == Type.available) {
 											TreePaintListener.getInstance().put(dn, true);
+											//presenceMap.put(dn, true);
 										} else if (presence.getType() == Type.unavailable) {
 											TreePaintListener.getInstance().put(dn, false);
+											//presenceMap.put(dn, false);
 										}
 									}
 								} catch (Exception e) {
@@ -334,6 +346,23 @@ public class XMPPClient {
 						}
 					}
 
+//					IWorkbench workbench = PlatformUI.getWorkbench();
+//					IWorkbenchWindow[] windows = workbench.getWorkbenchWindows();
+//					if (windows != null && windows.length > 0) {
+//
+//						IWorkbenchWindow window = windows[0];
+//						final IWorkbenchPage activePage = window.getActivePage();
+//							
+//							LdapBrowserView browserView = (LdapBrowserView) window.getActivePage().findView(LiderConstants.VIEWS.BROWSER_VIEW);
+//							
+//							browserView.refreshTree(presenceMap);
+//							
+//
+//					
+//						
+//					}
+					
+					
 					TreePaintListener.getInstance().redraw();
 				}
 			}

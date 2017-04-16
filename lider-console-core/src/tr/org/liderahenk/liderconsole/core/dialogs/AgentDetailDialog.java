@@ -57,6 +57,9 @@ public class AgentDetailDialog extends DefaultLiderDialog {
 
 	private Agent selectedAgent;
 
+	/**
+	 * @wbp.parser.constructor
+	 */
 	public AgentDetailDialog(Shell parentShell, Agent selectedAgent) {
 		super(parentShell);
 		this.selectedAgent = selectedAgent;
@@ -245,8 +248,6 @@ public class AgentDetailDialog extends DefaultLiderDialog {
 	 */
 	private CTabFolder createTabFolder(final Composite composite) {
 		CTabFolder tabFolder = new CTabFolder(composite, SWT.BORDER);
-		GridData gdTabFolder = new GridData(SWT.LEFT, SWT.CENTER, false, false);
-		tabFolder.setLayoutData(gdTabFolder);
 		tabFolder.setSelectionBackground(
 				Display.getCurrent().getSystemColor(SWT.COLOR_TITLE_INACTIVE_BACKGROUND_GRADIENT));
 		return tabFolder;

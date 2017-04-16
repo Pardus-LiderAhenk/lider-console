@@ -57,6 +57,8 @@ import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
  *
  */
 public class InstalledPluginsEditor extends EditorPart {
+	public InstalledPluginsEditor() {
+	}
 
 	private static final Logger logger = LoggerFactory.getLogger(InstalledPluginsEditor.class);
 

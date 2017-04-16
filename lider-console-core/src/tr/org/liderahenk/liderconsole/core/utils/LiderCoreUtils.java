@@ -20,6 +20,12 @@
 package tr.org.liderahenk.liderconsole.core.utils;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.naming.directory.SearchResult;
+
+import tr.org.liderahenk.liderconsole.core.model.LiderLdapEntry;
 
 /**
  * 
@@ -55,6 +61,22 @@ public class LiderCoreUtils {
 			return false;
 		}
 		return true;
+	}
+	
+	public static List<LiderLdapEntry> convertSearchResult2LiderLdapEntry(List<SearchResult> entries){
+		
+		
+		List<LiderLdapEntry> liderLdapEntryList= new ArrayList<>();
+		if(entries!=null)
+		
+		for (SearchResult rs : entries) {
+			
+			LiderLdapEntry liderLdapEntry= new LiderLdapEntry(rs.getName(), rs.getObject(), rs.getAttributes(), rs);
+			liderLdapEntryList.add(liderLdapEntry);
+		}
+		
+		return liderLdapEntryList;
+		
 	}
 
 }

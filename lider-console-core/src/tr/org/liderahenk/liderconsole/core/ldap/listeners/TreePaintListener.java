@@ -23,6 +23,8 @@ import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Map;
 
+import javax.naming.directory.Attributes;
+
 import org.apache.directory.api.ldap.model.schema.ObjectClass;
 import org.apache.directory.studio.ldapbrowser.core.model.IBookmark;
 import org.apache.directory.studio.ldapbrowser.core.model.IEntry;
@@ -40,6 +42,7 @@ import org.slf4j.LoggerFactory;
 
 import tr.org.liderahenk.liderconsole.core.current.UserSettings;
 import tr.org.liderahenk.liderconsole.core.ldap.utils.LdapUtils;
+import tr.org.liderahenk.liderconsole.core.model.LiderLdapEntry;
 
 /**
  * This class is used to paint online/offline status images on LDAP tree while
@@ -53,7 +56,7 @@ public class TreePaintListener implements Listener {
 	private static final Logger logger = LoggerFactory.getLogger(TreePaintListener.class);
 
 	private static TreePaintListener instance = null;
-
+	
 	private Tree tree;
 	private Map<String, Boolean> presenceMap;
 	private boolean xmppConnected = false;
@@ -97,21 +100,28 @@ public class TreePaintListener implements Listener {
 	 * Redraw the LDAP tree asynchronously
 	 */
 	public void redraw() {
+		
+		
 		try {
 			Display.getDefault().asyncExec(new Runnable() {
 				@Override
 				public void run() {
-					tree.redraw();
+					if(tree!=null && !tree.isDisposed() )
+					{
+						System.out.println("tree redrawn");
+						tree.redraw();
+					}
 				}
 			});
 		} catch (Exception e) {
+			
 			logger.error(e.getMessage(), e);
 		}
 	}
 
 	@Override
 	public void handleEvent(Event event) {
-
+		
 		switch (event.type) {
 		case SWT.MeasureItem: {
 			TreeItem item = (TreeItem) event.item;
@@ -126,6 +136,7 @@ public class TreePaintListener implements Listener {
 			String text = item.getText();
 
 			Object data = item.getData();
+			
 			if (data instanceof SearchResult) {
 				data = ((SearchResult) data).getEntry();
 			}
@@ -144,6 +155,27 @@ public class TreePaintListener implements Listener {
 					originalImage = item.getImage();
 				}
 			}
+			
+			if (originalImage != agentImage && originalImage != userImage && data instanceof LiderLdapEntry) {
+				
+				LiderLdapEntry entry=(LiderLdapEntry) data;
+				if(entry.isHasPardusDevice()){
+					item.setImage(agentImage);
+					originalImage = item.getImage();
+				}
+				else if(entry.isHasPardusAccount()){
+					item.setImage(userImage);
+					//originalImage = item.getImage();
+				}
+				
+//				if (LdapUtils.getInstance().isAgent(classes.)) {
+//					item.setImage(agentImage);
+//					originalImage = item.getImage();
+//				} else if (LdapUtils.getInstance().isUser(classes)) {
+//					item.setImage(userImage);
+//					originalImage = item.getImage();
+//				}
+			}
 			if (originalImage != null) {
 				event.gc.drawImage(originalImage, event.x + 6, event.y - 1);
 			}
@@ -158,6 +190,20 @@ public class TreePaintListener implements Listener {
 				IEntry entry = (IEntry) data;
 				String dn = entry.getDn().getName();
 
+				if (presenceMap.containsKey(dn)) {
+					Image miniIcon;
+					if (presenceMap.get(dn) && xmppConnected) {
+						miniIcon = onlineImage;
+					} else {
+						miniIcon = offlineImage;
+					}
+					event.gc.drawImage(miniIcon, event.x, event.y + 8);
+				}
+			}
+			if (data instanceof LiderLdapEntry) {
+				LiderLdapEntry entry = (LiderLdapEntry) data;
+				String dn = entry.getName();
+				
 				if (presenceMap.containsKey(dn)) {
 					Image miniIcon;
 					if (presenceMap.get(dn) && xmppConnected) {

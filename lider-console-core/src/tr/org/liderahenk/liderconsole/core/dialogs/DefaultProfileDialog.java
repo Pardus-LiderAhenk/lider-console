@@ -78,6 +78,26 @@ public class DefaultProfileDialog extends DefaultLiderDialog {
 		this.editorInput = editorInput;
 		editorInput.getProfileDialog().init();
 	}
+	public DefaultProfileDialog(Shell parentShell, DefaultProfileEditor editor, ProfileEditorInput editorInput, String selectedProfileId) {
+		super(parentShell);
+		this.editor = editor;
+		this.editorInput = editorInput;
+		editorInput.getProfileDialog().init();
+		
+		if(selectedProfileId != null){
+			
+			Profile profile=null;
+			try {
+				profile = ProfileRestUtils.get(Long.parseLong(selectedProfileId));
+				if(profile!=null)
+					this.selectedProfile=profile;
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+	}
 
 	/**
 	 * Create profile input widgets
@@ -172,6 +192,7 @@ public class DefaultProfileDialog extends DefaultLiderDialog {
 				} else {
 					ProfileRestUtils.add(profile);
 				}
+				if(editor!=null)
 				editor.refresh();
 			} catch (Exception e) {
 				logger.error(e.getMessage(), e);

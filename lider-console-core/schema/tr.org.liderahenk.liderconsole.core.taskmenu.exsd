@@ -3,10 +3,10 @@
 <schema targetNamespace="tr.org.liderahenk.liderconsole.core" xmlns="http://www.w3.org/2001/XMLSchema">
 <annotation>
       <appinfo>
-         <meta.schema plugin="tr.org.liderahenk.liderconsole.core" id="tr.org.liderahenk.liderconsole.core.policymenu" name="%extension.point.policy.menu"/>
+         <meta.schema plugin="tr.org.liderahenk.liderconsole.core" id="tr.org.liderahenk.liderconsole.core.taskmenu" name="%extension.point.task.menu"/>
       </appinfo>
       <documentation>
-         This extension point can be used to contribute to policy execution dialogs.
+         This extension point can be used to contribute to task execution dialogs.
       </documentation>
    </annotation>
 
@@ -18,7 +18,7 @@
       </annotation>
       <complexType>
          <sequence minOccurs="1" maxOccurs="unbounded">
-            <element ref="policyItem"/>
+            <element ref="taskItem"/>
          </sequence>
          <attribute name="point" type="string" use="required">
             <annotation>
@@ -47,7 +47,7 @@
       </complexType>
    </element>
 
-   <element name="policyItem">
+   <element name="taskItem">
       <complexType>
          <attribute name="label" type="string" use="required">
             <annotation>
@@ -73,7 +73,7 @@
                </documentation>
             </annotation>
          </attribute>
-         <attribute name="profileCommandId" type="string" use="required">
+         <attribute name="taskCommandId" type="string" use="required">
             <annotation>
                <documentation>
                   Command ID used for plugin profile handler

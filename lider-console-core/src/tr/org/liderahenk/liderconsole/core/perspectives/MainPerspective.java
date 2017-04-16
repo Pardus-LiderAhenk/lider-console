@@ -19,18 +19,63 @@
 */
 package tr.org.liderahenk.liderconsole.core.perspectives;
 
+import org.apache.directory.studio.ldapbrowser.ui.views.connection.ConnectionView;
+import org.apache.directory.studio.ldapbrowser.ui.views.modificationlogs.ModificationLogsView;
+import org.apache.directory.studio.ldapbrowser.ui.views.searchlogs.SearchLogsView;
+import org.eclipse.ui.IFolderLayout;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPerspectiveFactory;
 
+import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
+import tr.org.liderahenk.liderconsole.core.views.LdapBrowserView;
+
 public class MainPerspective implements IPerspectiveFactory {
+
+	public static String getId() {
+		return LiderConstants.PERSPECTIVES.MAIN_PERSPECTIVE_ID;
+	}
 
 	@Override
 	public void createInitialLayout(IPageLayout layout) {
-		layout.setEditorAreaVisible(true);
-		layout.setFixed(true);
+		
+		System.out.println("main perspectiive");
+		// layout.setEditorAreaVisible(true);
+		// layout.setFixed(true);
 		// This method can be used to add views
 		// But no need to implement it here since we can use plugin.xml file to
 		// create views
+		String editorArea = layout.getEditorArea();
+		IFolderLayout browserFolder = layout.createFolder("browserFolder", 1, 0.25F, editorArea);
+		browserFolder.addView(LdapBrowserView.getId());
+
+		IFolderLayout connectionFolder = layout.createFolder("connectionFolder", 4, 0.75F, "browserFolder");
+		connectionFolder.addView(ConnectionView.getId());
+
+//		IFolderLayout outlineFolder = layout.createFolder("outlineFolder", 2, 0.75F, editorArea);
+//		outlineFolder.addView("org.eclipse.ui.views.ContentOutline");
+
+//		IFolderLayout progessFolder = layout.createFolder("progressFolder", 4, 0.75F, "outlineFolder");
+//		progessFolder.addView("org.eclipse.ui.views.ProgressView");
+
+		IFolderLayout logFolder = layout.createFolder("logFolder", 2, 0.75F, editorArea);
+		logFolder.addView(ModificationLogsView.getId());
+		logFolder.addView(SearchLogsView.getId());
+		logFolder.addView("org.eclipse.pde.runtime.LogView");
+		logFolder.addPlaceholder("*");
+
+		// boolean isIDE = CommonUIUtils.isIDEEnvironment();
+		// if (!isIDE)
+		// {
+		// layout.getViewLayout(BrowserView.getId()).setCloseable(false);
+		// layout.getViewLayout(ConnectionView.getId()).setCloseable(false);
+		// layout.getViewLayout("org.eclipse.ui.views.ContentOutline").setCloseable(false);
+		// layout.getViewLayout("org.eclipse.ui.views.ProgressView").setCloseable(false);
+		// layout.getViewLayout(ModificationLogsView.getId()).setCloseable(false);
+		// layout.getViewLayout(SearchLogsView.getId()).setCloseable(false);
+		// }
+		
+		
+
 	}
 
 }

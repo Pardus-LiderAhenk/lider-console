@@ -19,9 +19,13 @@
 */
 package tr.org.liderahenk.liderconsole.core.editorinput;
 
+import java.util.List;
+
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IPersistableElement;
+
+import tr.org.liderahenk.liderconsole.core.model.LiderLdapEntry;
 
 /**
  * Default {@link IEditorInput} implementation that can be used by Handler
@@ -33,6 +37,10 @@ import org.eclipse.ui.IPersistableElement;
 public class DefaultEditorInput implements IEditorInput {
 
 	private String label;
+	
+	private String dnInfo;
+	
+	private List<LiderLdapEntry>  liderLdapEntries;
 
 	public DefaultEditorInput(String label) {
 		super();
@@ -100,6 +108,23 @@ public class DefaultEditorInput implements IEditorInput {
 
 	public void setLabel(String label) {
 		this.label = label;
+	}
+
+	public String getDnInfo() {
+		return dnInfo;
+	}
+
+	public void setDnInfo(String dnInfo) {
+		this.dnInfo = dnInfo;
+	}
+
+
+	public List<LiderLdapEntry> getLiderLdapEntries() {
+		return liderLdapEntries;
+	}
+
+	public void setLiderLdapEntries(List<LiderLdapEntry> liderLdapEntries) {
+		this.liderLdapEntries = liderLdapEntries;
 	}
 
 }

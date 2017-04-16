@@ -46,7 +46,6 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,10 +55,13 @@ import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
 import tr.org.liderahenk.liderconsole.core.current.RestSettings;
 import tr.org.liderahenk.liderconsole.core.current.UserSettings;
 import tr.org.liderahenk.liderconsole.core.editorinput.DefaultEditorInput;
+import tr.org.liderahenk.liderconsole.core.editors.LiderMainEditor;
+import tr.org.liderahenk.liderconsole.core.editors.LiderManagementEditor;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.ldap.utils.LdapUtils;
 import tr.org.liderahenk.liderconsole.core.rest.responses.IResponse;
 import tr.org.liderahenk.liderconsole.core.rest.utils.TaskRestUtils;
+import tr.org.liderahenk.liderconsole.core.views.LdapBrowserView;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
 import tr.org.liderahenk.liderconsole.core.xmpp.XMPPClient;
 
@@ -91,9 +93,15 @@ public class LdapConnectionListener implements IConnectionListener {
 			// on agents and users
 			// Second listener, on the other hand, is responsible for querying
 			// XMPP rosters on LDAP entry refresh.
-			BrowserView browserView = (BrowserView) window.getActivePage().findView(LiderConstants.VIEWS.BROWSER_VIEW);
+		//	BrowserView browserView = (BrowserView) window.getActivePage().findView(LiderConstants.VIEWS.BROWSER_VIEW);
+			
+			LdapBrowserView browserView = (LdapBrowserView) window.getActivePage().findView(LiderConstants.VIEWS.LIDER_LDAP_BROWSER_VIEW);
+			
+		//	IEditorDescriptor ed= desc[0];
+			
 			if (browserView != null) {
-				final Tree tree = browserView.getMainWidget().getViewer().getTree();
+				final Tree tree = browserView.getTreeViewer().getTree();
+		//		final Tree tree = browserView.getMainWidget().getViewer().getTree();
 				final TreePaintListener listener = TreePaintListener.getInstance();
 				listener.setTree(tree);
 
@@ -102,6 +110,7 @@ public class LdapConnectionListener implements IConnectionListener {
 					public void run() {
 
 						final Menu menu = tree.getMenu();
+						if(menu!=null)
 						menu.addMenuListener(new MenuAdapter() {
 							Boolean hookedListener = false;
 
@@ -178,7 +187,19 @@ public class LdapConnectionListener implements IConnectionListener {
 					if (windows != null && windows.length > 0) {
 						IWorkbenchWindow window = windows[0];
 						IWorkbenchPage activePage = window.getActivePage();
-						activePage.closeAllEditors(false);
+					//	activePage.closeAllEditors(false);
+					//	activePage.hideView(activePage.findView(LdapBrowserView.getId()));
+						LdapBrowserView browserView =(LdapBrowserView) activePage.findView(LdapBrowserView.getId());
+						browserView.clearView();
+						
+						
+						DefaultEditorInput input= new DefaultEditorInput(Messages.getString("LDAP_SEARCH"));
+						LiderMainEditor editor= (LiderMainEditor) activePage.findEditor(input);
+ 	  					 
+ 	  					 if(editor!=null){
+ 	  					//	 activePage.closeEditor(editor, true);
+ 	  					 }
+						
 					}
 					Notifier.success(null, Messages.getString("LIDER_CONNECTION_CLOSED"));
 				} catch (Exception e) {
@@ -262,6 +283,7 @@ public class LdapConnectionListener implements IConnectionListener {
 						Notifier.error(null, Messages.getString("CHECK_LIDER_STATUS_AND_REST_SERVICE"));
 						return;
 					}
+					
 					if (response != null) {
 						Map<String, Object> config = response.getResultMap();
 						if (config != null) {
@@ -287,7 +309,10 @@ public class LdapConnectionListener implements IConnectionListener {
 					Notifier.error(null, Messages.getString("LIDER_SERVICE_ADDRESS_ERROR", configDn));
 				}
 
+			
 				openLdapSearchEditor();
+			
+				
 			} else {
 				Notifier.error(null, Messages.getString("LIDER_CONFIG_DN_ERROR", configDn));
 			}
@@ -314,9 +339,25 @@ public class LdapConnectionListener implements IConnectionListener {
 				@Override
 				public void run() {
 					try {
+					//	activePage.closeAllPerspectives(false, true);
+						
+						System.out.println("open editors");
+						
+					LdapBrowserView browserView=	(LdapBrowserView) activePage.findView(LdapBrowserView.getId());
+					
+					browserView.setInput(getConnection());
+						
+//						activePage.hideView(activePage.findView(LdapBrowserView.getId()));
+//						
+//						activePage.showView(LdapBrowserView.getId());
+//						activePage.openEditor(new DefaultEditorInput(Messages.getString("LDAP_SEARCH")),
+//								LiderConstants.EDITORS.LDAP_SEARCH_EDITOR);
 						activePage.openEditor(new DefaultEditorInput(Messages.getString("LDAP_SEARCH")),
-								LiderConstants.EDITORS.LDAP_SEARCH_EDITOR);
-					} catch (PartInitException e) {
+								LiderConstants.EDITORS.LIDER_MAINPAGE_EDITOR);
+						
+						
+						
+					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				}

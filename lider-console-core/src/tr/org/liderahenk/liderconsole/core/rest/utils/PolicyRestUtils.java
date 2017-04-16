@@ -176,7 +176,7 @@ public class PolicyRestUtils {
 			policies = mapper.readValue(mapper.writeValueAsString(response.getResultMap().get("policies")),
 					new TypeReference<List<Policy>>() {
 					});
-			Notifier.success(null, Messages.getString("RECORD_LISTED"));
+			//Notifier.success(null, Messages.getString("RECORD_LISTED"));
 		} else {
 			Notifier.error(null, Messages.getString("ERROR_ON_LIST"));
 		}

@@ -69,6 +69,8 @@ import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
  *
  */
 public class PolicyDefinitionEditor extends EditorPart {
+	public PolicyDefinitionEditor() {
+	}
 
 	private static final Logger logger = LoggerFactory.getLogger(PolicyDefinitionEditor.class);
 

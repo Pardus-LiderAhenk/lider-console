@@ -50,10 +50,6 @@
                name="startupProgressRect"
                value="0,292,500,15">
          </property>
-		 <property
-               name="applicationCSS"
-               value="platform:/plugin/tr.org.liderahenk.liderconsole.rcp/css/e4_default_win7.css">
-         </property>
       </product>
    </extension>
 </plugin>

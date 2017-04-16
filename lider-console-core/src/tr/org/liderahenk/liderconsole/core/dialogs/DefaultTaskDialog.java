@@ -167,7 +167,7 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 	public void create() {
 		super.create();
 		setTitle(createTitle());
-		setMessage(generateMsg(dnSet), IMessageProvider.INFORMATION);
+		setMessage(Messages.getString("selected_dn_size")+" : "+dnSet.size()+"\n"+generateMsg(dnSet), IMessageProvider.INFORMATION);
 	}
 
 	public void openWithEventBroker() {

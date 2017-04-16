@@ -13,6 +13,9 @@
 	<extension-point id="tr.org.liderahenk.liderconsole.core.profilemenu" name="%extension.point.profile.menu" schema="schema/tr.org.liderahenk.liderconsole.core.profilemenu.exsd"/>
 	<!-- Plugin may contribute to this extension point: -->
 	<extension-point id="tr.org.liderahenk.liderconsole.core.policymenu" name="%extension.point.policy.menu" schema="schema/tr.org.liderahenk.liderconsole.core.policymenu.exsd"/>
+	
+	
+	<extension-point id="tr.org.liderahenk.liderconsole.core.taskmenu" name="%extension.point.task.menu" schema="schema/tr.org.liderahenk.liderconsole.core.taskmenu.exsd"/>
    
    <extension
          point="org.eclipse.help.toc">
@@ -87,6 +90,11 @@
             id="tr.org.liderahenk.liderconsole.core.commands.AppliedPolicy"
             name="%command.applied.policy">
       </command>
+      <command
+            categoryId="tr.org.liderahenk.liderconsole.commands.category"
+            id="tr.org.liderahenk.liderconsole.core.commands.MailConfiguration"
+            name="%command.mailconfiguration">
+      </command>
    </extension>
    
    <!-- HANDLERS -->
@@ -127,6 +135,10 @@
 	  <handler
             class="tr.org.liderahenk.liderconsole.core.handlers.AppliedPolicyHandler"
             commandId="tr.org.liderahenk.liderconsole.core.commands.AppliedPolicy">
+      </handler>
+	  <handler
+            class="tr.org.liderahenk.liderconsole.core.handlers.MailConfigurationHandler"
+            commandId="tr.org.liderahenk.liderconsole.core.commands.MailConfiguration">
       </handler>
 	  <handler
             class="tr.org.liderahenk.liderconsole.core.handlers.PolicyExecutionSelectHandler"
@@ -221,6 +233,8 @@
                </visibleWhen>
          </menu>
       </menuContribution>
+      
+      
       <menuContribution
             locationURI="menu:tr.org.liderahenk.liderconsole.menus.LiderMain?after=additions">
 		<!-- Plugins may contribute to this menu: -->
@@ -238,6 +252,12 @@
 	          id="tr.org.liderahenk.liderconsole.core.commands.AgentInfo"
 	          icon="icons/16/chart-flow.png"
 	          tooltip="%command.agent.info">
+        </command>
+		<command
+	          commandId="tr.org.liderahenk.liderconsole.core.commands.MailConfiguration"
+	          id="tr.org.liderahenk.liderconsole.core.commands.MailConfiguration"
+	          icon="icons/16/chart-flow.png"
+	          tooltip="%command.mailconfiguration">
         </command>
 		<command
 	          commandId="tr.org.liderahenk.liderconsole.core.commands.ExecutedTask"
@@ -284,6 +304,9 @@
 	          tooltip="%command.report.view">
         </command>
 	  </menuContribution>
+	  
+	  
+	  
       <menuContribution
             locationURI="popup:org.apache.directory.studio.ldapbrowser.ui.views.browser.BrowserView?after=additions">
          <menu
@@ -317,6 +340,8 @@
                </visibleWhen>
 		 </command>
       </menuContribution>
+      
+      
       <menuContribution
             locationURI="popup:tr.org.liderahenk.liderconsole.core.views.SearchGroupView?after=additions">
          <menu
@@ -420,6 +445,32 @@
 	       id="tr.org.liderahenk.liderconsole.core.editors.LdapSearchEditor"
 	       name="%editor.ldap.search">
 		</editor>
+		
+		
+		<editor
+	       class="tr.org.liderahenk.liderconsole.core.editors.LiderManagementEditor"
+	       default="true"
+	       icon="icons/16/ldap.png"
+	       id="tr.org.liderahenk.liderconsole.core.editors.LiderManagementEditor"
+	       name="%editor.lider.management">
+		</editor>
+		
+		<editor
+	       class="tr.org.liderahenk.liderconsole.core.editors.LiderMainEditor"
+	       default="true"
+	       icon="icons/16/ldap.png"
+	       id="tr.org.liderahenk.liderconsole.core.editors.LiderMainEditor"
+	       name="%editor.lider.mainpage">
+		</editor>
+		
+		<editor
+	       class="tr.org.liderahenk.liderconsole.core.editors.MailConfigurationEditor"
+	       default="true"
+	       icon="icons/16/ldap.png"
+	       id="tr.org.liderahenk.liderconsole.core.editors.MailConfigurationEditor"
+	       name="%editor.lider.mailconfiguration">
+		</editor>
+		
 	    <editor
 		    class="tr.org.liderahenk.liderconsole.core.editors.DefaultProfileEditor"
 		    icon="icons/16/folder-open.png"
@@ -513,6 +564,16 @@
             name="%view.search.group"
             restorable="true">
       </view>
+      
+      <view
+            allowMultiple="false"
+            category="tr.org.liderahenk.liderconsole.core.category"
+            class="tr.org.liderahenk.liderconsole.core.views.LdapBrowserView"
+            icon="icons/16/ldap.png"
+            id="tr.org.liderahenk.liderconsole.core.views.LdapBrowserView"
+            name="%view.ldap.browser"
+            restorable="true">
+      </view>
    </extension>
    
    <!-- SERVICES -->
@@ -594,11 +655,12 @@
 	</extension>
 	
 	<!-- PERSPECTIVE EXTENSIONS -->
-	<!-- Ignore warnings below. Relative views come from Apache DS API -->
+	<!-- Ignore warnings below. Relative views come from Apache DS API 
  	<extension
        point="org.eclipse.ui.perspectiveExtensions">
 	    <perspectiveExtension
-	          targetID="org.apache.directory.studio.ldapbrowser.ui.perspective.BrowserPerspective">
+	          targetID="tr.org.liderahenk.liderconsole.core.perspectives.MainPerspective">
+	       
 	       <view
 	             closeable="true"
 	             id="tr.org.liderahenk.liderconsole.core.views.TaskOverview"
@@ -635,7 +697,23 @@
 	             showTitle="true"
 	             visible="true">
 	       </view>
+	       
+	       <view
+	             closeable="true"
+	             id="tr.org.liderahenk.liderconsole.core.views.LdapBrowserView"
+	             minimized="false"
+	             ratio="0.75"
+	             relationship="stack"
+	             relative="tr.org.liderahenk.liderconsole.core.views.SystemLogsView"
+	             moveable="true"
+	             standalone="false"
+	             showTitle="true"
+	             visible="true">
+	       </view>
+	       
 	    </perspectiveExtension>
  	</extension>
+ 	
+ 	-->
  
 </plugin>

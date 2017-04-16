@@ -45,6 +45,7 @@ import org.apache.directory.studio.common.core.jobs.StudioProgressMonitor;
 import org.apache.directory.studio.connection.core.Connection;
 import org.apache.directory.studio.connection.core.Connection.AliasDereferencingMethod;
 import org.apache.directory.studio.connection.core.Connection.ReferralHandlingMethod;
+import org.apache.directory.studio.connection.core.io.ConnectionWrapper;
 import org.apache.directory.studio.connection.core.io.StudioNamingEnumeration;
 import org.apache.directory.studio.ldapbrowser.core.jobs.SearchRunnable;
 import org.apache.directory.studio.ldapbrowser.core.jobs.StudioBrowserJob;
@@ -134,15 +135,16 @@ public class LdapUtils {
 
 		// TODO handle pagedSearch
 		if (conn != null) {
-			logger.debug("Searching for attributes: {0} on DN: {1} using filter: {2}",
-					new Object[] { returningAttributes.toString(), baseDn, filter });
+			logger.debug("Searching for attributes: {0} on DN: {1} using filter: {2}",	new Object[] { returningAttributes, baseDn, filter });
 
 			SearchControls searchControls = new SearchControls();
 			searchControls.setCountLimit(countLimit);
 			searchControls.setReturningAttributes(returningAttributes);
 			searchControls.setSearchScope(searchScope);
 
-			StudioNamingEnumeration enumeration = conn.getConnectionWrapper().search(
+			ConnectionWrapper connectionWrapper = conn.getConnectionWrapper();
+			
+			StudioNamingEnumeration enumeration = connectionWrapper.search(
 					baseDn == null ? findBaseDn(conn) : baseDn, filter, searchControls, AliasDereferencingMethod.NEVER,
 					ReferralHandlingMethod.IGNORE, null, monitor, null);
 
@@ -342,14 +344,19 @@ public class LdapUtils {
 	 * @return
 	 */
 	public Attribute findAttributeByDn(String dn, String attrName, Connection conn, StudioProgressMonitor monitor) {
-		StudioNamingEnumeration enumeration = this.search(dn, OBJECT_CLASS_FILTER, new String[] { attrName },
+		
+		String[] returningAttributes=null;
+		if(attrName!=null) 
+			returningAttributes=  new String[] { attrName };
+			
+		StudioNamingEnumeration enumeration = this.search(dn, OBJECT_CLASS_FILTER,returningAttributes,
 				SearchControls.OBJECT_SCOPE, 1, conn, monitor);
 		Attribute attr = null;
 		try {
 			if (enumeration != null) {
 				while (enumeration.hasMore()) {
 					SearchResult item = enumeration.next();
-					if (item.getAttributes() != null && item.getAttributes().get(attrName) != null) {
+					if (item.getAttributes() != null && attrName!=null &&item.getAttributes().get(attrName) != null) {
 						return item.getAttributes().get(attrName);
 					}
 				}
