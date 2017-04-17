@@ -37,6 +37,7 @@ public class LiderLdapEntry  extends  SearchResult {
 	private boolean hasPardusDevice;
 	private boolean hasPardusLider;
 	private boolean hasPardusAccount;
+	private boolean hasGroupOfNames;
 	
 
 	public LiderLdapEntry(String name, Object obj, Attributes attrs) {
@@ -77,6 +78,9 @@ public class LiderLdapEntry  extends  SearchResult {
 				}
 				if(attributeWrapper.getAttValue().equals("pardusLider")){
 					hasPardusLider=true;
+				}
+				if(attributeWrapper.getAttValue().equals("groupOfNames")){
+					setHasGroupOfNames(true);
 				}
 			
 			}
@@ -222,5 +226,11 @@ public class LiderLdapEntry  extends  SearchResult {
 	}
 	public void setHasPardusAccount(boolean hasPardusAccount) {
 		this.hasPardusAccount = hasPardusAccount;
+	}
+	public boolean isHasGroupOfNames() {
+		return hasGroupOfNames;
+	}
+	public void setHasGroupOfNames(boolean hasGroupOfNames) {
+		this.hasGroupOfNames = hasGroupOfNames;
 	}
 }

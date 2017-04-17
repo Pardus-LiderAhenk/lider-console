@@ -100,6 +100,12 @@ public class LiderManagementEditor extends EditorPart {
 
 	private Policy selectedPolicy;
 	private Button btnExecutePolicy;
+	
+	
+	boolean isHasPardusDevice=false;
+	boolean isHasGroupOfNames=false;
+	boolean isSelectionSingle=false;
+	boolean isSelectionMulti=false;
 
 	
 	public LiderManagementEditor() {
@@ -158,7 +164,7 @@ public class LiderManagementEditor extends EditorPart {
 		scrolledComposite.setExpandHorizontal(true);
 		scrolledComposite.setExpandVertical(true);
 		
-		dnListTableViewer= new TableViewer(scrolledComposite, SWT.BORDER | SWT.FULL_SELECTION);
+		dnListTableViewer= new TableViewer(scrolledComposite, SWT.BORDER | SWT.FULL_SELECTION | SWT.H_SCROLL | SWT.V_SCROLL);
 		
 		table = dnListTableViewer.getTable();
 		scrolledComposite.setContent(table);
@@ -212,7 +218,8 @@ public class LiderManagementEditor extends EditorPart {
 		
 		ArrayList<LiderLdapEntry> liderEntries=new ArrayList<>();
 		
-		boolean isHasPardusDevice=false;
+	
+		
 		
 		for (LiderLdapEntry le : liderLdapEntries) {
 			
@@ -223,6 +230,9 @@ public class LiderManagementEditor extends EditorPart {
 			if(le.isHasPardusDevice()){
 				isHasPardusDevice=true;
 			}
+			if(le.isHasGroupOfNames())
+				isHasGroupOfNames=true;
+			
 						
 		}
 		for (LiderLdapEntry le : liderEntries) {
@@ -231,6 +241,14 @@ public class LiderManagementEditor extends EditorPart {
 				isHasPardusDevice=true;
 			}
 			
+		}
+		
+		
+		if(liderEntries.size()>1){
+			isSelectionMulti=true;
+		}
+		else if(liderEntries.size()==1){
+			isSelectionSingle=true;
 		}
 		
 		
@@ -278,8 +296,8 @@ public class LiderManagementEditor extends EditorPart {
 	
 		
 		
-		if(isHasPardusDevice){
-			groupTask = new Group(sashForm, SWT.NONE);
+		if(isHasPardusDevice || isHasGroupOfNames ){
+			groupTask = new Group(sashForm, SWT.NONE | SWT.H_SCROLL | SWT.V_SCROLL);
 			groupTask.setLayout(new GridLayout(1, false));
 			groupTask.setText(Messages.getString("task_list"));
 			sashForm.setWeights(new int[] {1, 2});
@@ -535,44 +553,30 @@ public class LiderManagementEditor extends EditorPart {
 		{
 		// Iterate over each extension point provided by plugins
 		for (IConfigurationElement e : config) {
+			
 			try {
+				
 				// Read extension point attributes
 				String label = e.getAttribute("label");
 				final String pluginName = e.getAttribute("pluginName");
+				
 				final String pluginVersion = e.getAttribute("pluginVersion");
+				
 				final String taskCommandId = e.getAttribute("taskCommandId");
+				
+				final String selectionType = e.getAttribute("selectionType");
 
-				Button btnTask = new Button(groupTask, SWT.NONE);
-				btnTask.setFont(font);
 				
 				
-				GridData gd_btnNewButton = new GridData(SWT.FILL, SWT.FILL, false, false);
-				gd_btnNewButton.minimumWidth = 230;
-				gd_btnNewButton.minimumHeight = 100;
-				btnTask.setLayoutData(gd_btnNewButton);
-				btnTask.setText(label);
+				if(selectionType!=null && ((isSelectionSingle && selectionType.equals("single"))))
+				{
 				
-				btnTask.addSelectionListener(new SelectionListener() {
-					
-					@Override
-					public void widgetSelected(SelectionEvent e) {
-						
-						Command command = commandService.getCommand(taskCommandId);
-						if(command.getHandler() instanceof SingleSelectionHandler){
-							System.out.println("sddf");
-						}
-						try {
-							command.executeWithChecks(new ExecutionEvent());
-						} catch (Exception e1) {
-							logger.error(e1.getMessage(), e1);
-						}
-					}
-					@Override
-					public void widgetDefaultSelected(SelectionEvent e) {
-						// TODO Auto-generated method stub
-						
-					}
-				});
+					addButtonToTaskArea(commandService, label, taskCommandId);
+				
+				}
+				else if(selectionType==null && isSelectionMulti){
+					addButtonToTaskArea(commandService, label, taskCommandId);
+				}
 				
 				
 
@@ -583,6 +587,41 @@ public class LiderManagementEditor extends EditorPart {
 	
 		}
 		
+	}
+
+
+	private void addButtonToTaskArea(final ICommandService commandService, String label, final String taskCommandId) {
+		Button btnTask = new Button(groupTask, SWT.NONE);
+		btnTask.setFont(font);
+		
+		
+		GridData gd_btnNewButton = new GridData(SWT.FILL, SWT.FILL, false, false);
+		gd_btnNewButton.minimumWidth = 230;
+		gd_btnNewButton.minimumHeight = 100;
+		btnTask.setLayoutData(gd_btnNewButton);
+		btnTask.setText(label);
+		
+		btnTask.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				
+				Command command = commandService.getCommand(taskCommandId);
+				if(command.getHandler() instanceof SingleSelectionHandler){
+					System.out.println("sddf");
+				}
+				try {
+					command.executeWithChecks(new ExecutionEvent());
+				} catch (Exception e1) {
+					logger.error(e1.getMessage(), e1);
+				}
+			}
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
 	}
 
 	@Override
