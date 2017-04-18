@@ -32,7 +32,10 @@ import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.internal.gtk.GInterfaceInfo;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -71,7 +74,7 @@ public class LiderManagementEditor extends EditorPart {
 	
 	private static final Logger logger = LoggerFactory.getLogger(LiderManagementEditor.class);
 	
-	private Font font=SWTResourceManager.getFont("Noto Sans", 9, SWT.BOLD);
+	private Font font=SWTResourceManager.getFont("Noto Sans", 10, SWT.BOLD);
 
 
 	protected DecoratingLabelProvider decoratingLabelProvider;
@@ -106,6 +109,8 @@ public class LiderManagementEditor extends EditorPart {
 	boolean isHasGroupOfNames=false;
 	boolean isSelectionSingle=false;
 	boolean isSelectionMulti=false;
+
+	private Composite compositeTask;
 
 	
 	public LiderManagementEditor() {
@@ -157,19 +162,35 @@ public class LiderManagementEditor extends EditorPart {
 		compositeAction.setLayout(new GridLayout(1, false));
 		
 		lbDnInfo = new Label(compositeAction, SWT.NONE);
-		lbDnInfo.setText(""); //$NON-NLS-1$
+		lbDnInfo.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
+		lbDnInfo.setText("");
+//		
+//		Composite scrolledComposite = new Composite(compositeAction, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
+//		scrolledComposite.setLayout(new GridLayout(1, false));
+//		GridData gd_scrolledComposite = new GridData(SWT.LEFT, SWT.CENTER, false, false, 0, 0);
+//		gd_scrolledComposite.widthHint = 547;
+//		scrolledComposite.setLayoutData(gd_scrolledComposite);
 		
-		ScrolledComposite scrolledComposite = new ScrolledComposite(compositeAction, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL);
-		scrolledComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		scrolledComposite.setExpandHorizontal(true);
-		scrolledComposite.setExpandVertical(true);
 		
-		dnListTableViewer= new TableViewer(scrolledComposite, SWT.BORDER | SWT.FULL_SELECTION | SWT.H_SCROLL | SWT.V_SCROLL);
+		dnListTableViewer= new TableViewer(compositeAction, SWT.BORDER | SWT.FULL_SELECTION );
+		dnListTableViewer.getTable().setToolTipText("Seçili DN özelliklerini görmek için tıklayınız..");
 		
 		table = dnListTableViewer.getTable();
-		scrolledComposite.setContent(table);
-		scrolledComposite.setMinSize(table.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-		configureTableLayout(dnListTableViewer);
+		GridData gd_table = new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1);
+		gd_table.heightHint = 88;
+		table.setLayoutData(gd_table);
+		//scrolledComposite.setContent(table);
+		//scrolledComposite.setMinSize(table.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+		//configureTableLayout(dnListTableViewer);
+		
+		table.setHeaderVisible(true);
+		table.setLinesVisible(true);
+		//table.getVerticalBar().setEnabled(true);
+		//table.getVerticalBar().setVisible(true);
+		
+		// Set content provider
+		dnListTableViewer.setContentProvider(new ArrayContentProvider());
+		
 		createTableColumns();
 		
 		dnListTableViewer.addDoubleClickListener(new IDoubleClickListener() {
@@ -208,53 +229,17 @@ public class LiderManagementEditor extends EditorPart {
 		SashForm sashForm = new SashForm(compositeAction, SWT.VERTICAL);
 		sashForm.setTextDirection(0);
 		sashForm.setSashWidth(2);
-		GridData gd_sashForm = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
-		gd_sashForm.heightHint = 512;
-		gd_sashForm.widthHint = 1062;
-		sashForm.setLayoutData(gd_sashForm);
+		//gd_sashForm.heightHint = 512;
+		//gd_sashForm.widthHint = 1062;
+		sashForm.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		
-		liderLdapEntries = editorInput.getLiderLdapEntries();
-		
-		ArrayList<LiderLdapEntry> liderEntries=new ArrayList<>();
 		
 	
 		
-		
-		for (LiderLdapEntry le : liderLdapEntries) {
-			
-			if(le.getChildrens() !=null && le.getChildrens().size()>0){
-				
-				liderEntries.addAll(le.getChildrens());
-			}
-			if(le.isHasPardusDevice()){
-				isHasPardusDevice=true;
-			}
-			if(le.isHasGroupOfNames())
-				isHasGroupOfNames=true;
-			
-						
-		}
-		for (LiderLdapEntry le : liderEntries) {
-			
-			if(le.isHasPardusDevice()){
-				isHasPardusDevice=true;
-			}
-			
-		}
-		
-		
-		if(liderEntries.size()>1){
-			isSelectionMulti=true;
-		}
-		else if(liderEntries.size()==1){
-			isSelectionSingle=true;
-		}
-		
-		
 		// POLICY AREA
 		
-		groupPolicy = new Group(sashForm, SWT.NONE);
+		groupPolicy = new Group(sashForm, SWT.BORDER | SWT.SHADOW_ETCHED_IN);
 		groupPolicy.setLayout(new GridLayout(2, false));
 		groupPolicy.setText(Messages.getString("policy_list"));
 		
@@ -294,13 +279,23 @@ public class LiderManagementEditor extends EditorPart {
 				});
 
 	
-		
+		fillWithEntries();
 		
 		if(isHasPardusDevice || isHasGroupOfNames ){
 			groupTask = new Group(sashForm, SWT.NONE | SWT.H_SCROLL | SWT.V_SCROLL);
-			groupTask.setLayout(new GridLayout(1, false));
+			GridLayout gridLayout = new GridLayout(1, false);
+			
+			groupTask.setLayout(gridLayout);
 			groupTask.setText(Messages.getString("task_list"));
 			sashForm.setWeights(new int[] {1, 2});
+			
+			
+			compositeTask = new Composite(groupTask, GridData.FILL  );
+			compositeTask.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true,1,1));
+			compositeTask.setLayout(new GridLayout(5, true));
+			
+			
+			
 			setButtonsToButtonTaskComponent();
 		}
 		
@@ -308,28 +303,75 @@ public class LiderManagementEditor extends EditorPart {
 			sashForm.setWeights(new int[] {1});
 		}
 		
+
 		
-		if(liderEntries.size()>0)
-		{
-			populateTable(liderEntries);
-			lbDnInfo.setText("Seçili Dn Sayısı : "+liderEntries.size());
-			liderLdapEntries=liderEntries; // task icin
-			
-		}
-		else
-		{
-			populateTable(liderLdapEntries);
-			lbDnInfo.setText("Seçili Dn Sayısı : "+liderLdapEntries.size());
-		}
+		
+		
 		sc.setContent(composite);
 		sc.setExpandHorizontal(true);
 		sc.setExpandVertical(true);
+		
+		
+		
+		
 
 	}
 
 	
 	
-	
+	private void fillWithEntries() {
+		
+		liderLdapEntries = editorInput.getLiderLdapEntries();
+		
+		ArrayList<LiderLdapEntry> liderEntries=new ArrayList<>();
+		
+		for (LiderLdapEntry le : liderLdapEntries) {
+			
+			if(le.getChildrens() !=null && le.getChildrens().size()>0){
+				
+				liderEntries.addAll(le.getChildrens());
+			}
+			else {
+				liderEntries.add(le);
+			}
+			if(le.isHasPardusDevice()){
+				isHasPardusDevice=true;
+			}
+			if(le.isHasGroupOfNames())
+				isHasGroupOfNames=true;
+						
+		}
+		
+		for (LiderLdapEntry le : liderEntries) {
+			
+			if(le.isHasPardusDevice()){
+				isHasPardusDevice=true;
+			}
+						
+		}
+		
+		if(liderEntries.size()>1){
+			isSelectionMulti=true;
+		}
+		else if(liderEntries.size()==1){
+			isSelectionSingle=true;
+		}
+		
+		if(liderEntries.size()>0)
+		{
+			populateTable(liderEntries);
+			lbDnInfo.setText("Seçili Dn Sayısı : "+liderEntries.size());
+			//liderLdapEntries=liderEntries; // task icin
+		}
+		else
+		{
+			populateTable(liderEntries);
+			lbDnInfo.setText("Seçili Dn Sayısı : "+liderEntries.size());
+		}
+		
+	}
+
+
 	/**
 	 * Create table columns related to policy database columns.
 	 * 
@@ -371,6 +413,7 @@ public class LiderManagementEditor extends EditorPart {
 	private void createPolicyButtonsArea(final Composite parent) {
 		
 		btnExecutePolicy = new Button(groupPolicy, SWT.NONE);
+		
 		btnExecutePolicy.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -403,6 +446,7 @@ public class LiderManagementEditor extends EditorPart {
 		composite.setLayout(new GridLayout(4, false));
 
 		btnAddPolicy = new Button(composite, SWT.NONE);
+		btnAddPolicy.setToolTipText(Messages.getString("LiderManagementEditor.btnAddPolicy.toolTipText")); //$NON-NLS-1$
 		//btnAddPolicy.setText(Messages.getString("ADD"));
 		btnAddPolicy.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
 		btnAddPolicy.setImage(
@@ -421,6 +465,7 @@ public class LiderManagementEditor extends EditorPart {
 		});
 
 		btnEditPolicy = new Button(composite, SWT.NONE);
+		btnEditPolicy.setToolTipText(Messages.getString("LiderManagementEditor.btnEditPolicy.toolTipText")); //$NON-NLS-1$
 		//btnEditPolicy.setText(Messages.getString("EDIT"));
 		btnEditPolicy.setImage(
 				SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE, "icons/16/edit.png"));
@@ -443,6 +488,7 @@ public class LiderManagementEditor extends EditorPart {
 		});
 
 		btnDeletePolicy = new Button(composite, SWT.NONE);
+		btnDeletePolicy.setToolTipText(Messages.getString("LiderManagementEditor.btnDeletePolicy.toolTipText")); //$NON-NLS-1$
 		//btnDeletePolicy.setText(Messages.getString("DELETE"));
 		btnDeletePolicy.setImage(
 				SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE, "icons/16/delete.png"));
@@ -474,6 +520,7 @@ public class LiderManagementEditor extends EditorPart {
 		});
 
 		btnRefreshPolicy = new Button(composite, SWT.NONE);
+		btnRefreshPolicy.setToolTipText(Messages.getString("LiderManagementEditor.btnRefreshPolicy.toolTipText")); //$NON-NLS-1$
 		//btnRefreshPolicy.setText(Messages.getString("REFRESH"));
 		btnRefreshPolicy.setImage(
 				SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE, "icons/16/refresh.png"));
@@ -522,21 +569,23 @@ public class LiderManagementEditor extends EditorPart {
 		final Table table = tableViewer.getTable();
 		table.setHeaderVisible(true);
 		table.setLinesVisible(true);
-		table.getVerticalBar().setEnabled(true);
-		table.getVerticalBar().setVisible(true);
+		//table.getVerticalBar().setEnabled(true);
+		//table.getVerticalBar().setVisible(true);
 		
 		// Set content provider
 		tableViewer.setContentProvider(new ArrayContentProvider());
 		// Configure table layout
-		GridData gridData = new GridData();
-		gridData.verticalAlignment = GridData.FILL;
-		gridData.horizontalSpan = 3;
-		gridData.grabExcessHorizontalSpace = true;
-		gridData.grabExcessVerticalSpace = true;
-		gridData.heightHint = 420;
-		gridData.widthHint = 600;
-		gridData.horizontalAlignment = GridData.FILL;
-		tableViewer.getControl().setLayoutData(gridData);
+//		GridData gridData = new GridData();
+//		gridData.verticalAlignment = GridData.FILL;
+//		//gridData.horizontalSpan = 3;
+//		//gridData.grabExcessHorizontalSpace = true;
+//		//gridData.grabExcessVerticalSpace = true;
+//		//gridData.heightHint = 420;
+//		//gridData.widthHint = 600;
+//		gridData.minimumWidth=100;
+//		gridData.minimumHeight=200;
+//		gridData.horizontalAlignment = GridData.FILL;
+//		tableViewer.getControl().setLayoutData(gridData);
 	}
 	
 	private void setButtonsToButtonTaskComponent() {
@@ -568,13 +617,13 @@ public class LiderManagementEditor extends EditorPart {
 
 				
 				
-				if(selectionType!=null && ((isSelectionSingle && selectionType.equals("single"))))
+				if(selectionType!=null && isSelectionMulti && selectionType.equals("multi"))
 				{
 				
 					addButtonToTaskArea(commandService, label, taskCommandId);
 				
 				}
-				else if(selectionType==null && isSelectionMulti){
+				else if( isSelectionSingle) {
 					addButtonToTaskArea(commandService, label, taskCommandId);
 				}
 				
@@ -591,13 +640,14 @@ public class LiderManagementEditor extends EditorPart {
 
 
 	private void addButtonToTaskArea(final ICommandService commandService, String label, final String taskCommandId) {
-		Button btnTask = new Button(groupTask, SWT.NONE);
+		Button btnTask = new Button(compositeTask, SWT.NONE);
 		btnTask.setFont(font);
+		btnTask.setBackground(SWTResourceManager.getColor(new RGB(245,255,255)));
+		//btnTask.setForeground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		
-		
-		GridData gd_btnNewButton = new GridData(SWT.FILL, SWT.FILL, false, false);
-		gd_btnNewButton.minimumWidth = 230;
-		gd_btnNewButton.minimumHeight = 100;
+		GridData gd_btnNewButton = new GridData(SWT.FILL, SWT.FILL, true, true);
+	//	gd_btnNewButton.minimumWidth = 230;
+	//	gd_btnNewButton.minimumHeight = 100;
 		btnTask.setLayoutData(gd_btnNewButton);
 		btnTask.setText(label);
 		
@@ -607,9 +657,7 @@ public class LiderManagementEditor extends EditorPart {
 			public void widgetSelected(SelectionEvent e) {
 				
 				Command command = commandService.getCommand(taskCommandId);
-				if(command.getHandler() instanceof SingleSelectionHandler){
-					System.out.println("sddf");
-				}
+				
 				try {
 					command.executeWithChecks(new ExecutionEvent());
 				} catch (Exception e1) {

@@ -60,14 +60,15 @@ public abstract class MultipleSelectionHandler extends AbstractHandler {
 
 		Set<String> dnSet = null;
 		
-		List<LiderLdapEntry>	selectedDnList = LiderManagementEditor.getLiderLdapEntries();
-		
+		List<LiderLdapEntry> selectedDnList = LiderManagementEditor.getLiderLdapEntries();
 		
 		if(selectedDnList !=null && selectedDnList.size()>0){
 			dnSet = new HashSet<String>();
 			
 			for (LiderLdapEntry liderLdapEntry : selectedDnList) {
-				dnSet.add(liderLdapEntry.getName());
+				//dnSet.add(liderLdapEntry.getName());
+				
+				addChildDNs(liderLdapEntry.getName(),dnSet);
 			}
 			
 		}
@@ -168,8 +169,7 @@ public abstract class MultipleSelectionHandler extends AbstractHandler {
 	/**
 	 * Extending class should override this method to execute event.
 	 * 
-	 * @param dnSet
-	 *            a set of selected LDAP DNs. This set may contain user, agent
+	 * @param dnSet a set of selected LDAP DNs. This set may contain user, agent
 	 *            or groupOfNames DNs.
 	 */
 	public abstract void executeWithDNSet(Set<String> dnSet);

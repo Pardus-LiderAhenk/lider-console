@@ -56,7 +56,7 @@ public class LdapBrowserView extends BrowserView implements ILdapBrowserView {
 	/**
 	 * LDAP attributes
 	 */
-	private String[] attributes = new String[] { "cn", "uid", "dn", "Object Class", "sn", "mail"};
+	private String[] attributes = new String[] { "cn", "ou","uid", "dn", "Object Class", "gIdNumber","sn", "mail"};
 
 	/**
 	 * Agent properties
@@ -69,6 +69,8 @@ public class LdapBrowserView extends BrowserView implements ILdapBrowserView {
 	private Composite compositeTree;
 
 	private Composite composite;
+	
+	private boolean searchActive=false;
 
 	@Override
 	protected void setSite(IWorkbenchPartSite site) {
@@ -121,8 +123,14 @@ public class LdapBrowserView extends BrowserView implements ILdapBrowserView {
 
 				// treeViewer.expandAll();
 
-				String itemAttribute = comboAttribute.getItem(comboAttribute.getSelectionIndex());
-
+				int selectionIndex=comboAttribute.getSelectionIndex();
+				String itemAttribute=null;
+				if(selectionIndex!=-1)
+				 itemAttribute= comboAttribute.getItem(selectionIndex);
+				
+				else itemAttribute= comboAttribute.getText();
+				
+				
 				String itemFilter = comboFilterType.getItem(comboFilterType.getSelectionIndex());
 				String itemSearchValue = comboSearchValue.getText();
 
@@ -208,6 +216,7 @@ public class LdapBrowserView extends BrowserView implements ILdapBrowserView {
 					inputArr[0] = connection;
 					inputArr[1] = entryList;
 
+					searchActive=true;
 					setInput(inputArr);
 
 					// treeViewer.expandAll();
@@ -272,7 +281,11 @@ public class LdapBrowserView extends BrowserView implements ILdapBrowserView {
 
 		treeViewerSearchResult = new TreeViewer(compositeTree, SWT.BORDER);
 		treeSearchResult = treeViewerSearchResult.getTree();
-		treeSearchResult.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		GridData gd_treeSearchResult = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1);
+		gd_treeSearchResult.heightHint = 150;
+		gd_treeSearchResult.minimumWidth = 400;
+		gd_treeSearchResult.minimumHeight = 350;
+		treeSearchResult.setLayoutData(gd_treeSearchResult);
 		treeViewerSearchResult.setUseHashlookup(true);
 
 		treeViewerSearchResult.setContentProvider(new SearchResultContentProvider());
@@ -282,7 +295,9 @@ public class LdapBrowserView extends BrowserView implements ILdapBrowserView {
 
 	public void setInput(Object input) {
 		treeViewer.setInput(input);
-		treeViewer.expandToLevel(3);
+		if(!searchActive)
+			treeViewer.expandToLevel(3);
+		
 		treeViewer.refresh();
 	}
 
@@ -348,12 +363,7 @@ public class LdapBrowserView extends BrowserView implements ILdapBrowserView {
 		}
 	}
 
-	@Override
-	public void dispose() {
-
-		logger.debug("ldap browser view dispose");
-
-	}
+	
 
 	public void clearView() {
 		this.comboAttribute.select(0);
@@ -361,6 +371,8 @@ public class LdapBrowserView extends BrowserView implements ILdapBrowserView {
 		this.comboSearchValue.setText("");
 		setInput(new Object());
 		setInputForSearchTreeviewer(new Object());
+		searchActive=false;
+		dispose();
 
 	}
 

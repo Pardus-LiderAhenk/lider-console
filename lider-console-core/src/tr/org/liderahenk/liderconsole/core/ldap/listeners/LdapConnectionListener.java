@@ -190,6 +190,7 @@ public class LdapConnectionListener implements IConnectionListener {
 					//	activePage.closeAllEditors(false);
 					//	activePage.hideView(activePage.findView(LdapBrowserView.getId()));
 						LdapBrowserView browserView =(LdapBrowserView) activePage.findView(LdapBrowserView.getId());
+						if(browserView!=null)
 						browserView.clearView();
 						
 						
@@ -345,7 +346,14 @@ public class LdapConnectionListener implements IConnectionListener {
 						
 					LdapBrowserView browserView=	(LdapBrowserView) activePage.findView(LdapBrowserView.getId());
 					
-					browserView.setInput(getConnection());
+					if(browserView!=null){
+						browserView.setInput(getConnection());
+					}else
+					
+						activePage.showView(LdapBrowserView.getId());
+						
+						
+					
 						
 //						activePage.hideView(activePage.findView(LdapBrowserView.getId()));
 //						
