@@ -47,6 +47,7 @@ public class MainPerspective implements IPerspectiveFactory {
 		String editorArea = layout.getEditorArea();
 		IFolderLayout browserFolder = layout.createFolder("browserFolder", 1, 0.25F, editorArea);
 		browserFolder.addView(LdapBrowserView.getId());
+		
 
 		IFolderLayout connectionFolder = layout.createFolder("connectionFolder", 4, 0.75F, "browserFolder");
 		connectionFolder.addView(ConnectionView.getId());

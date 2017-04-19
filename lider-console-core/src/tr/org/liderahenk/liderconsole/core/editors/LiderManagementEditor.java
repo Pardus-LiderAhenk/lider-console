@@ -60,6 +60,7 @@ import tr.org.liderahenk.liderconsole.core.dialogs.PolicyExecutionSelectDialog;
 import tr.org.liderahenk.liderconsole.core.editorinput.DefaultEditorInput;
 import tr.org.liderahenk.liderconsole.core.handlers.SingleSelectionHandler;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
+import tr.org.liderahenk.liderconsole.core.ldap.utils.LdapUtils;
 import tr.org.liderahenk.liderconsole.core.model.LiderLdapEntry;
 import tr.org.liderahenk.liderconsole.core.model.Policy;
 import tr.org.liderahenk.liderconsole.core.rest.utils.PolicyRestUtils;
@@ -279,7 +280,7 @@ public class LiderManagementEditor extends EditorPart {
 				});
 
 	
-		fillWithEntries();
+		fillWithEntries(); 
 		
 		if(isHasPardusDevice || isHasGroupOfNames ){
 			groupTask = new Group(sashForm, SWT.NONE | SWT.H_SCROLL | SWT.V_SCROLL);
@@ -325,6 +326,14 @@ public class LiderManagementEditor extends EditorPart {
 		
 		ArrayList<LiderLdapEntry> liderEntries=new ArrayList<>();
 		
+		
+//		for (LiderLdapEntry liderLdapEntry : liderLdapEntries) {
+//			//dnSet.add(liderLdapEntry.getName());
+//			
+//			addChildDNs(liderLdapEntry.getName(),liderEntries);
+//		}
+		
+		
 		for (LiderLdapEntry le : liderLdapEntries) {
 			
 			if(le.getChildrens() !=null && le.getChildrens().size()>0){
@@ -357,20 +366,45 @@ public class LiderManagementEditor extends EditorPart {
 			isSelectionSingle=true;
 		}
 		
-		if(liderEntries.size()>0)
+		if(liderLdapEntries.size()>0)
 		{
-			populateTable(liderEntries);
-			lbDnInfo.setText("Seçili Dn Sayısı : "+liderEntries.size());
+			populateTable(liderLdapEntries);
+			lbDnInfo.setText("Seçili Dn Sayısı : "+liderLdapEntries.size());
 			//liderLdapEntries=liderEntries; // task icin
 		}
 		else
 		{
-			populateTable(liderEntries);
-			lbDnInfo.setText("Seçili Dn Sayısı : "+liderEntries.size());
+			populateTable(liderLdapEntries);
+			lbDnInfo.setText("Seçili Dn Sayısı : "+liderLdapEntries.size());
 		}
 		
 	}
 
+	
+	private void addChildDNs(String dn,List<LiderLdapEntry> liderEntries) {
+
+		// TODO We can improve this method by simply generating a complex filter
+		// expression that helps us find agents,users,groups at the same time.
+
+//		List<String> resultList = LdapUtils.getInstance().findAgents(dn);
+//		if (resultList != null && !resultList.isEmpty()) {
+//			liderEntries.addAll(resultList);
+//		}
+//
+//		resultList.clear();
+//		resultList = LdapUtils.getInstance().findUsers(dn);
+//
+//		if (resultList != null && !resultList.isEmpty()) {
+//			dnSet.addAll(resultList);
+//		}
+//
+//		resultList.clear();
+//		resultList = LdapUtils.getInstance().findGroups(dn);
+//
+//		if (resultList != null && !resultList.isEmpty()) {
+//			dnSet.addAll(resultList);
+//		}
+	}
 
 	/**
 	 * Create table columns related to policy database columns.
