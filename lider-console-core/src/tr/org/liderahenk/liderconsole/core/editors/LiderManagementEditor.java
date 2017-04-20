@@ -648,17 +648,19 @@ public class LiderManagementEditor extends EditorPart {
 				final String taskCommandId = e.getAttribute("taskCommandId");
 				
 				final String selectionType = e.getAttribute("selectionType");
+				
+				final String description = e.getAttribute("description");
 
 				
 				
 				if(selectionType!=null && isSelectionMulti && selectionType.equals("multi"))
 				{
 				
-					addButtonToTaskArea(commandService, label, taskCommandId);
+					addButtonToTaskArea(commandService, label, taskCommandId, description);
 				
 				}
 				else if( isSelectionSingle) {
-					addButtonToTaskArea(commandService, label, taskCommandId);
+					addButtonToTaskArea(commandService, label, taskCommandId, description);
 				}
 				
 				
@@ -673,9 +675,10 @@ public class LiderManagementEditor extends EditorPart {
 	}
 
 
-	private void addButtonToTaskArea(final ICommandService commandService, String label, final String taskCommandId) {
+	private void addButtonToTaskArea(final ICommandService commandService, String label, final String taskCommandId, String description) {
 		Button btnTask = new Button(compositeTask, SWT.NONE);
 		btnTask.setFont(font);
+		btnTask.setToolTipText(description);
 		btnTask.setBackground(SWTResourceManager.getColor(new RGB(245,255,255)));
 		//btnTask.setForeground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		
