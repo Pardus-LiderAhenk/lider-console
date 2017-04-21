@@ -239,6 +239,7 @@ public class PolicyDefinitionDialog extends DefaultLiderDialog {
 								// Refresh profile combo
 								List<Profile> profiles = ProfileRestUtils.list(pluginName, pluginVersion, null, true);
 								populateCombo(combo, profiles);
+								
 							} catch (Exception e1) {
 								logger.error(e1.getMessage(), e1);
 							}
@@ -260,8 +261,13 @@ public class PolicyDefinitionDialog extends DefaultLiderDialog {
 						@Override
 						public void widgetSelected(SelectionEvent e) {
 							
+							try {
+								
+								int selectedIndex= combo.getSelectionIndex();
+								List<Profile> profiles = ProfileRestUtils.list(pluginName, pluginVersion, null, true);
+								populateCombo(combo, profiles);
 							
-							int selectedIndex= combo.getSelectionIndex();
+							
 							Profile profile= profiles.get(selectedIndex-1);
 
 							if (null == profile) {
@@ -274,13 +280,14 @@ public class PolicyDefinitionDialog extends DefaultLiderDialog {
 							Map<String,String > map= new HashMap<>();
 							map.put("selectedProfileId", profile.getId().toString());
 							map.put("action", "update");
-							try {
+							
 								
 								command.executeWithChecks(new ExecutionEvent(command,map,null,null));
 								
-								
-								List<Profile> profiles = ProfileRestUtils.list(pluginName, pluginVersion, null, true);
+								profiles = ProfileRestUtils.list(pluginName, pluginVersion, null, true);
 								populateCombo(combo, profiles);
+								
+								combo.select(selectedIndex);
 								
 							} catch (Exception e1) {
 								// TODO Auto-generated catch block

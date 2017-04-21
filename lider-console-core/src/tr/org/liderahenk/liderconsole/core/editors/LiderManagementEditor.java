@@ -1,6 +1,7 @@
 package tr.org.liderahenk.liderconsole.core.editors;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -635,40 +636,70 @@ public class LiderManagementEditor extends EditorPart {
 		if(config!=null)
 		{
 		// Iterate over each extension point provided by plugins
-		for (IConfigurationElement e : config) {
 			
-			try {
+			List<PluginTaskWrapper> pluginTaskList= new ArrayList<>();
+			
+				for (IConfigurationElement e : config) {
+					
+					try {
+						
+						// Read extension point attributes
+						final String label = e.getAttribute("label");
+						
+						final String pluginName = e.getAttribute("pluginName");
+						
+						final String pluginVersion = e.getAttribute("pluginVersion");
+						
+						final String taskCommandId = e.getAttribute("taskCommandId");
+						
+						final String selectionType = e.getAttribute("selectionType");
+						
+						final String description = e.getAttribute("description");
+		
+						
+						PluginTaskWrapper pluginTaskWrapper= new PluginTaskWrapper(label,pluginName, pluginVersion,taskCommandId,selectionType,description);
+						
+						pluginTaskList.add(pluginTaskWrapper);
+						
+					
+						
+		
+					} catch (Exception e1) {
+						logger.error(e1.getMessage(), e1);
+					}
+				}
 				
-				// Read extension point attributes
-				String label = e.getAttribute("label");
-				final String pluginName = e.getAttribute("pluginName");
+				// sort task 
+				pluginTaskList.sort(new Comparator<PluginTaskWrapper>() {
+
+					@Override
+					public int compare(PluginTaskWrapper o1, PluginTaskWrapper o2) {
+						
+						return o1.getLabel().compareTo(o2.getLabel());
+					}
+				});
 				
-				final String pluginVersion = e.getAttribute("pluginVersion");
-				
-				final String taskCommandId = e.getAttribute("taskCommandId");
-				
-				final String selectionType = e.getAttribute("selectionType");
-				
-				final String description = e.getAttribute("description");
 
 				
 				
-				if(selectionType!=null && isSelectionMulti && selectionType.equals("multi"))
-				{
-				
-					addButtonToTaskArea(commandService, label, taskCommandId, description);
-				
+				for (PluginTaskWrapper pluginTaskWrapper : pluginTaskList) {
+					
+					
+					if(pluginTaskWrapper.getSelectionType()!=null && isSelectionMulti && pluginTaskWrapper.getSelectionType().equals("multi"))
+					{
+					
+						addButtonToTaskArea(commandService, pluginTaskWrapper.getLabel(), pluginTaskWrapper.getTaskCommandId(), pluginTaskWrapper.getDescription());
+					
+					}
+					else if( isSelectionSingle) {
+						addButtonToTaskArea(commandService, pluginTaskWrapper.getLabel(), pluginTaskWrapper.getTaskCommandId(), pluginTaskWrapper.getDescription());
+					}
 				}
-				else if( isSelectionSingle) {
-					addButtonToTaskArea(commandService, label, taskCommandId, description);
-				}
+				
+			
 				
 				
-
-			} catch (Exception e1) {
-				logger.error(e1.getMessage(), e1);
-			}
-		}
+		
 	
 		}
 		
@@ -680,6 +711,7 @@ public class LiderManagementEditor extends EditorPart {
 		btnTask.setFont(font);
 		btnTask.setToolTipText(description);
 		btnTask.setBackground(SWTResourceManager.getColor(new RGB(245,255,255)));
+		
 		//btnTask.setForeground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		
 		GridData gd_btnNewButton = new GridData(SWT.FILL, SWT.FILL, true, true);
@@ -822,4 +854,93 @@ public class LiderManagementEditor extends EditorPart {
 		this.selectedPolicy = selectedPolicy;
 	}
 	
+	
+	
+	
+	class PluginTaskWrapper{
+		
+			String label;	
+		
+		 String pluginName ;
+		
+		 String pluginVersion;
+		
+		 String taskCommandId ;
+		
+		 String selectionType;
+		
+		 String description;
+		 
+		 public PluginTaskWrapper() {
+			// TODO Auto-generated constructor stub
+		}
+
+		public PluginTaskWrapper(String label, String pluginName, String pluginVersion, String taskCommandId,
+				String selectionType, String description) {
+			super();
+			this.label = label;
+			this.pluginName = pluginName;
+			this.pluginVersion = pluginVersion;
+			this.taskCommandId = taskCommandId;
+			this.selectionType = selectionType;
+			this.description = description;
+		}
+
+		public String getLabel() {
+			return label;
+		}
+
+		public void setLabel(String label) {
+			this.label = label;
+		}
+
+		public String getPluginName() {
+			return pluginName;
+		}
+
+		public void setPluginName(String pluginName) {
+			this.pluginName = pluginName;
+		}
+
+		public String getPluginVersion() {
+			return pluginVersion;
+		}
+
+		public void setPluginVersion(String pluginVersion) {
+			this.pluginVersion = pluginVersion;
+		}
+
+		public String getTaskCommandId() {
+			return taskCommandId;
+		}
+
+		public void setTaskCommandId(String taskCommandId) {
+			this.taskCommandId = taskCommandId;
+		}
+
+		public String getSelectionType() {
+			return selectionType;
+		}
+
+		public void setSelectionType(String selectionType) {
+			this.selectionType = selectionType;
+		}
+
+		public String getDescription() {
+			return description;
+		}
+
+		public void setDescription(String description) {
+			this.description = description;
+		}
+
+		
+		@Override
+		public String toString() {
+		// TODO Auto-generated method stub
+		return getLabel();
+		}
+		 
+		
+	}
 }

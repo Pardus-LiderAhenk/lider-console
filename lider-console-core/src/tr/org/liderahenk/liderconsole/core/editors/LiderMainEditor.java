@@ -58,7 +58,9 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.EditorPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,6 +73,7 @@ import tr.org.liderahenk.liderconsole.core.labelproviders.LdapSearchEditorLabelP
 import tr.org.liderahenk.liderconsole.core.ldap.enums.DNType;
 import tr.org.liderahenk.liderconsole.core.ldap.listeners.LdapConnectionListener;
 import tr.org.liderahenk.liderconsole.core.ldap.utils.LdapUtils;
+import tr.org.liderahenk.liderconsole.core.ldap.utils.LiderLdapConnection;
 import tr.org.liderahenk.liderconsole.core.model.Agent;
 import tr.org.liderahenk.liderconsole.core.model.AgentProperty;
 import tr.org.liderahenk.liderconsole.core.model.SearchFilterEnum;
@@ -79,10 +82,12 @@ import tr.org.liderahenk.liderconsole.core.rest.responses.IResponse;
 import tr.org.liderahenk.liderconsole.core.rest.utils.AgentRestUtils;
 import tr.org.liderahenk.liderconsole.core.rest.utils.TaskRestUtils;
 import tr.org.liderahenk.liderconsole.core.utils.SWTResourceManager;
+import tr.org.liderahenk.liderconsole.core.views.LdapBrowserView;
 import tr.org.liderahenk.liderconsole.core.widgets.AttrNameCombo;
 import tr.org.liderahenk.liderconsole.core.widgets.AttrOperator;
 import tr.org.liderahenk.liderconsole.core.widgets.AttrValueText;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
+import org.eclipse.swt.widgets.Text;
 
 /**
  * 
@@ -96,6 +101,10 @@ public class LiderMainEditor extends EditorPart {
 	}
 
 	private static Logger logger = LoggerFactory.getLogger(LiderMainEditor.class);
+	private Text textLdapServer;
+	private Text textLdapBaseDn;
+	private Text textLdapUserName;
+	private Text textLdapPassword;
 
 	@Override
 	public void doSave(IProgressMonitor monitor) {
@@ -123,8 +132,76 @@ public class LiderMainEditor extends EditorPart {
 
 	@Override
 	public void createPartControl(Composite parent) {
+		
+//		Composite composite = new Composite(parent, SWT.NONE);
+//		composite.setLayout(new GridLayout(2, false));
+//		
+//		Label lblLdapServer = new Label(composite, SWT.NONE);
+//		lblLdapServer.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+//		lblLdapServer.setText("LDAP Server");
+//		
+//		textLdapServer = new Text(composite, SWT.BORDER);
+//		textLdapServer.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+//		
+//		Label lblBaseDn = new Label(composite, SWT.NONE);
+//		lblBaseDn.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+//		lblBaseDn.setText("Base Dn ");
+//		
+//		textLdapBaseDn = new Text(composite, SWT.BORDER);
+//		textLdapBaseDn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+//		
+//		Label lblNewLabel_2 = new Label(composite, SWT.NONE);
+//		lblNewLabel_2.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+//		lblNewLabel_2.setText("UserName");
+//		
+//		textLdapUserName = new Text(composite, SWT.BORDER);
+//		textLdapUserName.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+//		
+//		Label lblNewLabel_3 = new Label(composite, SWT.NONE);
+//		lblNewLabel_3.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+//		lblNewLabel_3.setText("Password");
+//		
+//		textLdapPassword = new Text(composite, SWT.BORDER);
+//		textLdapPassword.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+//		new Label(composite, SWT.NONE);
+//		new Label(composite, SWT.NONE);
+//		new Label(composite, SWT.NONE);
+//		
+//		Button btnNewButton = new Button(composite, SWT.NONE);
+//		btnNewButton.addSelectionListener(new SelectionAdapter() {
+//			@Override
+//			public void widgetSelected(SelectionEvent e) {
+//				
+//				String ldapServer= textLdapServer.getText();
+//				String baseDn= textLdapBaseDn.getText();
+//				String userName= textLdapUserName.getText();
+//				String password= textLdapPassword.getText();
+//				
+//				LiderLdapConnection connection= new LiderLdapConnection();
+//				
+//				
+//				List<String> baseListStr= connection.getTemplate(ldapServer, baseDn, userName, password);
+//				
+//				
+//				IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+//				LdapBrowserView browserView=	(LdapBrowserView) activePage.findView(LdapBrowserView.getId());
+//				
+//				if(browserView!=null){
+//					browserView.setInput(baseListStr);
+//				} else
+//					try {
+//						activePage.showView(LdapBrowserView.getId());
+//					} catch (PartInitException e1) {
+//						// TODO Auto-generated catch block
+//						e1.printStackTrace();
+//					}
+//				
+//			}
+//		});
+//		btnNewButton.setText("Connect");
 		browser= new Browser(parent, SWT.NONE);
 		boolean dd=browser.setUrl(LiderConstants.MAIN_PAGE_URL);
+		System.out.println("");
 	}
 
 	@Override
