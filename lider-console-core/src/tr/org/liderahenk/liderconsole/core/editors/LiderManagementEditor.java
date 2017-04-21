@@ -30,13 +30,13 @@ import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.RGB;
-import org.eclipse.swt.internal.gtk.GInterfaceInfo;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -45,6 +45,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.PartInitException;
@@ -59,9 +60,7 @@ import tr.org.liderahenk.liderconsole.core.dialogs.DnDetailsDialog;
 import tr.org.liderahenk.liderconsole.core.dialogs.PolicyDefinitionDialog;
 import tr.org.liderahenk.liderconsole.core.dialogs.PolicyExecutionSelectDialog;
 import tr.org.liderahenk.liderconsole.core.editorinput.DefaultEditorInput;
-import tr.org.liderahenk.liderconsole.core.handlers.SingleSelectionHandler;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
-import tr.org.liderahenk.liderconsole.core.ldap.utils.LdapUtils;
 import tr.org.liderahenk.liderconsole.core.model.LiderLdapEntry;
 import tr.org.liderahenk.liderconsole.core.model.Policy;
 import tr.org.liderahenk.liderconsole.core.rest.utils.PolicyRestUtils;
@@ -74,6 +73,10 @@ import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
  */
 public class LiderManagementEditor extends EditorPart {
 	
+	private static final RGB RGB_SELECTED = new RGB(200,255,255);
+
+	private static final RGB RGB_DEFAULT = new RGB(245,255,255);
+
 	private static final Logger logger = LoggerFactory.getLogger(LiderManagementEditor.class);
 	
 	private Font font=SWTResourceManager.getFont("Noto Sans", 10, SWT.BOLD);
@@ -113,6 +116,10 @@ public class LiderManagementEditor extends EditorPart {
 	boolean isSelectionMulti=false;
 
 	private Composite compositeTask;
+	private Text textSearchTask;
+
+	private List<PluginTaskWrapper> pluginTaskList;
+	private Text text;
 
 	
 	public LiderManagementEditor() {
@@ -289,13 +296,57 @@ public class LiderManagementEditor extends EditorPart {
 			
 			groupTask.setLayout(gridLayout);
 			groupTask.setText(Messages.getString("task_list"));
-			sashForm.setWeights(new int[] {1, 2});
+			sashForm.setWeights(new int[] {1, 3});
 			
+			textSearchTask = new Text(groupTask, SWT.BORDER);
+			GridData layoutData = new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1);
+			layoutData.widthHint=80;
+			textSearchTask.setLayoutData(layoutData);
 			
 			compositeTask = new Composite(groupTask, GridData.FILL  );
 			compositeTask.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true,1,1));
 			compositeTask.setLayout(new GridLayout(5, true));
 			
+			textSearchTask.setMessage(Messages.getString("search"));
+			textSearchTask.addKeyListener(new KeyListener() {
+				
+				@Override
+				public void keyReleased(KeyEvent e) {
+					
+					String taskLabel= textSearchTask.getText();
+					if(taskLabel.length()>=2){
+						
+						
+						if(pluginTaskList!=null)
+							for (PluginTaskWrapper pluginTaskWrapper : pluginTaskList) {
+								
+								if(pluginTaskWrapper.getTaskButton()!=null )
+									pluginTaskWrapper.getTaskButton().setBackground(SWTResourceManager.getColor(RGB_DEFAULT));
+								
+								if(pluginTaskWrapper.getLabel().toUpperCase().contains(taskLabel.toUpperCase()) && pluginTaskWrapper.getTaskButton()!=null ){
+									pluginTaskWrapper.getTaskButton().setBackground(SWTResourceManager.getColor(RGB_SELECTED));
+								}
+							}
+					}
+					
+					if(e.keyCode == 8) // retun pressed fill default value 8 
+		            {
+						if(pluginTaskList!=null)
+							for (PluginTaskWrapper pluginTaskWrapper : pluginTaskList) {
+								if(pluginTaskWrapper.getTaskButton()!=null )
+									pluginTaskWrapper.getTaskButton().setBackground(SWTResourceManager.getColor(RGB_DEFAULT));
+							}
+		            }
+				
+					
+				}
+				
+				@Override
+				public void keyPressed(KeyEvent e) {
+					// TODO Auto-generated method stub
+					
+				}
+			});
 			
 			
 			setButtonsToButtonTaskComponent();
@@ -305,21 +356,13 @@ public class LiderManagementEditor extends EditorPart {
 			sashForm.setWeights(new int[] {1});
 		}
 		
-
-		
 		
 		
 		sc.setContent(composite);
 		sc.setExpandHorizontal(true);
 		sc.setExpandVertical(true);
-		
-		
-		
-		
-
 	}
 
-	
 	
 	private void fillWithEntries() {
 		
@@ -381,31 +424,6 @@ public class LiderManagementEditor extends EditorPart {
 		
 	}
 
-	
-	private void addChildDNs(String dn,List<LiderLdapEntry> liderEntries) {
-
-		// TODO We can improve this method by simply generating a complex filter
-		// expression that helps us find agents,users,groups at the same time.
-
-//		List<String> resultList = LdapUtils.getInstance().findAgents(dn);
-//		if (resultList != null && !resultList.isEmpty()) {
-//			liderEntries.addAll(resultList);
-//		}
-//
-//		resultList.clear();
-//		resultList = LdapUtils.getInstance().findUsers(dn);
-//
-//		if (resultList != null && !resultList.isEmpty()) {
-//			dnSet.addAll(resultList);
-//		}
-//
-//		resultList.clear();
-//		resultList = LdapUtils.getInstance().findGroups(dn);
-//
-//		if (resultList != null && !resultList.isEmpty()) {
-//			dnSet.addAll(resultList);
-//		}
-	}
 
 	/**
 	 * Create table columns related to policy database columns.
@@ -637,7 +655,7 @@ public class LiderManagementEditor extends EditorPart {
 		{
 		// Iterate over each extension point provided by plugins
 			
-			List<PluginTaskWrapper> pluginTaskList= new ArrayList<>();
+			 pluginTaskList= new ArrayList<>();
 			
 				for (IConfigurationElement e : config) {
 					
@@ -688,11 +706,11 @@ public class LiderManagementEditor extends EditorPart {
 					if(pluginTaskWrapper.getSelectionType()!=null && isSelectionMulti && pluginTaskWrapper.getSelectionType().equals("multi"))
 					{
 					
-						addButtonToTaskArea(commandService, pluginTaskWrapper.getLabel(), pluginTaskWrapper.getTaskCommandId(), pluginTaskWrapper.getDescription());
+						addButtonToTaskArea(commandService,pluginTaskWrapper );
 					
 					}
 					else if( isSelectionSingle) {
-						addButtonToTaskArea(commandService, pluginTaskWrapper.getLabel(), pluginTaskWrapper.getTaskCommandId(), pluginTaskWrapper.getDescription());
+						addButtonToTaskArea(commandService, pluginTaskWrapper);
 					}
 				}
 				
@@ -706,11 +724,11 @@ public class LiderManagementEditor extends EditorPart {
 	}
 
 
-	private void addButtonToTaskArea(final ICommandService commandService, String label, final String taskCommandId, String description) {
+	private void addButtonToTaskArea(final ICommandService commandService, final PluginTaskWrapper pluginTaskWrapper) {
 		Button btnTask = new Button(compositeTask, SWT.NONE);
 		btnTask.setFont(font);
-		btnTask.setToolTipText(description);
-		btnTask.setBackground(SWTResourceManager.getColor(new RGB(245,255,255)));
+		btnTask.setToolTipText(pluginTaskWrapper.getDescription());
+		btnTask.setBackground(SWTResourceManager.getColor(RGB_DEFAULT));
 		
 		//btnTask.setForeground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		
@@ -718,14 +736,16 @@ public class LiderManagementEditor extends EditorPart {
 	//	gd_btnNewButton.minimumWidth = 230;
 	//	gd_btnNewButton.minimumHeight = 100;
 		btnTask.setLayoutData(gd_btnNewButton);
-		btnTask.setText(label);
+		btnTask.setText(pluginTaskWrapper.getLabel());
+		
+		pluginTaskWrapper.setTaskButton(btnTask);
 		
 		btnTask.addSelectionListener(new SelectionListener() {
 			
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				
-				Command command = commandService.getCommand(taskCommandId);
+				Command command = commandService.getCommand(pluginTaskWrapper.getTaskCommandId());
 				
 				try {
 					command.executeWithChecks(new ExecutionEvent());
@@ -871,7 +891,10 @@ public class LiderManagementEditor extends EditorPart {
 		
 		 String description;
 		 
-		 public PluginTaskWrapper() {
+		 Button taskButton;
+		 
+		
+		public PluginTaskWrapper() {
 			// TODO Auto-generated constructor stub
 		}
 
@@ -933,6 +956,14 @@ public class LiderManagementEditor extends EditorPart {
 		public void setDescription(String description) {
 			this.description = description;
 		}
+
+		 public Button getTaskButton() {
+				return taskButton;
+			}
+
+			public void setTaskButton(Button taskButton) {
+				this.taskButton = taskButton;
+			}
 
 		
 		@Override
