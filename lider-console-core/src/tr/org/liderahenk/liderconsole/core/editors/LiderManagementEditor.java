@@ -73,7 +73,7 @@ import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
  */
 public class LiderManagementEditor extends EditorPart {
 	
-	private static final RGB RGB_SELECTED = new RGB(200,255,255);
+	private static final RGB RGB_SELECTED = new RGB(0,220,220);
 
 	private static final RGB RGB_DEFAULT = new RGB(245,255,255);
 
@@ -121,6 +121,7 @@ public class LiderManagementEditor extends EditorPart {
 	private List<PluginTaskWrapper> pluginTaskList;
 	private Text text;
 
+	
 	
 	public LiderManagementEditor() {
 		
@@ -673,9 +674,11 @@ public class LiderManagementEditor extends EditorPart {
 						final String selectionType = e.getAttribute("selectionType");
 						
 						final String description = e.getAttribute("description");
+						
+						final String imagePath = e.getAttribute("imagePath");
 		
 						
-						PluginTaskWrapper pluginTaskWrapper= new PluginTaskWrapper(label,pluginName, pluginVersion,taskCommandId,selectionType,description);
+						PluginTaskWrapper pluginTaskWrapper= new PluginTaskWrapper(label, pluginName, pluginVersion, taskCommandId, selectionType, description, imagePath);
 						
 						pluginTaskList.add(pluginTaskWrapper);
 						
@@ -729,7 +732,8 @@ public class LiderManagementEditor extends EditorPart {
 		btnTask.setFont(font);
 		btnTask.setToolTipText(pluginTaskWrapper.getDescription());
 		btnTask.setBackground(SWTResourceManager.getColor(RGB_DEFAULT));
-		
+		if(pluginTaskWrapper.getImagePath()!=null)
+		btnTask.setImage(SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE, "icons/16/"+pluginTaskWrapper.getImagePath()));
 		//btnTask.setForeground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		
 		GridData gd_btnNewButton = new GridData(SWT.FILL, SWT.FILL, true, true);
@@ -893,13 +897,16 @@ public class LiderManagementEditor extends EditorPart {
 		 
 		 Button taskButton;
 		 
+		 String imagePath;
+		 
 		
+
 		public PluginTaskWrapper() {
 			// TODO Auto-generated constructor stub
 		}
 
 		public PluginTaskWrapper(String label, String pluginName, String pluginVersion, String taskCommandId,
-				String selectionType, String description) {
+				String selectionType, String description, String imagePath) {
 			super();
 			this.label = label;
 			this.pluginName = pluginName;
@@ -907,6 +914,7 @@ public class LiderManagementEditor extends EditorPart {
 			this.taskCommandId = taskCommandId;
 			this.selectionType = selectionType;
 			this.description = description;
+			this.imagePath = imagePath;
 		}
 
 		public String getLabel() {
@@ -956,6 +964,7 @@ public class LiderManagementEditor extends EditorPart {
 		public void setDescription(String description) {
 			this.description = description;
 		}
+	
 
 		 public Button getTaskButton() {
 				return taskButton;
@@ -971,7 +980,16 @@ public class LiderManagementEditor extends EditorPart {
 		// TODO Auto-generated method stub
 		return getLabel();
 		}
-		 
+		
+		
+
+		public String getImagePath() {
+			return imagePath;
+		}
+
+		public void setImagePath(String imagePath) {
+			this.imagePath = imagePath;
+		}
 		
 	}
 }

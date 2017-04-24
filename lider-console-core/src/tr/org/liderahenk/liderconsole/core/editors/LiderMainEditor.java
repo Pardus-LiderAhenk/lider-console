@@ -19,75 +19,19 @@
 */
 package tr.org.liderahenk.liderconsole.core.editors;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.naming.NamingException;
-import javax.naming.directory.Attribute;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
-
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.viewers.CheckboxTableViewer;
-import org.eclipse.jface.viewers.ColumnLabelProvider;
-import org.eclipse.jface.viewers.TableViewer;
-import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
-import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.EditorPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import tr.org.liderahenk.liderconsole.core.config.ConfigProvider;
 import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
-import tr.org.liderahenk.liderconsole.core.dialogs.SearchGroupDialog;
-import tr.org.liderahenk.liderconsole.core.i18n.Messages;
-import tr.org.liderahenk.liderconsole.core.labelproviders.LdapSearchEditorLabelProvider;
-import tr.org.liderahenk.liderconsole.core.ldap.enums.DNType;
-import tr.org.liderahenk.liderconsole.core.ldap.listeners.LdapConnectionListener;
-import tr.org.liderahenk.liderconsole.core.ldap.utils.LdapUtils;
-import tr.org.liderahenk.liderconsole.core.ldap.utils.LiderLdapConnection;
-import tr.org.liderahenk.liderconsole.core.model.Agent;
-import tr.org.liderahenk.liderconsole.core.model.AgentProperty;
-import tr.org.liderahenk.liderconsole.core.model.SearchFilterEnum;
-import tr.org.liderahenk.liderconsole.core.model.SearchGroupEntry;
-import tr.org.liderahenk.liderconsole.core.rest.responses.IResponse;
-import tr.org.liderahenk.liderconsole.core.rest.utils.AgentRestUtils;
-import tr.org.liderahenk.liderconsole.core.rest.utils.TaskRestUtils;
-import tr.org.liderahenk.liderconsole.core.utils.SWTResourceManager;
-import tr.org.liderahenk.liderconsole.core.views.LdapBrowserView;
-import tr.org.liderahenk.liderconsole.core.widgets.AttrNameCombo;
-import tr.org.liderahenk.liderconsole.core.widgets.AttrOperator;
-import tr.org.liderahenk.liderconsole.core.widgets.AttrValueText;
-import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
-import org.eclipse.swt.widgets.Text;
 
 /**
  * 
