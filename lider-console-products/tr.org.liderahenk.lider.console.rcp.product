@@ -24,7 +24,7 @@ Apache Software Foundation http://apache.org/
    <launcherArgs>
       <programArgs>-nl tr --launcher.GTK_version 2
       </programArgs>
-      <vmArgs>-Dosgi.requiredJavaVersion=1.7 -XX:MaxPermSize=512m -Xms40m -Xmx1024m
+      <vmArgs>-Dosgi.requiredJavaVersion=1.7 -Xms512m -Xmx2048m -XX:PermSize=256m -XX:MaxPermSize=256m -XX:+UseParallelGC
       </vmArgs>
       <vmArgsMac>-XstartOnFirstThread -Dorg.eclipse.swt.internal.carbon.smallFonts
       </vmArgsMac>
@@ -737,16 +737,13 @@ Public License instead of this License.  But first, please read
       <plugin id="javax.servlet"/>
       <plugin id="javax.xml"/>
       <plugin id="javax.xml.stream"/>
-      <plugin id="lider-console-antivirus"/>
-      <plugin id="lider-console-backup"/>
-      <plugin id="lider-console-browser"/>
-      <plugin id="lider-console-conky"/>
       <plugin id="net.sf.ehcache"/>
       <plugin id="org.apache.batik.css"/>
       <plugin id="org.apache.batik.util"/>
       <plugin id="org.apache.batik.util.gui"/>
       <plugin id="org.apache.commons.codec"/>
       <plugin id="org.apache.commons.collections"/>
+      <plugin id="org.apache.commons.compress"/>
       <plugin id="org.apache.commons.io"/>
       <plugin id="org.apache.commons.jxpath"/>
       <plugin id="org.apache.commons.lang"/>
@@ -767,15 +764,23 @@ Public License instead of this License.  But first, please read
       <plugin id="org.apache.directory.api.ldap.schema"/>
       <plugin id="org.apache.directory.api.util"/>
       <plugin id="org.apache.directory.studio.common.core"/>
+      <plugin id="org.apache.directory.studio.common.core.nl_tr" fragment="true"/>
       <plugin id="org.apache.directory.studio.common.ui"/>
+      <plugin id="org.apache.directory.studio.common.ui.nl_tr" fragment="true"/>
       <plugin id="org.apache.directory.studio.connection.core"/>
+      <plugin id="org.apache.directory.studio.connection.core.nl_tr" fragment="true"/>
       <plugin id="org.apache.directory.studio.connection.ui"/>
+      <plugin id="org.apache.directory.studio.connection.ui.nl_tr" fragment="true"/>
       <plugin id="org.apache.directory.studio.ldapbrowser.common"/>
+      <plugin id="org.apache.directory.studio.ldapbrowser.common.nl_tr" fragment="true"/>
       <plugin id="org.apache.directory.studio.ldapbrowser.core"/>
+      <plugin id="org.apache.directory.studio.ldapbrowser.core.nl_tr" fragment="true"/>
       <plugin id="org.apache.directory.studio.ldapbrowser.ui"/>
+      <plugin id="org.apache.directory.studio.ldapbrowser.ui.nl_tr" fragment="true"/>
       <plugin id="org.apache.directory.studio.ldifeditor"/>
       <plugin id="org.apache.directory.studio.ldifparser"/>
       <plugin id="org.apache.directory.studio.valueeditors"/>
+      <plugin id="org.apache.directory.studio.valueeditors.nl_tr" fragment="true"/>
       <plugin id="org.apache.httpcomponents.httpclient"/>
       <plugin id="org.apache.httpcomponents.httpcore"/>
       <plugin id="org.apache.log4j"/>

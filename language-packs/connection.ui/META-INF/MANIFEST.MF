@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: org.apache.directory.studio.connection.ui.nl_tr Fragment
+Bundle-SymbolicName: org.apache.directory.studio.connection.ui.nl_tr
+Bundle-Version: 1.0.0.qualifier
+Fragment-Host: org.apache.directory.studio.connection.ui;bundle-version="[2.0.0,2.1.0)"
