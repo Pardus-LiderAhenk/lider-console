@@ -60,6 +60,8 @@ import tr.org.liderahenk.liderconsole.core.rest.utils.TaskRestUtils;
 import tr.org.liderahenk.liderconsole.core.utils.SWTResourceManager;
 import tr.org.liderahenk.liderconsole.core.widgets.LiderConfirmBox;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.events.SelectionAdapter;
 
 /**
  * Default task dialog implementation that can be used by plugins in order to
@@ -84,8 +86,16 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 	private List<EventHandler> handlers = new ArrayList<EventHandler>();
 
 	private Set<String> dnSet = new LinkedHashSet<String>();
-	private boolean hideActivationDate;
+	private boolean hideActivationDate=false;
+	private boolean sendMail;
+	private Composite compositeMail;
+	private Composite container;
+	private Button btnCheckButton;
+	private Text textMailContent;
 
+	/**
+	 * @wbp.parser.constructor
+	 */
 	public DefaultTaskDialog(Shell parentShell, Set<String> dnSet) {
 		super(parentShell);
 		if (dnSet != null)
@@ -106,6 +116,15 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 		if (dnSet != null)
 			this.dnSet.addAll(dnSet);
 		this.hideActivationDate = hideActivationDate;
+		init();
+	}
+	
+	public DefaultTaskDialog(Shell parentShell, Set<String> dnSet, boolean hideActivationDate, boolean sendMail) {
+		super(parentShell);
+		if (dnSet != null)
+			this.dnSet.addAll(dnSet);
+		this.hideActivationDate = hideActivationDate;
+		this.sendMail=sendMail;
 		init();
 	}
 
@@ -156,6 +175,14 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 	 * @return plugin name
 	 */
 	public abstract String getPluginName();
+	
+	/**
+	 * 
+	 * @return plugin name
+	 */
+	public String getMailSubject(){return "";};
+	
+	public String getMailContent(){return "";}
 
 	/**
 	 * 
@@ -196,16 +223,16 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 	@Override
 	protected Control createDialogArea(final Composite parent) {
 		// Container
-		Composite container = new Composite(parent, SWT.NONE);
+		container = new Composite(parent, SWT.NONE);
 		container.setLayoutData(new GridData(GridData.FILL_BOTH));
 		container.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		container.setLayout(new GridLayout(1, false));
 		// Task-related inputs
 		createTaskDialogArea(container);
 		// Activation date inputs
-		if (!hideActivationDate) {
+		//if (!hideActivationDate) {
 			createTaskActivationDateArea(container);
-		}
+		//}
 		// Progress bar
 		progressBar = new ProgressBar(container, SWT.SMOOTH | SWT.INDETERMINATE);
 		progressBar.setSelection(0);
@@ -218,7 +245,35 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 	}
 
 	private void createTaskActivationDateArea(final Composite parent) {
-		new Label(parent, SWT.NONE); // separate activate date from dialog area
+		new Label(parent, SWT.NONE);
+		
+		if(sendMail) {
+			compositeMail = new Composite(container, SWT.NONE);
+			compositeMail.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, true, 1, 1));
+			compositeMail.setLayout(new GridLayout(2, false));
+			
+			btnCheckButton = new Button(compositeMail, SWT.CHECK);
+			GridData gd_btnCheckButton = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+			gd_btnCheckButton.widthHint = 96;
+			btnCheckButton.setLayoutData(gd_btnCheckButton);
+			btnCheckButton.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					Button btn = (Button) e.getSource();
+					textMailContent.setVisible(btn.getSelection());
+				}
+			});
+			btnCheckButton.setText(Messages.getString("send_mail"));
+			
+			textMailContent = new Text(compositeMail,  SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
+			GridData gd_text = new GridData(SWT.FILL, SWT.CENTER, true, true, 1, 1);
+			gd_text.heightHint = 40;
+			textMailContent.setLayoutData(gd_text);
+			textMailContent.setVisible(false);
+			textMailContent.setText(getMailContent());
+		
+		}
+		
 		Composite composite = new Composite(parent, SWT.NONE);
 		composite.setLayout(new GridLayout(4, false));
 		composite.setLayoutData(new GridData(SWT.BOTTOM, SWT.FILL, true, false));
@@ -269,8 +324,17 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 							Messages.getString("TASK_EXEC_TITLE"), Messages.getString("TASK_EXEC_MESSAGE"))) {
 						try {
 							progressBar.setVisible(true);
+							
+							Map<String, Object> paramaterMap= getParameterMap();
+							if(btnCheckButton!=null && btnCheckButton.getSelection()){
+								
+								paramaterMap.put("mailSend", true);
+								paramaterMap.put("mailContent", getMailContent());
+								paramaterMap.put("mailSubject", getMailSubject());
+							}
+							
 							TaskRequest task = new TaskRequest(new ArrayList<String>(dnSet), DNType.AHENK,
-									getPluginName(), getPluginVersion(), getCommandId(), getParameterMap(), null,
+									getPluginName(), getPluginVersion(), getCommandId(), paramaterMap, null,
 									!hideActivationDate && btnEnableDate.getSelection()
 											? SWTResourceManager.convertDate(dtActivationDate, dtActivationDateTime)
 											: null,
