@@ -215,6 +215,14 @@
 		<module>lider-console-rcp</module>
 		<module>lider-console-products</module>
 		<module>lider-console-core-tests</module>
+		<module>language-packs/common.core</module>
+		<module>language-packs/common.ui</module>
+		<module>language-packs/connection.core</module>
+		<module>language-packs/connection.ui</module>
+		<module>language-packs/ldapbrowser.common</module>
+		<module>language-packs/ldapbrowser.core</module>
+		<module>language-packs/ldapbrowser.ui</module>
+		<module>language-packs/valueeditors</module>
 	</modules>
 	
 	<developers>
