@@ -30,7 +30,8 @@ import org.eclipse.e4.core.services.events.IEventBroker;
 public class LiderConstants {
 	
 	
-	public static String MAIN_PAGE_URL="http://www.google.com";
+	//public static String MAIN_PAGE_URL="./index.html";
+	public static String MAIN_PAGE_URL="http://www.liderahenk.org";
 
 	public static final class PLUGIN_IDS {
 		public static final String LIDER_CONSOLE_CORE = "tr.org.liderahenk.liderconsole.core";
@@ -38,7 +39,8 @@ public class LiderConstants {
 
 	public static final class PERSPECTIVES {
 		public static final String MAIN_PERSPECTIVE_ID = "tr.org.liderahenk.liderconsole.core.perspectives.MainPerspective";
-		public static final String LDAP_BROWSER_PERSPECTIVE_ID = "org.apache.directory.studio.ldapbrowser.ui.perspective.BrowserPerspective";
+		public static final String LDAP_BROWSER_PERSPECTIVE_ID = "tr.org.liderahenk.liderconsole.core.perspectives.MainPerspective";
+	//	public static final String LDAP_BROWSER_PERSPECTIVE_ID = "org.apache.directory.studio.ldapbrowser.ui.perspective.BrowserPerspective";
 	}
 
 	public static final class VIEWS {

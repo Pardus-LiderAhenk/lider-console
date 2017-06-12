@@ -219,14 +219,14 @@ public class ApplicationActionBarAdvisor extends ActionBarAdvisor {
 		editMenu.add(new GroupMarker(IWorkbenchActionConstants.FIND_EXT));
 
 		// Adding menus
-		menuBar.add(fileMenu);
-		menuBar.add(editMenu);
-		menuBar.add(navigateMenu);
+		//menuBar.add(fileMenu);
+		//menuBar.add(editMenu);
+		//menuBar.add(navigateMenu);
 		// Add a group marker indicating where action set menus will appear.
-		menuBar.add(new GroupMarker(IWorkbenchActionConstants.MB_ADDITIONS));
+		//menuBar.add(new GroupMarker(IWorkbenchActionConstants.MB_ADDITIONS));
 		menuBar.add(windowMenu);
-		menuBar.add(helpMenu);
-		menuBar.add(hiddenMenu);
+	//	menuBar.add(helpMenu);
+		//menuBar.add(hiddenMenu);
 
 		// Populating File Menu
 		fileMenu.add(new GroupMarker(IWorkbenchActionConstants.NEW_EXT));

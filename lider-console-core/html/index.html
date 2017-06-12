@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>LiderAhenk Takip Sistemi</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/main.css">
+	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+	<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="css/form.less.css">
+</head>
+<body>
+
+	<div class="topbar" data-scrollspy="scrollspy">
+      <div class="fill">
+        <div class="container" style="position: relative">
+          <a class="brand" href="#">Lider Ahenk Takip</a>
+          <ul class="nav">
+            <li class="active lta_on_air"><a href="#info">Özet Bilgiler</a></li>
+            <li class="lta_on_air"><a href="#charts">Detay Bilgiler</a></li>
+            <li><a href="#settings">Ayarlar</a></li>
+          </ul>
+   		  <a href="#" id="tla_clock" style="position: absolute; right: 10px; top: 10px"></a>
+        </div>
+      </div>
+    </div>
+
+	<div class="container">
+
+      <div class="hero-unit">
+        <h1>LiderAhenk</h1>
+        <p>Sistemlerinizi yönetmek hiç bu kadar kolay olmamıştı. <a href="http://www.highcharts.com/"> sdgsgdf </a> </p>
+        <p><a class="btn btn-primary large" target="_blank" href="http://www.liderahenk.org">Daha fazla bilgi için. &raquo;</a></p>
+      </div>
+
+    <section id="info" class="lta_on_air">
+        <div class="page-header">
+          <h3>Özet Bilgiler</h3>
+        </div>
+        
+        <div style="width: 100%; margin-top: 5px; margin-bottom: 5px; text-align: right">
+        	<button type="button" class="btn btn-primary btn-sm" onclick="la_get_data()">Yenile</button>
+        </div>
+        
+        <div class="alert alert-info" style="font-size: 18px; text-align: center"><strong>TOPLAM AHENK SAYISI: <span id="total_agent"></span></strong></div>
+        <p>Yönetilen bilgisayar sistemlerine ilişkin özet bilgiler.</p>
+		<div>
+			<div style="width: 30%; float: left">
+			  <table class="table table-bordered highchart" data-graph-container="#ahenk_sayisi_pie" data-graph-type="pie" data-graph-datalabels-enabled="1">
+				<thead>
+					<tr>                                  
+						<th>Durum</th>
+						<th>Adet</th>
+					</tr>
+				 </thead>
+				<tbody>
+				  <tr>
+					<td>Açık ahenk sayısı</td>
+					<td id="online_agent"></td>
+				  </tr>
+				  <tr>
+					<td>Kapalı ahenk sayısı</td>
+					<td id="offline_agent"></td>
+				  </tr>
+			  </table>        
+			</div>
+			<div style="width: 70%; float: left" id="ahenk_sayisi_pie">
+			</div>
+		</div>
+		
+        <p>&nbsp;</p>
+		<div class="alert alert-success" style="font-size: 18px; text-align: center"><strong>BAĞLI KULLANICILAR: <span id="online_users"></span></strong></div>
+        <p>Bağlı kullanıcıları listelemek için <a href="javascript:la_online_users()">buraya</a> tıklayınız.</p>
+        <div id="lta_online_users"></div>
+        <div style="height: 100px"></div>
+		
+        <p>Kurulu ve aktif olan ahenk sistemi sayıları</p>
+		<div style="height: 370px">
+			<div style="width: 30%; float: left">
+			  <table class="table table-bordered highchart" data-graph-container="#ahenk_sayisi_gunluk_line" data-graph-type="line" data-graph-datalabels-enabled="1">
+				<thead>
+					<tr>                                  
+						<th>Gün</th>
+						<th>Kurulu Ahenk</th>
+						<th>Aktif Ahenk</th>
+					</tr>
+				 </thead>
+				<tbody id="lta_ahenk_sayisi_gunluk">
+				</tbody>
+			  </table>        
+			</div>
+			<div style="width: 70%; float: left" id="ahenk_sayisi_gunluk_line">
+			</div>
+		</div>
+
+	</section>
+	
+	<section id="charts" class="lta_on_air">
+		<div class="page-header" style="margin-">
+          <h3>Detay Bilgiler</h3>
+        </div>
+        
+        <div style="width: 100%; margin-top: 5px; margin-bottom: 5px; text-align: right">
+        	<button type="button" class="btn btn-primary btn-sm" onclick="la_get_data()">Yenile</button>
+        </div>
+        
+        
+        <p>Ahenk sistem özellikleri dağılımı</p>
+        
+        <form role="form">
+			<div class="form-group" style="clear: both;">
+				<div style="width: 80%; float: left;">
+				  <label for="url" class="control-label">Sistem Özellikleri</label>
+				  <select width-min="15" class="form-control" id="lta_ahenk_prop">
+				  </select>
+				</div>
+				<div style="width: 20%; float: left;">
+					<label class="control-label">&nbsp;</label>
+					<button type="button" class="btn btn-default" style="width: 100%" onclick="la_ahenk_prop()">Göster</button>
+				</div>
+	  		</div>
+	  	</form>
+	  	
+	  	<p>
+	  		&nbsp;
+	  	</p>
+	  	<div style="height: 370px; display: none" id="lta_ahenk_prop_div">
+			<div style="width: 30%; float: left">
+			  <table id="lta_ahenk_prop_table" class="table table-bordered highchart" data-graph-container="#lta_ahenk_prop_line" data-graph-type="pie" data-graph-datalabels-enabled="1">
+				<thead>
+					<tr>                                  
+						<th>Tanım</th>
+						<th>Adet</th>
+					</tr>
+				 </thead>
+				<tbody id="lta_ahenk_prop_tbody">
+				</tbody>
+			  </table>        
+			</div>
+			<div style="width: 70%; float: left" id="lta_ahenk_prop_line">
+			</div>
+		</div>
+		
+		<p>
+	  		&nbsp;
+		</p>
+	  	<div style="display: block" id="lta_ahenk_prop_div2">
+	  		<p style="display:none" id="lta_display_columns">
+	  			Gösterilecek sütunlar
+	  		</p>
+	  		
+	  		<div id="lta_columns" style="position: relative; height: 200px">
+			</div>
+	  		
+			<div style="width: 100%; height: 20px">
+			</div>
+			
+			  <table id="lta_ahenk_prop_table2" class="table table-bordered">
+				<thead id="lta_ahenk_prop_thead2">
+				 </thead>
+				<tbody id="lta_ahenk_prop_tbody2">
+				</tbody>
+			  </table>  
+			  
+			<div style="width: 100%; height: 40px">
+			</div>
+		      
+	  	</div>
+	  	
+	  	
+	</section>
+	
+	
+   <section id="settings">
+        <div class="page-header">
+          <h3>Sistem Ayarları</h3>
+        </div>
+		<p>Takip edilecek Lider sistemine erişim ve veri yenileme sıklığı bilgileri.</p>
+		<form role="form">
+			<div class="form-group" style="clear: both;">
+				<div style="width: 100%; float: left;">
+				  <label for="url" class="control-label">Lider REST Server URL:</label>
+				  <input type="text" class="form-control" id="url" placeholder="http://###.###.###.###:8181/lider">
+				</div>
+	  		</div>
+			<div class="form-group" style="clear: both;">
+				<div width-min="15" style="width: 40%; float: left; margin-right: 15px">
+				  <label for="username" class="control-label">Username:</label>
+				  <input type="text" class="form-control" id="username" placeholder="username">
+   		  		</div>
+				<div width-min="15" style="width: 40%; float: left; margin-right: 15px">
+				  <label for="password" class="control-label">Password:</label>
+				  <input type="password" class="form-control" id="password" placeholder="******">
+   		  		</div>
+				<div style="width: 20%; float: left;">
+					<label class="control-label">&nbsp;</label>
+					<button type="button" class="btn btn-default" style="width: 100%" onclick="la_test_connection()">Bağlantıyı Test Et</button>
+				</div>
+			</div>
+			<div class="form-group" style="clear: both; padding-top: 10px;">
+				<div width-min="15" style="width: 40%; float: left; margin-right: 15px">
+				  <label for="refresh_rate" class="control-label">Otomatik Yenileme Sıklığı:</label>
+				  <select class="form-control" id="refresh_rate" onchange="la_get_data()">
+					<option value="10">10 Saniye</option>
+					<option value="30">30 Saniye</option>
+					<option value="60">60 Saniye</option>
+					<option value="-">Otomatik yenileme kapalı</option>
+				  </select>
+			    </div>
+				<div style="width: 40%; float: left;">
+					<label class="control-label">&nbsp;</label>
+				</div>
+				<div style="width: 10%; float: left;">
+				  <label class="control-label">&nbsp;</label>
+				  <button width-min="5" type="button" class="btn btn-primary" style="width: 100%" onclick="la_get_data()">Yenile</button>
+				</div>
+				<div style="width: 10%; float: left;">
+				  <label class="control-label">&nbsp;</label>
+				  <button type="button" class="btn btn-primary" style="width: 100%" onclick="la_save()">Kaydet</button>
+				</div>
+			</div>
+			
+			<div style="width: 100%; height: 100px">
+			</div>
+		
+		</form>
+	</section>
+	   
+	
+	<div id="lta_message" style="position: fixed; bottom: 40px; right: 40px; ">
+	</div>
+
+
+
+	</div>
+
+	<script src="js/jquery.min.js"></script> 
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/highcharts.js"></script> 
+    <script src="js/jquery.highchartTable-min.js"></script> 
+    <script src="js/jquery.tablesorter.min.js"></script>
+	<script src="js/lider.ahenk.takip.1.0.beta.js"></script>
+    <script>la_init();</script>
+
+</body>
+</html>

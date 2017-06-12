@@ -354,6 +354,23 @@
                label="%menu.label.apply.task">
          </menu>
       </menuContribution>
+      
+      
+      
+      <menuContribution
+            locationURI="popup:tr.org.liderahenk.liderconsole.core.views.LdapBrowserView?after=additions">
+         <menu
+               id="tr.org.liderahenk.liderconsole.menus.ApplyPolicy"
+               label="%menu.label.apply.policy">
+         </menu>
+         <!-- Plugins may contribute to this menu: -->
+         <menu
+               id="tr.org.liderahenk.liderconsole.menus.ApplyTask"
+               label="%menu.label.apply.task">
+         </menu>
+      </menuContribution>
+      
+      
 	  <menuContribution
 		locationURI="popup:tr.org.liderahenk.liderconsole.menus.ApplyPolicy?after=additions">
 			<command
@@ -562,6 +579,16 @@
             icon="icons/16/ldap.png"
             id="tr.org.liderahenk.liderconsole.core.views.SearchGroupView"
             name="%view.search.group"
+            restorable="true">
+      </view>
+      
+      <view
+            allowMultiple="false"
+            category="tr.org.liderahenk.liderconsole.core.category"
+            class="tr.org.liderahenk.liderconsole.core.views.LiderLoginView"
+            icon="icons/16/ldap.png"
+            id="tr.org.liderahenk.liderconsole.core.views.LiderLoginView"
+            name="%view.lider.main"
             restorable="true">
       </view>
       

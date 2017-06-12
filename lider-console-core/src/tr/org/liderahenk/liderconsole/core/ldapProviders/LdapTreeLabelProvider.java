@@ -11,7 +11,6 @@ import org.apache.directory.studio.ldapbrowser.common.BrowserCommonActivator;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.ui.PlatformUI;
 
 import tr.org.liderahenk.liderconsole.core.model.LiderLdapEntry;
 

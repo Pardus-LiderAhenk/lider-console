@@ -20,7 +20,9 @@
 package tr.org.liderahenk.liderconsole.core.rest.utils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -31,9 +33,15 @@ import org.slf4j.LoggerFactory;
 import tr.org.liderahenk.liderconsole.core.config.ConfigProvider;
 import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
+import tr.org.liderahenk.liderconsole.core.model.MailAddress;
+import tr.org.liderahenk.liderconsole.core.model.MailContent;
+import tr.org.liderahenk.liderconsole.core.model.MailParameter;
 import tr.org.liderahenk.liderconsole.core.model.Plugin;
+import tr.org.liderahenk.liderconsole.core.model.Policy;
 import tr.org.liderahenk.liderconsole.core.rest.RestClient;
 import tr.org.liderahenk.liderconsole.core.rest.enums.RestResponseStatus;
+import tr.org.liderahenk.liderconsole.core.rest.requests.MailManagementRequest;
+import tr.org.liderahenk.liderconsole.core.rest.requests.PolicyRequest;
 import tr.org.liderahenk.liderconsole.core.rest.responses.IResponse;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
 
@@ -133,6 +141,104 @@ public class PluginRestUtils {
 		StringBuilder url = new StringBuilder(
 				ConfigProvider.getInstance().get(LiderConstants.CONFIG.REST_PLUGIN_BASE_URL));
 		return url;
+	}
+	
+	
+	public static Map<String, Object>  getMailList(Long pluginId, String pluginName, String pluginVersion ) throws Exception {
+		
+		if (pluginId == null) {
+			throw new IllegalArgumentException("ID was null.");
+		}
+		
+		// Build URL
+		StringBuilder url = getBaseUrl();
+		
+			url.append("/listMail?");
+
+//			List<String> params = new ArrayList<String>();
+//			url.append(StringUtils.join(params, "&"));
+			
+			url.append("pluginId=" + pluginName);
+		
+			//url.append(StringUtils.join(params, "&"));
+			
+			url.append("&version=" + pluginVersion);
+			
+	
+			logger.debug("Sending request to URL: {}", url.toString());
+		IResponse response = RestClient.get(url.toString());
+		
+		
+		
+		Map<String, Object> mailResponse = new HashMap<String, Object>();
+
+		if (response != null && response.getStatus() == RestResponseStatus.OK && response.getResultMap().get("mailAddressList") != null) {
+			
+			
+			ObjectMapper mapper = new ObjectMapper();
+			List<MailAddress> mailAddressList = mapper.readValue(mapper.writeValueAsString(response.getResultMap().get("mailAddressList")),
+					new TypeReference<List<MailAddress>>() {
+					});
+			List<MailContent> mailContentList = mapper.readValue(mapper.writeValueAsString(response.getResultMap().get("mailContentList")),
+					new TypeReference<List<MailContent>>() {
+			});
+			List<MailParameter> mailParameterList = mapper.readValue(mapper.writeValueAsString(response.getResultMap().get("mailParameterList")),
+					new TypeReference<List<MailParameter>>() {
+			});
+			
+			
+			mailResponse.put("mailAddressList", mailAddressList);
+			mailResponse.put("mailContentList", mailContentList);
+			mailResponse.put("mailParameterList", mailParameterList);
+		} else {
+			Notifier.error(null, Messages.getString("ERROR_ON_LIST"));
+		}
+		return mailResponse;
+	}
+	
+	
+	
+	public static void add(PolicyRequest policy) throws Exception {
+
+		// Build URL
+		StringBuilder url = getBaseUrl();
+		url.append("/add");
+		logger.debug("Sending request: {} to URL: {}", new Object[] { policy, url.toString() });
+
+		// Send POST request to server
+		IResponse response = RestClient.post(policy, url.toString());
+		Policy result = null;
+
+		if (response != null && response.getStatus() == RestResponseStatus.OK
+				&& response.getResultMap().get("policy") != null) {
+			ObjectMapper mapper = new ObjectMapper();
+			result = mapper.readValue(mapper.writeValueAsString(response.getResultMap().get("policy")), Policy.class);
+			Notifier.success(null, Messages.getString("RECORD_SAVED"));
+		} else {
+			Notifier.error(null, Messages.getString("ERROR_ON_SAVE"));
+		}
+
+	//	return result;
+	}
+	public static void addMailConfiguration(MailManagementRequest mailManagementRequest) throws Exception {
+		
+		// Build URL
+		StringBuilder url = getBaseUrl();
+		url.append("/addMailConfiguration");
+		logger.debug("Sending request: {} to URL: {}", new Object[] { mailManagementRequest, url.toString() });
+		
+		// Send POST request to server
+		IResponse response = RestClient.post(mailManagementRequest, url.toString());
+		
+		if (response != null && response.getStatus() == RestResponseStatus.OK
+				) {
+			
+			Notifier.success(null, Messages.getString("RECORD_SAVED"));
+		} else {
+			Notifier.error(null, Messages.getString("ERROR_ON_SAVE"));
+		}
+		
+		//	return result;
 	}
 
 }

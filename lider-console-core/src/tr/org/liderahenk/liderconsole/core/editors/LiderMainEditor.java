@@ -19,19 +19,36 @@
 */
 package tr.org.liderahenk.liderconsole.core.editors;
 
+import java.io.IOException;
+import java.net.URL;
+import java.util.List;
+
+import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.EditorPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import tr.org.liderahenk.liderconsole.core.Activator;
 import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
+import tr.org.liderahenk.liderconsole.core.ldap.utils.LiderLdapConnection;
+import tr.org.liderahenk.liderconsole.core.views.LdapBrowserView;
 
 /**
  * 
@@ -39,7 +56,10 @@ import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
  *
  */
 public class LiderMainEditor extends EditorPart {
+	
 	private Browser browser;
+	
+	public static String ID="tr.org.liderahenk.liderconsole.core.editors.LiderMainEditor";
 
 	public LiderMainEditor() {
 	}
@@ -77,9 +97,29 @@ public class LiderMainEditor extends EditorPart {
 	@Override
 	public void createPartControl(Composite parent) {
 		
-//		Composite composite = new Composite(parent, SWT.NONE);
-//		composite.setLayout(new GridLayout(2, false));
-//		
+		Composite composite = new Composite(parent, SWT.NONE);
+		composite.setLayout(new GridLayout(3, false));
+		new Label(composite, SWT.NONE);
+		
+		Button btnBack = new Button(composite, SWT.NONE);
+		btnBack.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				
+				browser.back();
+			}
+		});
+		btnBack.setText("Back");
+		
+		Button btnForward = new Button(composite, SWT.NONE);
+		btnForward.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				browser.forward();
+			}
+		});
+		btnForward.setText("Forward");
+		
 //		Label lblLdapServer = new Label(composite, SWT.NONE);
 //		lblLdapServer.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 //		lblLdapServer.setText("LDAP Server");
@@ -143,10 +183,68 @@ public class LiderMainEditor extends EditorPart {
 //			}
 //		});
 //		btnNewButton.setText("Connect");
-		browser= new Browser(parent, SWT.NONE);
-		boolean dd=browser.setUrl(LiderConstants.MAIN_PAGE_URL);
-		System.out.println("");
+		browser= new Browser(composite, SWT.NONE);
+		browser.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
+		
+		
+		String html = "/html/index.html";
+		URL url = FileLocator.find(Activator.getDefault().getBundle(), new Path(html), null);
+		try {
+			url = FileLocator.toFileURL(url);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		browser.setUrl(url.toString());
+
+	//	browser.setUrl(LiderConstants.MAIN_PAGE_URL);
+	//	browser.setText(text);
+		
+//		ConnectionParameter connectionParameter= new ConnectionParameter();
+//		connectionParameter.setAuthMethod(AuthenticationMethod.SIMPLE);
+//		connectionParameter.setBindPrincipal("cn=lider_console,dc=mys,dc=pardus,dc=org");
+//		connectionParameter.setBindPassword("1");
+//		connectionParameter.setHost("192.168.56.101");
+//		connectionParameter.setPort(389);
+//		connectionParameter.setEncryptionMethod(EncryptionMethod.NONE);
+//		Map<String, String> extendedProperties=new HashMap<>();
+//		extendedProperties.put("ldapbrowser.baseDn", "dc=mys,dc=pardus,dc=org");
+//		extendedProperties.put("ldapbrowser.pagedSearch", "false");
+//		extendedProperties.put("detectedProperties.supportedControls", "2.16.840.1.113730.3.4.18;2.16.840.1.113730.3.4.2;1.3.6.1.4.1.4203.1.10.1;1.3.6.1.1.22;1.2.840.113556.1.4.319;1.2.826.0.1.3344810.2.3;1.3.6.1.1.13.2;1.3.6.1.1.13.1;1.3.6.1.1.12");
+//		extendedProperties.put("ldapbrowser.modifyModeNoEMR", "0");
+//		extendedProperties.put("detectedProperties.supportedExtensions", "1.3.6.1.4.1.4203.1.11.1;1.3.6.1.4.1.4203.1.11.3;1.3.6.1.1.8");
+//		extendedProperties.put("ldapbrowser.fetchSubentries", "false");
+//		extendedProperties.put("ldapbrowser.aliasesDereferencingMethod", "1");
+//		extendedProperties.put("ldapbrowser.manageDsaIT", "false");
+//		extendedProperties.put("ldapbrowser.pagedSearchScrollMode", "true");
+//		connectionParameter.setExtendedProperties(extendedProperties);
+//		
+//		
+//		
+//		connectionParameter.setName("Edip");
+//		
+//		connectionParameter.setNetworkProvider(NetworkProvider.APACHE_DIRECTORY_LDAP_API);
+//		
+//		Connection connection= new Connection(connectionParameter);
+//	
+//		
+//		IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+//		LdapBrowserView browserView=	(LdapBrowserView) activePage.findView(LdapBrowserView.getId());
+//		
+//		if(browserView!=null){
+//			browserView.setInput(connection);
+//		} else
+//			try {
+//				activePage.showView(LdapBrowserView.getId());
+//			} catch (PartInitException e1) {
+//				// TODO Auto-generated catch block
+//				e1.printStackTrace();
+//			}
+		
 	}
+		
+		
 
 	@Override
 	public void setFocus() {
