@@ -30,11 +30,7 @@ Require-Bundle: org.eclipse.core.runtime,
  org.swtchart.ext,
  org.eclipse.equinox.preferences,
  org.eclipse.equinox.registry,
- org.apache.directory.studio.common.ui,
- org.springframework.ldap.spring-ldap-core,
- org.springframework.spring-beans,
- org.springframework.spring-core,
- org.springframework.spring-tx
+ org.apache.directory.studio.common.ui
  
 Bundle-ClassPath: conf/,
  .
