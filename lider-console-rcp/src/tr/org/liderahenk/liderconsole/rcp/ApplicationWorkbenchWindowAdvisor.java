@@ -23,6 +23,7 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.preference.PreferenceManager;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IPageListener;
@@ -71,13 +72,14 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
 	@Override
 	public void preWindowOpen() {
 		IWorkbenchWindowConfigurer configurer = getWindowConfigurer();
-		//configurer.setInitialSize(new Point(800, 600));
+		configurer.setInitialSize(new Point(500, 500));
 		configurer.setShowCoolBar(true);
-		configurer.setShowStatusLine(false);
+		configurer.setShowStatusLine(true);
+		configurer.setTitle("LİDER AHENK MERKEZİ YÖNETİM SİSTEMİ");
 		configurer.setShowPerspectiveBar(true);
-		configurer.setShowProgressIndicator(false);
+		configurer.setShowProgressIndicator(true);
 		configurer.setShowMenuBar(true);
-		hookTitleUpdateListeners(configurer);
+		//hookTitleUpdateListeners(configurer);
 	}
 
 	@Override
@@ -295,9 +297,11 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
 
 	@Override
 	public void postWindowCreate() {
+		Shell shell = getWindowConfigurer().getWindow().getShell();
+        shell.setLocation(100, 400);
 		super.postWindowCreate();
-		hideUnusedActions();
-		removeUnusedPreferences();
+	//	hideUnusedActions();
+	//	removeUnusedPreferences();
 	}
 
 	/**

@@ -187,7 +187,7 @@ public class LiderManagementEditor extends EditorPart {
 		
 		table = dnListTableViewer.getTable();
 		GridData gd_table = new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1);
-		gd_table.heightHint = 88;
+		gd_table.heightHint = 58;
 		table.setLayoutData(gd_table);
 		//scrolledComposite.setContent(table);
 		//scrolledComposite.setMinSize(table.computeSize(SWT.DEFAULT, SWT.DEFAULT));
@@ -289,7 +289,15 @@ public class LiderManagementEditor extends EditorPart {
 				});
 
 	
+		
+		
+		
 		fillWithEntries(); 
+		
+		
+		// task area
+		
+		
 		
 		if(isHasPardusDevice || isHasGroupOfNames ){
 			groupTask = new Group(sashForm, SWT.NONE | SWT.H_SCROLL | SWT.V_SCROLL);
@@ -306,7 +314,7 @@ public class LiderManagementEditor extends EditorPart {
 			
 			compositeTask = new Composite(groupTask, GridData.FILL  );
 			compositeTask.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true,1,1));
-			compositeTask.setLayout(new GridLayout(5, true));
+			compositeTask.setLayout(new GridLayout(4, true));
 			
 			textSearchTask.setMessage(Messages.getString("search"));
 			textSearchTask.addKeyListener(new KeyListener() {
@@ -732,9 +740,9 @@ public class LiderManagementEditor extends EditorPart {
 		btnTask.setFont(font);
 		btnTask.setToolTipText(pluginTaskWrapper.getDescription());
 		btnTask.setBackground(SWTResourceManager.getColor(RGB_DEFAULT));
+		
 		if(pluginTaskWrapper.getImagePath()!=null)
-		btnTask.setImage(SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE, "icons/16/"+pluginTaskWrapper.getImagePath()));
-		//btnTask.setForeground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		btnTask.setImage(SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE, "icons/16/"+pluginTaskWrapper.getImagePath()));		//btnTask.setForeground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		
 		GridData gd_btnNewButton = new GridData(SWT.FILL, SWT.FILL, true, true);
 	//	gd_btnNewButton.minimumWidth = 230;

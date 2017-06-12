@@ -730,23 +730,50 @@ Public License instead of this License.  But first, please read
 
    <plugins>
       <plugin id="bcprov"/>
+      <plugin id="ch.qos.logback.classic"/>
+      <plugin id="ch.qos.logback.core"/>
+      <plugin id="ch.qos.logback.slf4j" fragment="true"/>
+      <plugin id="com.glavsoft.tightvncjviewer"/>
       <plugin id="com.google.guava"/>
       <plugin id="com.ibm.icu"/>
+      <plugin id="com.jcraft.jsch"/>
       <plugin id="javax.annotation"/>
       <plugin id="javax.inject"/>
       <plugin id="javax.servlet"/>
+      <plugin id="javax.transaction" fragment="true"/>
       <plugin id="javax.xml"/>
       <plugin id="javax.xml.stream"/>
       <plugin id="lider-console-antivirus"/>
       <plugin id="lider-console-backup"/>
       <plugin id="lider-console-browser"/>
       <plugin id="lider-console-conky"/>
+      <plugin id="lider-console-disk-quota"/>
+      <plugin id="lider-console-firewall"/>
+      <plugin id="lider-console-local-user"/>
+      <plugin id="lider-console-login-manager"/>
+      <plugin id="lider-console-manage-root"/>
+      <plugin id="lider-console-network-inventory"/>
+      <plugin id="lider-console-network-manager"/>
+      <plugin id="lider-console-package-manager"/>
+      <plugin id="lider-console-password"/>
+      <plugin id="lider-console-remote-access"/>
+      <plugin id="lider-console-resource-usage"/>
+      <plugin id="lider-console-rsyslog"/>
+      <plugin id="lider-console-screensaver"/>
+      <plugin id="lider-console-screenshot"/>
+      <plugin id="lider-console-script"/>
+      <plugin id="lider-console-service"/>
+      <plugin id="lider-console-sudoers"/>
+      <plugin id="lider-console-usb"/>
+      <plugin id="lider-console-user-privilege"/>
+      <plugin id="lider-console-wol"/>
       <plugin id="net.sf.ehcache"/>
       <plugin id="org.apache.batik.css"/>
       <plugin id="org.apache.batik.util"/>
       <plugin id="org.apache.batik.util.gui"/>
       <plugin id="org.apache.commons.codec"/>
       <plugin id="org.apache.commons.collections"/>
+      <plugin id="org.apache.commons.compress"/>
       <plugin id="org.apache.commons.io"/>
       <plugin id="org.apache.commons.jxpath"/>
       <plugin id="org.apache.commons.lang"/>
@@ -775,6 +802,7 @@ Public License instead of this License.  But first, please read
       <plugin id="org.apache.directory.studio.ldapbrowser.ui"/>
       <plugin id="org.apache.directory.studio.ldifeditor"/>
       <plugin id="org.apache.directory.studio.ldifparser"/>
+      <plugin id="org.apache.directory.studio.slf4j-eclipselog" fragment="true"/>
       <plugin id="org.apache.directory.studio.valueeditors"/>
       <plugin id="org.apache.httpcomponents.httpclient"/>
       <plugin id="org.apache.httpcomponents.httpcore"/>
@@ -956,6 +984,15 @@ Public License instead of this License.  But first, please read
       <plugin id="org.eclipse.jface.text"/>
       <plugin id="org.eclipse.ltk.core.refactoring"/>
       <plugin id="org.eclipse.ltk.ui.refactoring"/>
+      <plugin id="org.eclipse.m2e.archetype.common"/>
+      <plugin id="org.eclipse.m2e.core"/>
+      <plugin id="org.eclipse.m2e.core.ui"/>
+      <plugin id="org.eclipse.m2e.logback.appender" fragment="true"/>
+      <plugin id="org.eclipse.m2e.maven.indexer"/>
+      <plugin id="org.eclipse.m2e.maven.runtime"/>
+      <plugin id="org.eclipse.m2e.maven.runtime.slf4j.simple"/>
+      <plugin id="org.eclipse.m2e.model.edit"/>
+      <plugin id="org.eclipse.m2e.workspace.cli"/>
       <plugin id="org.eclipse.osgi"/>
       <plugin id="org.eclipse.osgi.compatibility.state" fragment="true"/>
       <plugin id="org.eclipse.osgi.compatibility.state.nl_tr" fragment="true"/>
@@ -1026,6 +1063,12 @@ Public License instead of this License.  But first, please read
       <plugin id="org.sat4j.pb"/>
       <plugin id="org.slf4j.api"/>
       <plugin id="org.slf4j.impl.log4j12" fragment="true"/>
+      <plugin id="org.slf4j.log4j"/>
+      <plugin id="org.slf4j.nop" fragment="true"/>
+      <plugin id="org.springframework.ldap.spring-ldap-core"/>
+      <plugin id="org.springframework.spring-beans"/>
+      <plugin id="org.springframework.spring-core"/>
+      <plugin id="org.springframework.spring-tx"/>
       <plugin id="org.swtchart"/>
       <plugin id="org.swtchart.ext"/>
       <plugin id="org.tukaani.xz"/>
@@ -1033,7 +1076,9 @@ Public License instead of this License.  But first, please read
       <plugin id="org.w3c.dom.events"/>
       <plugin id="org.w3c.dom.smil"/>
       <plugin id="org.w3c.dom.svg"/>
+      <plugin id="slf4j.api"/>
       <plugin id="tr.org.liderahenk.liderconsole.core"/>
+      <plugin id="tr.org.liderahenk.liderconsole.core.tests" fragment="true"/>
       <plugin id="tr.org.liderahenk.liderconsole.rcp"/>
    </plugins>
 

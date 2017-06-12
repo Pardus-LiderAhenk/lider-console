@@ -61,6 +61,9 @@
 								<artifact>
 									<id>org.swtchart:swtchartext:0.10.0</id>
 								</artifact>
+								<artifact>
+									<id>org.springframework.ldap:spring-ldap-core:2.3.1.RELEASE</id>
+								</artifact>
 							</artifacts>
 						</configuration>
 					</execution>

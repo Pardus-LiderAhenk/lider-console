@@ -49,6 +49,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cglib.core.GeneratorStrategy;
 
 import tr.org.liderahenk.liderconsole.core.config.ConfigProvider;
 import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
@@ -157,7 +158,7 @@ public class LdapConnectionListener implements IConnectionListener {
 	@Override
 	public void connectionClosed(Connection conn, StudioProgressMonitor mon) {
 		LdapUtils.getInstance().destroy();
-		closeAllEditors();
+		
 
 		XMPPClient.getInstance().disconnect();
 
@@ -172,6 +173,8 @@ public class LdapConnectionListener implements IConnectionListener {
 			monitor.done();
 			monitor = null;
 		}
+		
+		closeAllEditors();
 	}
 
 	/**
@@ -187,18 +190,20 @@ public class LdapConnectionListener implements IConnectionListener {
 					if (windows != null && windows.length > 0) {
 						IWorkbenchWindow window = windows[0];
 						IWorkbenchPage activePage = window.getActivePage();
-					//	activePage.closeAllEditors(false);
-					//	activePage.hideView(activePage.findView(LdapBrowserView.getId()));
+						activePage.closeAllEditors(false);
+						//activePage.hideView(activePage.findView(BrowserView.getId()));
+						
+						
 						LdapBrowserView browserView =(LdapBrowserView) activePage.findView(LdapBrowserView.getId());
 						if(browserView!=null)
 						browserView.clearView();
 						
 						
-						DefaultEditorInput input= new DefaultEditorInput(Messages.getString("LDAP_SEARCH"));
-						LiderMainEditor editor= (LiderMainEditor) activePage.findEditor(input);
+						DefaultEditorInput input= new DefaultEditorInput(Messages.getString("Lider_Management"));
+						LiderManagementEditor editor= (LiderManagementEditor) activePage.findEditor(input);
  	  					 
  	  					 if(editor!=null){
- 	  					//	 activePage.closeEditor(editor, true);
+ 	  						 activePage.closeEditor(editor, true);
  	  					 }
 						
 					}
@@ -342,18 +347,20 @@ public class LdapConnectionListener implements IConnectionListener {
 					try {
 					//	activePage.closeAllPerspectives(false, true);
 						
-						System.out.println("open editors");
-						
 					LdapBrowserView browserView=	(LdapBrowserView) activePage.findView(LdapBrowserView.getId());
 					
 					if(browserView!=null){
 						browserView.setInput(getConnection());
+						browserView.setFocus();
+						
+						
 					}else
-					
+					{
 						activePage.showView(LdapBrowserView.getId());
+						LdapBrowserView browserVieww=	(LdapBrowserView) activePage.findView(LdapBrowserView.getId());
+						browserVieww.setInput(getConnection());
 						
-						
-					
+					}
 						
 //						activePage.hideView(activePage.findView(LdapBrowserView.getId()));
 //						
@@ -362,7 +369,7 @@ public class LdapConnectionListener implements IConnectionListener {
 //								LiderConstants.EDITORS.LDAP_SEARCH_EDITOR);
 						activePage.openEditor(new DefaultEditorInput(Messages.getString("LDAP_SEARCH")),
 								LiderConstants.EDITORS.LIDER_MAINPAGE_EDITOR);
-						
+//						
 						
 						
 					} catch (Exception e) {

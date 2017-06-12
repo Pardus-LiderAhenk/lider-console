@@ -43,9 +43,7 @@ public class LdapTreeContentProvider implements ITreeContentProvider {
 		public void selectionChanged(SelectionChangedEvent event) {
 			IStructuredSelection selection = (IStructuredSelection) event.getSelection();
 
-			System.out.println("selection"+ selection.size());
 			if (selection.size() > 0) {
-
 				// final String dn= (String) selection.getFirstElement();
 				final List<LiderLdapEntry> liderLdapEntries= new ArrayList<>();
 				final List<LiderLdapEntry> liderSearchResultLdapEntries= new ArrayList<>();

@@ -1,0 +1,22 @@
+section {
+  padding-top: 60px;
+}
+.hero-unit {
+  background: #ddd url('../images/logo.png') no-repeat 20px 0px;
+  padding: 50px 50px 50px 270px;
+  margin: 60px 0 0 0;
+}
+.hero-unit h1 {
+  margin-bottom: 10px;
+  font-size: 54px;
+  text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
+}
+.contribute {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  border: none;
+}
+section section {
+  padding-top: 10px;
+}
