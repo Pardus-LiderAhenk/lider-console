@@ -125,7 +125,6 @@ public class MailConfigurationEditor extends EditorPart {
 						
 						List<MailAddress> addresses= getMailAddressList();
 						List<MailAddress> addList= new ArrayList<>();
-						List<MailAddress> deleteList= new ArrayList<>();
 						
 						for (int i = 0; i < addresses.size(); i++) {
 							

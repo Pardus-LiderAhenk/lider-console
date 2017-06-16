@@ -180,7 +180,7 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 	 * 
 	 * @return plugin name
 	 */
-	public String getMailSubject(){return "";};
+	public String getMailSubject(){return "";}
 	
 	public String getMailContent(){return "";}
 
