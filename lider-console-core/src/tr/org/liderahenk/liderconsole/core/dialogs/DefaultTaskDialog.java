@@ -33,6 +33,7 @@ import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
@@ -45,6 +46,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PlatformUI;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
@@ -60,8 +62,6 @@ import tr.org.liderahenk.liderconsole.core.rest.utils.TaskRestUtils;
 import tr.org.liderahenk.liderconsole.core.utils.SWTResourceManager;
 import tr.org.liderahenk.liderconsole.core.widgets.LiderConfirmBox;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.events.SelectionAdapter;
 
 /**
  * Default task dialog implementation that can be used by plugins in order to
@@ -201,10 +201,15 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 		super.setBlockOnOpen(true);
 		super.open();
 		unsubscribeEventHandlers();
+		onClose();
 	}
 
 	public void subscribeEventHandler(EventHandler handler) {
-		eventBroker.subscribe(getPluginName().toUpperCase(Locale.ENGLISH), handler);
+		subscribeEventHandler(getPluginName().toUpperCase(Locale.ENGLISH), handler);
+	}
+	
+	public void subscribeEventHandler(String topic, EventHandler handler) {
+		eventBroker.subscribe(topic, handler);
 		handlers.add(handler);
 	}
 
@@ -218,6 +223,13 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		}
+	}
+	
+	/**
+	 * Extending classes should override this method
+	 */
+	protected void onClose() {
+		
 	}
 
 	@Override
