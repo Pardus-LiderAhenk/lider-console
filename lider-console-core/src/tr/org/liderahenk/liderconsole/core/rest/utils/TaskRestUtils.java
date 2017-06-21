@@ -220,7 +220,7 @@ public class TaskRestUtils {
 		url.append("/command/").append(taskId).append("/get");
 		logger.debug("Sending request to URL: {}", url.toString());
 
-		IResponse response = RestClient.get(url.toString());
+		IResponse response = RestClient.get(url.toString(), false);
 		Command command = null;
 
 		if (response != null && response.getStatus() == RestResponseStatus.OK
