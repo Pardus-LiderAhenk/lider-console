@@ -19,8 +19,6 @@
 */
 package tr.org.liderahenk.liderconsole.core.perspectives;
 
-import javax.swing.text.View;
-
 import org.apache.directory.studio.ldapbrowser.ui.views.connection.ConnectionView;
 import org.apache.directory.studio.ldapbrowser.ui.views.modificationlogs.ModificationLogsView;
 import org.apache.directory.studio.ldapbrowser.ui.views.searchlogs.SearchLogsView;
@@ -31,7 +29,6 @@ import org.eclipse.ui.IPerspectiveFactory;
 import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
 import tr.org.liderahenk.liderconsole.core.editors.LiderMainEditor;
 import tr.org.liderahenk.liderconsole.core.views.LdapBrowserView;
-import tr.org.liderahenk.liderconsole.core.views.LiderLoginView;
 
 public class MainPerspective implements IPerspectiveFactory {
 
@@ -41,33 +38,35 @@ public class MainPerspective implements IPerspectiveFactory {
 
 	@Override
 	public void createInitialLayout(IPageLayout layout) {
-		
+
 		// layout.setEditorAreaVisible(true);
 		// layout.setFixed(true);
 		// This method can be used to add views
 		// But no need to implement it here since we can use plugin.xml file to
 		// create views
-		
+
 		String editorArea = layout.getEditorArea();
+
+		 layout.setEditorAreaVisible(true);
+		 layout.setFixed(true);
+//		 layout.addStandaloneView(LiderMainEditor.ID, false, IPageLayout.LEFT,
+//		 1.0f, editorArea);
 		
-//	    layout.setEditorAreaVisible(true);
-//        layout.setFixed(true);
-//        layout.addStandaloneView(LiderMainEditor.ID, false, IPageLayout.LEFT, 1.0f, editorArea);
-//		
-		
+
 		IFolderLayout browserFolder = layout.createFolder("browserFolder", 1, 0.25F, editorArea);
 		browserFolder.addView(LdapBrowserView.getId());
 
 		IFolderLayout connectionFolder = layout.createFolder("connectionFolder", 4, 0.75F, "browserFolder");
-		connectionFolder.addView(LiderLoginView.getId());
-	//	connectionFolder.addView(ConnectionView.getId());
-		
+		// connectionFolder.addView(LiderLoginView.getId());
+		 connectionFolder.addView(ConnectionView.getId());
 
-//		IFolderLayout outlineFolder = layout.createFolder("outlineFolder", 2, 0.75F, editorArea);
-//		outlineFolder.addView("org.eclipse.ui.views.ContentOutline");
+		// IFolderLayout outlineFolder = layout.createFolder("outlineFolder", 2,
+		// 0.75F, editorArea);
+		// outlineFolder.addView("org.eclipse.ui.views.ContentOutline");
 
-//		IFolderLayout progessFolder = layout.createFolder("progressFolder", 4, 0.75F, "outlineFolder");
-//		progessFolder.addView("org.eclipse.ui.views.ProgressView");
+		// IFolderLayout progessFolder = layout.createFolder("progressFolder",
+		// 4, 0.75F, "outlineFolder");
+		// progessFolder.addView("org.eclipse.ui.views.ProgressView");
 
 		IFolderLayout logFolder = layout.createFolder("logFolder", 2, 0.75F, editorArea);
 		logFolder.addView(ModificationLogsView.getId());
@@ -75,18 +74,15 @@ public class MainPerspective implements IPerspectiveFactory {
 		logFolder.addView("org.eclipse.pde.runtime.LogView");
 		logFolder.addPlaceholder("*");
 
-		// boolean isIDE = CommonUIUtils.isIDEEnvironment();
-		// if (!isIDE)
-		// {
-		// layout.getViewLayout(BrowserView.getId()).setCloseable(false);
-		// layout.getViewLayout(ConnectionView.getId()).setCloseable(false);
-		// layout.getViewLayout("org.eclipse.ui.views.ContentOutline").setCloseable(false);
-		// layout.getViewLayout("org.eclipse.ui.views.ProgressView").setCloseable(false);
-		// layout.getViewLayout(ModificationLogsView.getId()).setCloseable(false);
-		// layout.getViewLayout(SearchLogsView.getId()).setCloseable(false);
-		// }
-		
-		
+//		boolean isIDE = CommonUIUtils.isIDEEnvironment();
+//		if (!isIDE) {
+//			layout.getViewLayout(BrowserView.getId()).setCloseable(false);
+//			layout.getViewLayout(ConnectionView.getId()).setCloseable(false);
+//			layout.getViewLayout("org.eclipse.ui.views.ContentOutline").setCloseable(false);
+//			layout.getViewLayout("org.eclipse.ui.views.ProgressView").setCloseable(false);
+//			layout.getViewLayout(ModificationLogsView.getId()).setCloseable(false);
+//			layout.getViewLayout(SearchLogsView.getId()).setCloseable(false);
+//		}
 
 	}
 

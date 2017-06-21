@@ -56,13 +56,13 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 	private Combo comboAttribute;
 	private Combo comboFilterType;
 	private Combo comboSearchValue;
-	
+
 	private final IEventBroker eventBroker = (IEventBroker) PlatformUI.getWorkbench().getService(IEventBroker.class);
 
 	/**
 	 * LDAP attributes
 	 */
-	private String[] attributes = new String[] { "cn", "ou","uid", "dn", "gIdNumber","sn", "mail"};
+	private String[] attributes = new String[] { "cn", "ou", "uid", "dn", "gIdNumber", "sn", "mail" };
 
 	/**
 	 * Agent properties
@@ -75,8 +75,8 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 	private Composite compositeTree;
 
 	private Composite composite;
-	
-	private boolean searchActive=false;
+
+	private boolean searchActive = false;
 
 	@Override
 	protected void setSite(IWorkbenchPartSite site) {
@@ -94,7 +94,7 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 	@Override
 	public void init(IViewSite site) throws PartInitException {
 		super.init(site);
-		
+
 		eventBroker.subscribe(LiderConstants.EVENT_TOPICS.SEARCH_GROUP_CREATED, null);
 
 	}
@@ -125,7 +125,7 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 		comboSearchValue.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
 		Button btnSearch = new Button(compositeSearch, SWT.NONE);
-		
+
 		btnSearch.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -145,12 +145,10 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 		tree = treeViewer.getTree();
 		tree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
-		//treeViewer.setUseHashlookup(true);
+		// treeViewer.setUseHashlookup(true);
 
 		treeViewer.setContentProvider(new LdapTreeContentProvider(this));
 		treeViewer.setLabelProvider(new LdapTreeLabelProvider());
-
-		
 
 		treeViewerSearchResult = new TreeViewer(compositeTree, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
 		treeSearchResult = treeViewerSearchResult.getTree();
@@ -163,12 +161,11 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 
 		treeViewerSearchResult.setContentProvider(new SearchResultContentProvider());
 		treeViewerSearchResult.setLabelProvider(new SearchResultLabelProvider());
-		
+
 		Connection connection = LdapConnectionListener.getConnection();
 
 		setInput(connection);
 
-		
 		MenuManager menuManager = new MenuManager();
 		Menu menu = menuManager.createContextMenu(treeViewer.getTree());
 		// Set the menu on the SWT widget
@@ -181,20 +178,16 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 
 	public void setInput(Object input) {
 		treeViewer.setInput(input);
-		if(!searchActive)
+		if (!searchActive)
 			treeViewer.expandToLevel(3);
-		
+
 		treeViewer.refresh();
 	}
-	
-	
 
 	public void setInputForSearchResult(Object input) {
+
 		if (treeViewerSearchResult != null) {
 			LiderLdapEntry entry = (LiderLdapEntry) input;
-
-			// cn=say,ou=deneme,ou=mrb,ou=kim,dc=mys,dc=dd,dc=org
-
 			String[] entryArr = entry.getName().split(",");
 			String dc = "";
 
@@ -206,7 +199,6 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 					if (i != entryArr.length - 1) {
 						dc += ",";
 					}
-
 				}
 			}
 			for (int i = entryArr.length - 1; i < entryArr.length; i--) {
@@ -217,11 +209,8 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 					entryList.add(entryArr[i]);
 				}
 			}
-
 			LiderLdapEntry mainEntry = new LiderLdapEntry(dc, null, null);
-
 			setTreeViewerSearchInput(mainEntry, entryList);
-
 			treeViewerSearchResult.setInput(mainEntry);
 			treeViewerSearchResult.expandAll();
 			treeViewerSearchResult.refresh();
@@ -234,12 +223,9 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 	}
 
 	private LiderLdapEntry setTreeViewerSearchInput(LiderLdapEntry entry, ArrayList<String> entryList) {
-
 		if (entryList.size() == 0) {
 			return null;
-		}
-
-		else {
+		} else {
 			String dn = entryList.get(0);
 			entryList.remove(0);
 
@@ -247,11 +233,8 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 			entry.setChildren(ldapEntry);
 
 			return setTreeViewerSearchInput(ldapEntry, entryList);
-
 		}
 	}
-
-	
 
 	public void clearView() {
 		this.comboAttribute.select(0);
@@ -259,7 +242,7 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 		this.comboSearchValue.setText("");
 		setInput(new Object());
 		setInputForSearchTreeviewer(new Object());
-		searchActive=false;
+		searchActive = false;
 		dispose();
 
 	}
@@ -276,16 +259,14 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 	}
 
 	private void searchEntry() {
-		// treeViewer.expandAll();
+		int selectionIndex = comboAttribute.getSelectionIndex();
+		String itemAttribute = null;
+		if (selectionIndex != -1)
+			itemAttribute = comboAttribute.getItem(selectionIndex);
 
-		int selectionIndex=comboAttribute.getSelectionIndex();
-		String itemAttribute=null;
-		if(selectionIndex!=-1)
-		 itemAttribute= comboAttribute.getItem(selectionIndex);
-		
-		else itemAttribute= comboAttribute.getText();
-		
-		
+		else
+			itemAttribute = comboAttribute.getText();
+
 		String itemFilter = comboFilterType.getItem(comboFilterType.getSelectionIndex());
 		String itemSearchValue = comboSearchValue.getText();
 
@@ -293,9 +274,6 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 			return;
 
 		itemSearchValue = itemSearchValue.toUpperCase();
-
-		// String filter=
-		// "(&(objectClass=*)("+itemAttribute+itemFilter+itemSearchValue+"))";
 
 		StringBuffer filter = new StringBuffer();
 
@@ -325,9 +303,6 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 		// entry belongs to a user or agent
 		returningAttributes.add("objectClass");
 
-		String[] ret = returningAttributes.toArray(new String[] {});
-		// returningAttributes.add("cn");
-
 		List<SearchResult> entries = LdapUtils.getInstance().searchAndReturnList(null, filter.toString(), null,
 				SearchControls.SUBTREE_SCOPE, 0, LdapConnectionListener.getConnection(),
 				LdapConnectionListener.getMonitor());
@@ -355,10 +330,9 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 
 					String parentFilter = "(&(objectClass=*)(" + entryParentName.split(",")[0] + "))";
 
-					List<SearchResult> parentEntry = LdapUtils.getInstance().searchAndReturnList(
-							entryParentName, parentFilter, returningAttributes.toArray(new String[] {}),
-							SearchControls.SUBTREE_SCOPE, 0, LdapConnectionListener.getConnection(),
-							LdapConnectionListener.getMonitor());
+					List<SearchResult> parentEntry = LdapUtils.getInstance().searchAndReturnList(entryParentName,
+							parentFilter, returningAttributes.toArray(new String[] {}), SearchControls.SUBTREE_SCOPE, 0,
+							LdapConnectionListener.getConnection(), LdapConnectionListener.getMonitor());
 
 					if (parentEntry != null && parentEntry.size() > 0)
 						entry.setParent(LiderCoreUtils.convertSearchResult2LiderLdapEntry(parentEntry).get(0));
@@ -370,56 +344,19 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 			Object[] inputArr = new Object[2];
 			inputArr[0] = connection;
 			inputArr[1] = entryList;
-
-			searchActive=true;
+			searchActive = true;
 			setInput(inputArr);
-
-			// treeViewer.expandAll();
-
-			// Object data= treeViewer.getData(entry.getShortName());
-
-		//	Object[] elements = treeViewer.getVisibleExpandedElements();
-
-			// for (int i = 0; i < elements.length; i++) {
-			//
-			// Object element= elements[i];
-			// if(element instanceof LiderLdapEntry){
-			// LiderLdapEntry liderLdapEntry = (LiderLdapEntry) element;
-			// if(liderLdapEntry.getName().equals(entr))
-			// }
-			//
-			// }
-
-//	TreeItem[] items = treeViewer.getTree().getItems();
-
-//		treeViewer.getExpandedElements();
-
-//					StructuredSelection selection = new StructuredSelection(items[1]);
-//					treeViewer.getTree().setSelection(items[0]);
-
-			// treeViewer.add(treeViewer.getSelection(),
-			// entryList.toArray());
-
-			// treeViewer.expandToLevel(treeViewer.getInput(),1);
-			// treeViewer.reveal(entry);
-			// treeViewer.refresh(entry, true);
-			// treeViewer.setSelection(selection,true);
-
-		//	treeViewer.getTree().setSelection(items[1]);
-		//	StructuredSelection sele = (StructuredSelection) treeViewer.getStructuredSelection();
 			treeViewer.expandToLevel(2);
 			treeViewer.refresh();
 			tree.redraw();
 		}
 	}
-	
+
 	@Override
 	public void dispose() {
-		// TODO Auto-generated method stub
 		super.dispose();
 	}
 
-	
 	/**
 	 * CONTENT PROVIDERSSSS
 	 * 
@@ -432,19 +369,15 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 		private LiderLdapEntry mainEntry;
 
 		public SearchResultContentProvider() {
-			// TODO Auto-generated constructor stub
 		}
 
 		@Override
 		public void dispose() {
-			// TODO Auto-generated method stub
 
 		}
 
 		@Override
 		public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-			// TODO Auto-generated method stub
-
 		}
 
 		@Override
@@ -493,26 +426,20 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 
 		@Override
 		public void addListener(ILabelProviderListener listener) {
-			// TODO Auto-generated method stub
 
 		}
 
 		@Override
 		public void dispose() {
-			// TODO Auto-generated method stub
-
 		}
 
 		@Override
 		public boolean isLabelProperty(Object element, String property) {
-			// TODO Auto-generated method stub
 			return false;
 		}
 
 		@Override
 		public void removeListener(ILabelProviderListener listener) {
-			// TODO Auto-generated method stub
-
 		}
 
 		@Override
@@ -523,7 +450,6 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 					return BrowserCommonActivator.getDefault().getImage("resources/icons/entry_dc.gif");
 				}
 			}
-
 			if (obj instanceof LiderLdapEntry) {
 
 				LiderLdapEntry res = (LiderLdapEntry) obj;

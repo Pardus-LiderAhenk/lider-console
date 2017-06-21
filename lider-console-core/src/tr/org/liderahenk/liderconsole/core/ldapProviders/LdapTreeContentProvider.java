@@ -10,6 +10,7 @@ import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 
 import org.apache.directory.studio.connection.core.Connection;
+import org.apache.directory.studio.ldapbrowser.common.actions.Messages;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeContentProvider;
@@ -37,7 +38,7 @@ public class LdapTreeContentProvider implements ITreeContentProvider {
 
 	private TreeViewer viewer;
 
-	private Map<Connection, BrowserCategory[]> connectionToCategoriesMap;
+	private Map<Connection, BrowserCategory[]> connectionToCategoriesMap= new HashMap<>();
 
 	private ISelectionChangedListener pageListener = new ISelectionChangedListener() {
 		public void selectionChanged(SelectionChangedEvent event) {
@@ -111,7 +112,6 @@ public class LdapTreeContentProvider implements ITreeContentProvider {
 	public LdapTreeContentProvider(ILdapBrowserView widget) {
 
 		this.viewer = widget.getTreeViewer();
-		this.connectionToCategoriesMap = new HashMap();
 		this.viewer.addSelectionChangedListener(this.pageListener);
 
 	}
@@ -190,10 +190,7 @@ public class LdapTreeContentProvider implements ITreeContentProvider {
 		}
 
 		else if (parent instanceof LiderLdapEntry) {
-
-			//String[] returningAttributes = new String[] { "objectClass", "ou" };
 			String filter = "(objectClass=*)";
-
 			List<SearchResult> entries = LdapUtils.getInstance().searchAndReturnList(
 					((LiderLdapEntry) parent).getName(), filter, null, SearchControls.ONELEVEL_SCOPE, 0,
 					LdapConnectionListener.getConnection(), LdapConnectionListener.getMonitor());
@@ -221,7 +218,7 @@ public class LdapTreeContentProvider implements ITreeContentProvider {
 
 				return entryList.toArray();
 			} else
-				return new Object[] { "Not found" };
+				return new Object[] {Messages.getString("NOT_FOUND") };
 
 		}
 
@@ -233,8 +230,6 @@ public class LdapTreeContentProvider implements ITreeContentProvider {
 	 */
 	@Override
 	public Object getParent(Object obj) {
-		System.out.println("get parent");
-
 		if (obj instanceof BrowserCategory) {
 			return ((BrowserCategory) obj).getParent();
 		}
@@ -248,10 +243,6 @@ public class LdapTreeContentProvider implements ITreeContentProvider {
 
 	@Override
 	public boolean hasChildren(Object parent) {
-		// // Get the children
-		// System.out.println("has children" + arg0);
-		// Object[] obj = getChildren(arg0);
-		// // Return whether the parent has children
 
 		if ((parent instanceof BrowserCategory)) {
 			return true;
@@ -338,13 +329,12 @@ public class LdapTreeContentProvider implements ITreeContentProvider {
 
 			List<LiderLdapEntry> list = (List<LiderLdapEntry>) parent;
 
-			System.out.println("sdds");
 			return list.toArray();
 
 		}
 
 		else
-			return new Object[] { "Lütfen Giriş Yapınız.." };
+			return new Object[] {Messages.getString("LOGIN")};
 
 	}
 
@@ -363,7 +353,6 @@ public class LdapTreeContentProvider implements ITreeContentProvider {
 	 */
 	@Override
 	public void inputChanged(Viewer arg0, Object arg1, Object arg2) {
-		System.out.println("Tree content provider input changed");
 	}
 
 }
