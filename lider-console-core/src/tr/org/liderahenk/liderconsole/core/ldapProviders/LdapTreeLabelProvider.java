@@ -168,16 +168,11 @@ public class LdapTreeLabelProvider implements ILabelProvider {
 	}
 	
 	public boolean isAttributeExist(String attribute, Enumeration<?> e ){
-		
 		if(e!=null){
 			while(e.hasMoreElements()){
 			    String param = (String) e.nextElement();
-			    System.out.println(param);
 			}
-			
-			
 		}
-		
 		return false;
 		
 	}
