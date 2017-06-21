@@ -20,6 +20,7 @@
 package tr.org.liderahenk.liderconsole.core.xmpp.listeners;
 
 import java.text.SimpleDateFormat;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 import org.codehaus.jackson.map.ObjectMapper;
@@ -85,6 +86,10 @@ public class TaskNotificationListener implements StanzaListener, StanzaFilter {
 
 				// Notify related plug-in
 				eventBroker.post(LiderConstants.EVENT_TOPICS.TASK_NOTIFICATION_RECEIVED, task);
+				// TODO use better topic names....
+				String topic = task.getCommand().getTask().getPlugin().getName().toUpperCase(Locale.ENGLISH) + "_TASK_NOTIFICATION";
+				logger.error("Topic:" + topic);
+				eventBroker.post(topic, task);
 			}
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);

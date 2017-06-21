@@ -103,24 +103,26 @@ public class ResponseDataDialog extends DefaultLiderTitleAreaDialog {
 				HashMap<String, Object> resultMap = mapper.readValue(responseData, 0, responseData.length,
 						new TypeReference<HashMap<String, Object>>() {
 						});
-				for (Entry<String, Object> entry : resultMap.entrySet()) {
-					// Property name
-					Label lblPropName = new Label(composite, SWT.NONE);
-					lblPropName.setFont(SWTResourceManager.getFont("Sans", 9, SWT.BOLD));
-					lblPropName.setText(entry.getKey());
-					// Property value
-					String value = entry.getValue() != null ? entry.getValue().toString() : "";
-					int style = SWT.BORDER | SWT.READ_ONLY;
-					if (value.length() > 100) {
-						style |= SWT.MULTI | SWT.V_SCROLL;
+				if (resultMap != null) {
+					for (Entry<String, Object> entry : resultMap.entrySet()) {
+						// Property name
+						Label lblPropName = new Label(composite, SWT.NONE);
+						lblPropName.setFont(SWTResourceManager.getFont("Sans", 9, SWT.BOLD));
+						lblPropName.setText(entry.getKey());
+						// Property value
+						String value = entry.getValue() != null ? entry.getValue().toString() : "";
+						int style = SWT.BORDER | SWT.READ_ONLY;
+						if (value.length() > 100) {
+							style |= SWT.MULTI | SWT.V_SCROLL;
+						}
+						Text txtPropValue = new Text(composite, style);
+						GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
+						if (value.length() > 100) {
+							gridData.heightHint = 200;
+						}
+						txtPropValue.setLayoutData(gridData);
+						txtPropValue.setText(value);
 					}
-					Text txtPropValue = new Text(composite, style);
-					GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, false);
-					if (value.length() > 100) {
-						gridData.heightHint = 200;
-					}
-					txtPropValue.setLayoutData(gridData);
-					txtPropValue.setText(value);
 				}
 			} catch (JsonGenerationException e) {
 				e.printStackTrace();
