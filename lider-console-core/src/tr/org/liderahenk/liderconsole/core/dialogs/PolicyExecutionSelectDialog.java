@@ -23,6 +23,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.eclipse.jface.viewers.IStructuredContentProvider;
+import org.eclipse.jface.viewers.ListViewer;
+import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -46,11 +49,6 @@ import tr.org.liderahenk.liderconsole.core.rest.utils.PolicyRestUtils;
 import tr.org.liderahenk.liderconsole.core.utils.SWTResourceManager;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
 
-import org.eclipse.jface.viewers.IContentProvider;
-import org.eclipse.jface.viewers.IStructuredContentProvider;
-import org.eclipse.jface.viewers.ListViewer;
-import org.eclipse.jface.viewers.Viewer;
-
 /**
  * 
  * @author <a href="mailto:emre.akkaya@agem.com.tr">Emre Akkaya</a>
@@ -64,6 +62,7 @@ public class PolicyExecutionSelectDialog extends DefaultLiderDialog {
 	private Combo cmbDnType;
 	private DateTime dtActivationDate;
 	private DateTime dtActivationDateTime;
+	private DateTime dtExpirationDate;
 	private Button btnEnableDate;
 
 	private Set<String> dnSet;
@@ -84,16 +83,17 @@ public class PolicyExecutionSelectDialog extends DefaultLiderDialog {
 		super(parentShell);
 		this.dnSet = dnSet;
 	}
+
 	public PolicyExecutionSelectDialog(Shell parentShell, Set<String> dnSet, Policy policy) {
 		super(parentShell);
 		this.dnSet = dnSet;
-		this.selectedPolicy=policy;
+		this.selectedPolicy = policy;
 	}
-	
+
 	protected void configureShell(Shell shell) {
-	      super.configureShell(shell);
-	      shell.setText(Messages.getString("policy_dialog"));
-	   }
+		super.configureShell(shell);
+		shell.setText(Messages.getString("policy_dialog"));
+	}
 
 	@Override
 	protected Control createDialogArea(Composite parent) {
@@ -104,33 +104,33 @@ public class PolicyExecutionSelectDialog extends DefaultLiderDialog {
 		Composite composite = (Composite) super.createDialogArea(parent);
 		composite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
 		composite.setLayout(new GridLayout(2, false));
-		
+
 		lblDnInfo = new Label(composite, SWT.NONE);
 		lblDnInfo.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
-		lblDnInfo.setText(Messages.getString("selected_dn_size") +" : "+ dnSet.size());
-		
+		lblDnInfo.setText(Messages.getString("selected_dn_size") + " : " + dnSet.size());
+
 		dnlistViewer = new ListViewer(composite, SWT.BORDER | SWT.V_SCROLL);
 		org.eclipse.swt.widgets.List list = dnlistViewer.getList();
 		list.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
-		
+
 		dnlistViewer.setContentProvider(new IStructuredContentProvider() {
-			
+
 			@Override
 			public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 				// TODO Auto-generated method stub
-				
+
 			}
-			
+
 			@Override
 			public void dispose() {
 				// TODO Auto-generated method stub
-				
+
 			}
-			
+
 			@Override
 			public Object[] getElements(Object inputElement) {
-				Set<String> v = (Set<String>)inputElement;
-		        return v.toArray();
+				Set<String> v = (Set<String>) inputElement;
+				return v.toArray();
 			}
 		});
 		dnlistViewer.setInput(dnSet);
@@ -148,9 +148,6 @@ public class PolicyExecutionSelectDialog extends DefaultLiderDialog {
 			logger.error(e.getMessage(), e);
 		}
 		populateCombo(cmbPolicy, policies);
-		
-		
-		
 
 		// DN type label
 		Label lblDnType = new Label(composite, SWT.NONE);
@@ -179,6 +176,7 @@ public class PolicyExecutionSelectDialog extends DefaultLiderDialog {
 			public void widgetSelected(SelectionEvent e) {
 				dtActivationDate.setEnabled(btnEnableDate.getSelection());
 				dtActivationDateTime.setEnabled(btnEnableDate.getSelection());
+				dtExpirationDate.setEnabled(btnEnableDate.getSelection());
 			}
 
 			@Override
@@ -200,6 +198,17 @@ public class PolicyExecutionSelectDialog extends DefaultLiderDialog {
 		dtActivationDateTime.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
 		dtActivationDateTime.setEnabled(btnEnableDate.getSelection());
 
+		new Label(cmpDate, SWT.NONE);
+		new Label(cmpDate, SWT.NONE);
+		// Expiration date label
+		Label lblExpirationDate = new Label(cmpDate, SWT.NONE);
+		lblExpirationDate.setText(Messages.getString("EXPIRATION_DATE_LABEL"));
+
+		// Expiration date
+		dtExpirationDate = new DateTime(cmpDate, SWT.DROP_DOWN | SWT.BORDER);
+		dtExpirationDate.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		dtExpirationDate.setEnabled(btnEnableDate.getSelection());
+
 		applyDialogFont(composite);
 		return composite;
 	}
@@ -211,25 +220,25 @@ public class PolicyExecutionSelectDialog extends DefaultLiderDialog {
 	 * @param policies
 	 */
 	private void populateCombo(Combo combo, List<Policy> policies) {
-		
-		
+
 		if (policies != null) {
-		
-			int selectedIndex=-1;
-			
+
+			int selectedIndex = -1;
+
 			for (int i = 0; i < policies.size(); i++) {
 				Policy policy = policies.get(i);
 				combo.add(policy.getLabel() + " " + policy.getCreateDate());
 				combo.setData(i + "", policy);
-				
-				if(this.selectedPolicy!=null && policy.getId().longValue()==this.selectedPolicy.getId().longValue()){
-					selectedIndex=i;
+
+				if (this.selectedPolicy != null
+						&& policy.getId().longValue() == this.selectedPolicy.getId().longValue()) {
+					selectedIndex = i;
 				}
 			}
-			
+
 			combo.select(0); // select first profile by default
-			
-			if(selectedIndex!=-1)
+
+			if (selectedIndex != -1)
 				combo.select(selectedIndex);
 		}
 	}
@@ -254,6 +263,8 @@ public class PolicyExecutionSelectDialog extends DefaultLiderDialog {
 		policy.setDnList(new ArrayList<String>(this.dnSet));
 		policy.setActivationDate(btnEnableDate.getSelection()
 				? SWTResourceManager.convertDate(dtActivationDate, dtActivationDateTime) : null);
+		policy.setExpirationDate(
+				btnEnableDate.getSelection() ? SWTResourceManager.convertDate(dtExpirationDate, null) : null);
 		logger.debug("Policy request: {}", policy);
 
 		try {

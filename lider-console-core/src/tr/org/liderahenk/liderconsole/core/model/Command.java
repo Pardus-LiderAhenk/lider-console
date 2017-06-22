@@ -44,6 +44,8 @@ public class Command implements Serializable {
 
 	private Date activationDate;
 
+	private Date expirationDate;
+
 	private Date createDate;
 
 	private List<CommandExecution> commandExecutions;
@@ -52,7 +54,7 @@ public class Command implements Serializable {
 	}
 
 	public Command(Long id, Task task, List<String> dnList, DNType dnType, String commandOwnerUid, Date activationDate,
-			Date createDate, List<CommandExecution> commandExecutions) {
+			Date expirationDate, Date createDate, List<CommandExecution> commandExecutions) {
 		this.id = id;
 		this.task = task;
 		this.dnList = dnList;
@@ -60,6 +62,7 @@ public class Command implements Serializable {
 		this.commandOwnerUid = commandOwnerUid;
 		this.createDate = createDate;
 		this.activationDate = activationDate;
+		this.expirationDate = expirationDate;
 		this.commandExecutions = commandExecutions;
 	}
 
@@ -117,6 +120,14 @@ public class Command implements Serializable {
 
 	public void setCreateDate(Date createDate) {
 		this.createDate = createDate;
+	}
+
+	public Date getExpirationDate() {
+		return expirationDate;
+	}
+
+	public void setExpirationDate(Date expirationDate) {
+		this.expirationDate = expirationDate;
 	}
 
 	public List<CommandExecution> getCommandExecutions() {

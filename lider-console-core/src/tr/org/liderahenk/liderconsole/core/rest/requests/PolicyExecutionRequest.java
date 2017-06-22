@@ -40,15 +40,19 @@ public class PolicyExecutionRequest implements IRequest {
 
 	private Date activationDate;
 
+	private Date expirationDate;
+
 	public PolicyExecutionRequest() {
 	}
 
-	public PolicyExecutionRequest(Long id, List<String> dnList, DNType dnType, Date activationDate) {
+	public PolicyExecutionRequest(Long id, List<String> dnList, DNType dnType, Date activationDate,
+			Date expirationDate) {
 		super();
 		this.id = id;
 		this.dnList = dnList;
 		this.dnType = dnType;
 		this.activationDate = activationDate;
+		this.expirationDate = expirationDate;
 	}
 
 	public Long getId() {
@@ -81,6 +85,14 @@ public class PolicyExecutionRequest implements IRequest {
 
 	public void setActivationDate(Date activationDate) {
 		this.activationDate = activationDate;
+	}
+
+	public Date getExpirationDate() {
+		return expirationDate;
+	}
+
+	public void setExpirationDate(Date expirationDate) {
+		this.expirationDate = expirationDate;
 	}
 
 	@Override

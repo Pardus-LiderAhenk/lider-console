@@ -77,6 +77,7 @@ public class PolicyExecutionNewDialog extends DefaultLiderDialog {
 	private Text txtDesc;
 	private DateTime dtActivationDate;
 	private DateTime dtActivationDateTime;
+	private DateTime dtExpirationDate;
 	private Button btnEnableDate;
 
 	private List<Combo> comboList = null;
@@ -148,6 +149,7 @@ public class PolicyExecutionNewDialog extends DefaultLiderDialog {
 			public void widgetSelected(SelectionEvent e) {
 				dtActivationDate.setEnabled(btnEnableDate.getSelection());
 				dtActivationDateTime.setEnabled(btnEnableDate.getSelection());
+				dtExpirationDate.setEnabled(btnEnableDate.getSelection());
 			}
 
 			@Override
@@ -169,6 +171,17 @@ public class PolicyExecutionNewDialog extends DefaultLiderDialog {
 		dtActivationDateTime = new DateTime(cmpDate, SWT.DROP_DOWN | SWT.BORDER | SWT.TIME);
 		dtActivationDateTime.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
 		dtActivationDateTime.setEnabled(btnEnableDate.getSelection());
+		
+		new Label(cmpDate, SWT.NONE);
+		new Label(cmpDate, SWT.NONE);
+		// Expiration date label
+		Label lblExpirationDate = new Label(cmpDate, SWT.NONE);
+		lblExpirationDate.setText(Messages.getString("EXPIRATION_DATE_LABEL"));
+
+		// Expiration date
+		dtExpirationDate = new DateTime(cmpDate, SWT.DROP_DOWN | SWT.BORDER);
+		dtExpirationDate.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		dtExpirationDate.setEnabled(btnEnableDate.getSelection());
 
 		Label lblProfiles = new Label(parent, SWT.BOLD);
 		lblProfiles.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
@@ -316,6 +329,8 @@ public class PolicyExecutionNewDialog extends DefaultLiderDialog {
 			policyExec.setDnList(new ArrayList<String>(this.dnSet));
 			policyExec.setActivationDate(btnEnableDate.getSelection()
 					? SWTResourceManager.convertDate(dtActivationDate, dtActivationDateTime) : null);
+			policyExec.setExpirationDate(
+					btnEnableDate.getSelection() ? SWTResourceManager.convertDate(dtExpirationDate, null) : null);
 			logger.debug("Policy request: {}", policy);
 
 			try {
