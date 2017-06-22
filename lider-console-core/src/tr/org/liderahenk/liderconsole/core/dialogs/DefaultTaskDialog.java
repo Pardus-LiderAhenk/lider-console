@@ -276,12 +276,13 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 				}
 			});
 			btnCheckButton.setText(Messages.getString("send_mail"));
+			btnCheckButton.setSelection(true);
 			
 			textMailContent = new Text(compositeMail,  SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
 			GridData gd_text = new GridData(SWT.FILL, SWT.CENTER, true, true, 1, 1);
 			gd_text.heightHint = 40;
 			textMailContent.setLayoutData(gd_text);
-			textMailContent.setVisible(false);
+			//textMailContent.setVisible(false);
 			textMailContent.setText(getMailContent());
 		
 		}
