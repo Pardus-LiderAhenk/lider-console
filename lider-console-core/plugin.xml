@@ -238,10 +238,13 @@
       <menuContribution
             locationURI="menu:tr.org.liderahenk.liderconsole.menus.LiderMain?after=additions">
 		<!-- Plugins may contribute to this menu: -->
+		
+		<!--
 		<menu
                id="tr.org.liderahenk.liderconsole.menus.ProfileDefinition"
                label="%menu.label.profile.definition">
 		</menu>
+		-->
 		<command
 	          commandId="tr.org.liderahenk.liderconsole.core.commands.PolicyDefinition"
 	          id="tr.org.liderahenk.liderconsole.core.commands.PolicyDefinition"
