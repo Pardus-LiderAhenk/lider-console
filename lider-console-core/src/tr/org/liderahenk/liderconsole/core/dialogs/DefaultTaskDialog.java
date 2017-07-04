@@ -87,10 +87,12 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 
 	private Set<String> dnSet = new LinkedHashSet<String>();
 	private boolean hideActivationDate=false;
+	private boolean hideRunButton=false;
 	private boolean sendMail;
 	private Composite compositeMail;
 	private Composite container;
 	private Button btnMailCheckButton;
+	
 	private Text textMailContent;
 
 	/**
@@ -125,6 +127,25 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 			this.dnSet.addAll(dnSet);
 		this.hideActivationDate = hideActivationDate;
 		this.sendMail=sendMail;
+		init();
+	}
+	
+	/**
+	 * some plugins use only scheduled task button..
+	 * plugins can send boolean to disable run button
+	 * @param parentShell
+	 * @param dnSet
+	 * @param hideActivationDate
+	 * @param sendMail
+	 * @param hideRunButton
+	 */
+	public DefaultTaskDialog(Shell parentShell, Set<String> dnSet, boolean hideActivationDate, boolean sendMail, boolean hideRunButton) {
+		super(parentShell);
+		if (dnSet != null)
+			this.dnSet.addAll(dnSet);
+		this.hideActivationDate = hideActivationDate;
+		this.sendMail=sendMail;
+		this.hideRunButton=hideRunButton;
 		init();
 	}
 
@@ -372,6 +393,13 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 			public void widgetDefaultSelected(SelectionEvent e) {
 			}
 		});
+		
+		if(hideRunButton){
+			btnExecuteNow.setVisible(false);
+		}
+		else
+			btnExecuteNow.setVisible(true);
+		
 		// Schedule task to be executed
 		btnExecuteScheduled = createButton(parent, 5001, Messages.getString("EXECUTE_SCHEDULED"), false);
 		btnExecuteScheduled.setImage(
