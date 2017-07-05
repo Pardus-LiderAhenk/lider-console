@@ -87,10 +87,12 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 
 	private Set<String> dnSet = new LinkedHashSet<String>();
 	private boolean hideActivationDate=false;
+	private boolean hideRunButton=false;
 	private boolean sendMail;
 	private Composite compositeMail;
 	private Composite container;
-	private Button btnCheckButton;
+	private Button btnMailCheckButton;
+	
 	private Text textMailContent;
 
 	/**
@@ -125,6 +127,25 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 			this.dnSet.addAll(dnSet);
 		this.hideActivationDate = hideActivationDate;
 		this.sendMail=sendMail;
+		init();
+	}
+	
+	/**
+	 * some plugins use only scheduled task button..
+	 * plugins can send boolean to disable run button
+	 * @param parentShell
+	 * @param dnSet
+	 * @param hideActivationDate
+	 * @param sendMail
+	 * @param hideRunButton
+	 */
+	public DefaultTaskDialog(Shell parentShell, Set<String> dnSet, boolean hideActivationDate, boolean sendMail, boolean hideRunButton) {
+		super(parentShell);
+		if (dnSet != null)
+			this.dnSet.addAll(dnSet);
+		this.hideActivationDate = hideActivationDate;
+		this.sendMail=sendMail;
+		this.hideRunButton=hideRunButton;
 		init();
 	}
 
@@ -253,6 +274,10 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 		gdProgress.heightHint = 10;
 		progressBar.setLayoutData(gdProgress);
 		progressBar.setVisible(false);
+		
+		// some plugins must use mail..
+		if(isMailSendMust())
+			btnMailCheckButton.setEnabled(false);
 		return container;
 	}
 
@@ -264,19 +289,19 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 			compositeMail.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, true, 1, 1));
 			compositeMail.setLayout(new GridLayout(2, false));
 			
-			btnCheckButton = new Button(compositeMail, SWT.CHECK);
+			btnMailCheckButton = new Button(compositeMail, SWT.CHECK);
 			GridData gd_btnCheckButton = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
 			gd_btnCheckButton.widthHint = 96;
-			btnCheckButton.setLayoutData(gd_btnCheckButton);
-			btnCheckButton.addSelectionListener(new SelectionAdapter() {
+			btnMailCheckButton.setLayoutData(gd_btnCheckButton);
+			btnMailCheckButton.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 					Button btn = (Button) e.getSource();
 					textMailContent.setVisible(btn.getSelection());
 				}
 			});
-			btnCheckButton.setText(Messages.getString("send_mail"));
-			btnCheckButton.setSelection(true);
+			btnMailCheckButton.setText(Messages.getString("send_mail"));
+			btnMailCheckButton.setSelection(true);
 			
 			textMailContent = new Text(compositeMail,  SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
 			GridData gd_text = new GridData(SWT.FILL, SWT.CENTER, true, true, 1, 1);
@@ -339,7 +364,7 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 							progressBar.setVisible(true);
 							
 							Map<String, Object> paramaterMap= getParameterMap();
-							if(btnCheckButton!=null && btnCheckButton.getSelection()){
+							if(btnMailCheckButton!=null && btnMailCheckButton.getSelection()){
 								
 								paramaterMap.put("mailSend", true);
 								paramaterMap.put("mailContent", getMailContent());
@@ -368,6 +393,13 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 			public void widgetDefaultSelected(SelectionEvent e) {
 			}
 		});
+		
+		if(hideRunButton){
+			btnExecuteNow.setVisible(false);
+		}
+		else
+			btnExecuteNow.setVisible(true);
+		
 		// Schedule task to be executed
 		btnExecuteScheduled = createButton(parent, 5001, Messages.getString("EXECUTE_SCHEDULED"), false);
 		btnExecuteScheduled.setImage(
@@ -390,8 +422,17 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 							Messages.getString("TASK_EXEC_SCHEDULED_MESSAGE"))) {
 						try {
 							progressBar.setVisible(true);
+							
+							Map<String, Object> paramaterMap= getParameterMap();
+							if(btnMailCheckButton!=null && btnMailCheckButton.getSelection()){
+								
+								paramaterMap.put("mailSend", true);
+								paramaterMap.put("mailContent", getMailContent());
+								paramaterMap.put("mailSubject", getMailSubject());
+							}
+							
 							TaskRequest task = new TaskRequest(new ArrayList<String>(dnSet), DNType.AHENK,
-									getPluginName(), getPluginVersion(), getCommandId(), getParameterMap(),
+									getPluginName(), getPluginVersion(), getCommandId(), paramaterMap,
 									dialog.getCronExpression(),
 									!hideActivationDate && btnEnableDate.getSelection()
 											? SWTResourceManager.convertDate(dtActivationDate, dtActivationDateTime)
@@ -512,5 +553,17 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 	protected boolean isResizable() {
 		return true;
 	}
+	
+	
+	
+	private void forceMailVisible(){
+		textMailContent.setVisible(true);
+		btnMailCheckButton.setEnabled(false);
+	}
 
+	public boolean isMailSendMust() {
+		return false;
+	}
+
+	
 }

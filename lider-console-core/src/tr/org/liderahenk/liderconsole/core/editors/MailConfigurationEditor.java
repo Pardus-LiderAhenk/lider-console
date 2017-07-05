@@ -42,17 +42,21 @@ import tr.org.liderahenk.liderconsole.core.rest.utils.PluginRestUtils;
 import tr.org.liderahenk.liderconsole.core.utils.SWTResourceManager;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
 
+
+/**
+ * Plugin based mail configuration
+ * when sending mail pluging get mail to list, mail content and mail subject 
+ * @author edip
+ *
+ */
 public class MailConfigurationEditor extends EditorPart {
-	
 	public MailConfigurationEditor() {
 	}
 	
 	private static final Logger logger = LoggerFactory.getLogger(MailConfigurationEditor.class);
 	
 	private Table tablePluginList;
-
 	private DefaultEditorInput editorInput;
-
 	private TableViewer tableViewerPluginList;
 	private Text textMailAddress;
 	private Text textContent;
@@ -69,13 +73,11 @@ public class MailConfigurationEditor extends EditorPart {
 	
 	@Override
 	public void doSave(IProgressMonitor monitor) {
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void doSaveAs() {
-		// TODO Auto-generated method stub
 		
 	}
 
@@ -89,13 +91,11 @@ public class MailConfigurationEditor extends EditorPart {
 
 	@Override
 	public boolean isDirty() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public boolean isSaveAsAllowed() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
@@ -109,12 +109,8 @@ public class MailConfigurationEditor extends EditorPart {
 		
 		Button btnSave = new Button(composite, SWT.NONE);
 		btnSave.addSelectionListener(new SelectionAdapter() {
-			
-
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				
-				
 				try {
 					String content=textContent.getText();
 					
@@ -146,11 +142,8 @@ public class MailConfigurationEditor extends EditorPart {
 								if(mailAddressDeleted.getId()!=null && mailAddress.getId()==mailAddressDeleted.getId()) 
 									isexist=true;
 							}
-							
 							if(!isexist) mailAddress.setDeleted(true); 
 						}
-						
-
 						mailAddressList.addAll(addList);
 						MailManagementRequest mailManagementRequest= new MailManagementRequest(mailAddressList, mailContent );
 					
@@ -160,7 +153,6 @@ public class MailConfigurationEditor extends EditorPart {
 						Notifier.error("", "Lütfen Eklenti Seçiniz.");
 					}
 				} catch (Exception e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 				
@@ -302,50 +294,50 @@ public class MailConfigurationEditor extends EditorPart {
 		
 		
 		
-		Group grpParameter = new Group(composite, SWT.NONE);
-		grpParameter.setLayout(new GridLayout(1, false));
-		grpParameter.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		grpParameter.setText("Parametre Listesi");
-		
-		Label lblNewLabel = new Label(grpParameter, SWT.NONE);
-		lblNewLabel.setText("Kullanılabilecek Parametreler : ");
-		
-		tableViewerParameterList = new TableViewer(grpParameter, SWT.BORDER | SWT.FULL_SELECTION);
-		tableViewerParameterList.setContentProvider(new ArrayContentProvider());
-		
-		tableParameterList = tableViewerParameterList.getTable();
-		tableParameterList.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		
-		Button buttonParameterAdd = new Button(grpParameter, SWT.NONE);
-		buttonParameterAdd.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				
-				if(tableParameterList.getSelectionIndex()==-1){
-					
-					Notifier.warning("",	"Lütfen parametre seçiniz");
-					return;
-				}
-				
-				MailParameter  param=  (MailParameter) tableParameterList.getItem(tableParameterList.getSelectionIndex()).getData();
-				textContent.setText(textContent.getText()+" {" +param.getMailParameter()+"}");
-				
-			}
-		});
-		buttonParameterAdd.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		buttonParameterAdd.setText(Messages.getString("add"));
-		
-		
-		createParameterTableColumns();
-		
-		
-		Group grpContent = new Group(composite, SWT.NONE);
-		grpContent.setLayout(new GridLayout(1, false));
-		grpContent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
-		grpContent.setText("Içerik Tanımla");
-		
-		textContent = new Text(grpContent, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
-		textContent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+//		Group grpParameter = new Group(composite, SWT.NONE);
+//		grpParameter.setLayout(new GridLayout(1, false));
+//		grpParameter.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+//		grpParameter.setText("Parametre Listesi");
+//		
+//		Label lblNewLabel = new Label(grpParameter, SWT.NONE);
+//		lblNewLabel.setText("Kullanılabilecek Parametreler : ");
+//		
+//		tableViewerParameterList = new TableViewer(grpParameter, SWT.BORDER | SWT.FULL_SELECTION);
+//		tableViewerParameterList.setContentProvider(new ArrayContentProvider());
+//		
+//		tableParameterList = tableViewerParameterList.getTable();
+//		tableParameterList.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+//		
+//		Button buttonParameterAdd = new Button(grpParameter, SWT.NONE);
+//		buttonParameterAdd.addSelectionListener(new SelectionAdapter() {
+//			@Override
+//			public void widgetSelected(SelectionEvent e) {
+//				
+//				if(tableParameterList.getSelectionIndex()==-1){
+//					
+//					Notifier.warning("",	"Lütfen parametre seçiniz");
+//					return;
+//				}
+//				
+//				MailParameter  param=  (MailParameter) tableParameterList.getItem(tableParameterList.getSelectionIndex()).getData();
+//				textContent.setText(textContent.getText()+" {" +param.getMailParameter()+"}");
+//				
+//			}
+//		});
+//		buttonParameterAdd.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+//		buttonParameterAdd.setText(Messages.getString("add"));
+//		
+//		
+//		createParameterTableColumns();
+//		
+//		
+//		Group grpContent = new Group(composite, SWT.NONE);
+//		grpContent.setLayout(new GridLayout(1, false));
+//		grpContent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+//		grpContent.setText("Içerik Tanımla");
+//		
+//		textContent = new Text(grpContent, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
+//		textContent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		// TODO Auto-generated method stub
 		
 	}
