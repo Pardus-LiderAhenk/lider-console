@@ -35,7 +35,6 @@ import tr.org.liderahenk.liderconsole.core.editorinput.DefaultEditorInput;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.model.MailAddress;
 import tr.org.liderahenk.liderconsole.core.model.MailContent;
-import tr.org.liderahenk.liderconsole.core.model.MailParameter;
 import tr.org.liderahenk.liderconsole.core.model.Plugin;
 import tr.org.liderahenk.liderconsole.core.rest.requests.MailManagementRequest;
 import tr.org.liderahenk.liderconsole.core.rest.utils.PluginRestUtils;
@@ -196,8 +195,8 @@ public class MailConfigurationEditor extends EditorPart {
 								selectedEntry.getName(), selectedEntry.getVersion());
 						
 						mailAddressList= (List<MailAddress>) returns.get("mailAddressList");
-						List<MailContent> mailContentList= (List<MailContent>) returns.get("mailContentList");
-						List<MailParameter> mailParameterList= (List<MailParameter>) returns.get("mailParameterList");
+//						List<MailContent> mailContentList= (List<MailContent>) returns.get("mailContentList");
+//						List<MailParameter> mailParameterList= (List<MailParameter>) returns.get("mailParameterList");
 						
 						List<MailAddress> addresses= new ArrayList<>(); 
 						
@@ -209,14 +208,14 @@ public class MailConfigurationEditor extends EditorPart {
 							
 						}
 						populateMailTable(addresses);
-						populateParameterTable(mailParameterList);
-						
-						if(mailContentList!=null && mailContentList.size()>0)
-						{
-						String mailContent= ((MailContent)mailContentList.get(mailContentList.size()-1)).getMailContent();
-							textContent.setText(mailContent);
-						
-						}
+//						populateParameterTable(mailParameterList);
+//						
+//						if(mailContentList!=null && mailContentList.size()>0)
+//						{
+//						String mailContent= ((MailContent)mailContentList.get(mailContentList.size()-1)).getMailContent();
+//							textContent.setText(mailContent);
+//						
+//						}
 					
 					} catch (Exception e) {
 						e.printStackTrace();
@@ -343,8 +342,9 @@ public class MailConfigurationEditor extends EditorPart {
 	}
 
 	protected void clearComponents() {
-		
+		if(textContent!=null)
 		textContent.setText("");
+		if(textMailAddress!=null)
 		textMailAddress.setText("");
 		
 	}
@@ -356,35 +356,35 @@ public class MailConfigurationEditor extends EditorPart {
 		
 	}
 
-	private void populateParameterTable(List<MailParameter> list) {
-		
+//	private void populateParameterTable(List<MailParameter> list) {
+//		
+//		if(tableParameterList!=null)
+//		tableViewerParameterList.setInput(list != null ? list : new ArrayList<MailParameter>());
+//	
+//		
+//	
+//	}
 
-		tableViewerParameterList.setInput(list != null ? list : new ArrayList<MailParameter>());
-	
-		
-	
-	}
-
-	private void createParameterTableColumns() {
-		
-
-		TableViewerColumn pluginNameColumn = SWTResourceManager.createTableViewerColumn(tableViewerParameterList,
-				Messages.getString("parameter"), 200);
-		pluginNameColumn.getColumn().setAlignment(SWT.LEFT);
-		pluginNameColumn.setLabelProvider(new ColumnLabelProvider() {
-			@Override
-			public String getText(Object element) {
-				if (element instanceof MailParameter) {
-					return ((MailParameter) element).getMailParameter();
-				}
-				return Messages.getString("UNTITLED");
-			}
-		});
-
-		
-		
-	
-	}
+//	private void createParameterTableColumns() {
+//		
+//
+//		TableViewerColumn pluginNameColumn = SWTResourceManager.createTableViewerColumn(tableViewerParameterList,
+//				Messages.getString("parameter"), 200);
+//		pluginNameColumn.getColumn().setAlignment(SWT.LEFT);
+//		pluginNameColumn.setLabelProvider(new ColumnLabelProvider() {
+//			@Override
+//			public String getText(Object element) {
+//				if (element instanceof MailParameter) {
+//					return ((MailParameter) element).getMailParameter();
+//				}
+//				return Messages.getString("UNTITLED");
+//			}
+//		});
+//
+//		
+//		
+//	
+//	}
 
 	private void createMailTableColumns() {
 		TableViewerColumn pluginNameColumn = SWTResourceManager.createTableViewerColumn(tableViewerMailList,
