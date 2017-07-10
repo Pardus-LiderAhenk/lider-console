@@ -57,6 +57,8 @@ public class AgentDetailDialog extends DefaultLiderDialog {
 
 	private Agent selectedAgent;
 
+	private CTabFolder tabFolder;
+
 	/**
 	 * @wbp.parser.constructor
 	 */
@@ -78,7 +80,7 @@ public class AgentDetailDialog extends DefaultLiderDialog {
 		Composite composite = new Composite(parent, SWT.NONE);
 		composite.setLayout(new GridLayout(1, false));
 		composite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		CTabFolder tabFolder = createTabFolder(composite);
+		tabFolder = createTabFolder(composite);
 
 		// Agent properties tab
 		Composite propContainer = createInputTab(tabFolder, Messages.getString("AGENT_PROPERTIES"));
@@ -92,6 +94,11 @@ public class AgentDetailDialog extends DefaultLiderDialog {
 
 		applyDialogFont(composite);
 		return composite;
+	}
+	
+	public void selectedTab(int tabOrder){
+		if(tabFolder!=null)
+		tabFolder.setSelection(tabOrder);
 	}
 
 	/**
