@@ -33,21 +33,49 @@
 			<id>mars</id>
 			<url>${mars.repo.url}</url>
 			<layout>p2</layout>
+			<releases>
+				<enabled>true</enabled>
+				<updatePolicy>never</updatePolicy>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
 		</repository>
 		<repository>
 			<id>apache-ds</id>
 			<url>${apache.ds.repo.url}</url>
 			<layout>p2</layout>
+			<releases>
+				<enabled>true</enabled>
+				<updatePolicy>never</updatePolicy>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
 		</repository>
 		<repository>
 			<id>orbit</id>
 			<url>${orbit.repo.url}</url>
 			<layout>p2</layout>
+			<releases>
+				<enabled>true</enabled>
+				<updatePolicy>never</updatePolicy>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
 		</repository>
 		<repository>
 			<id>mars-update</id>
 			<url>${mars.update.repo.url}</url>
 			<layout>p2</layout>
+			<releases>
+				<enabled>true</enabled>
+				<updatePolicy>never</updatePolicy>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
 		</repository>
 		<repository>
 			<id>p2-maven-plugin-local</id>
@@ -58,6 +86,13 @@
 			<id>babel-update</id>
 			<url>${babel.update.repo.url}</url>
 			<layout>p2</layout>
+			<releases>
+				<enabled>true</enabled>
+				<updatePolicy>never</updatePolicy>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
 		</repository>
 	</repositories>
 
@@ -224,7 +259,7 @@
 		<module>language-packs/ldapbrowser.ui</module>
 		<module>language-packs/valueeditors</module>
 	</modules>
-	
+
 	<developers>
 		<developer>
 			<id>emrekgn</id>
