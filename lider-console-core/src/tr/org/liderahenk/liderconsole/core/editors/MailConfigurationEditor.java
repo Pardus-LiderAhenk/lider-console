@@ -111,10 +111,10 @@ public class MailConfigurationEditor extends EditorPart {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				try {
-					String content=textContent.getText();
+					//String content=textContent.getText();
 					
 					MailContent mailContent= new MailContent();
-					mailContent.setMailContent(content);
+					mailContent.setMailContent("");
 					if(selectedPlugin!=null){
 						mailContent.setPlugin(selectedPlugin);
 						
