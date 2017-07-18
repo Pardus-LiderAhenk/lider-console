@@ -19,7 +19,12 @@
 */
 package tr.org.liderahenk.liderconsole.core.dialogs;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -60,8 +65,12 @@ public class DefaultProfileDialog extends DefaultLiderDialog {
 	private Text txtDesc;
 	private Button btnActive;
 	private Button btnOverridable;
-	
-	// TODO IMPROVEMENT do not pass editor instance! find another way to refresh editor table
+
+	private Button btnMailCheckButton;
+	private Text textMailContent;
+
+	// TODO IMPROVEMENT do not pass editor instance! find another way to refresh
+	// editor table
 
 	public DefaultProfileDialog(Shell parentShell, Profile selectedProfile, DefaultProfileEditor editor,
 			ProfileEditorInput editorInput) {
@@ -78,24 +87,26 @@ public class DefaultProfileDialog extends DefaultLiderDialog {
 		this.editorInput = editorInput;
 		editorInput.getProfileDialog().init();
 	}
-	public DefaultProfileDialog(Shell parentShell, DefaultProfileEditor editor, ProfileEditorInput editorInput, String selectedProfileId) {
+
+	public DefaultProfileDialog(Shell parentShell, DefaultProfileEditor editor, ProfileEditorInput editorInput,
+			String selectedProfileId) {
 		super(parentShell);
 		this.editor = editor;
 		this.editorInput = editorInput;
 		editorInput.getProfileDialog().init();
-		
-		if(selectedProfileId != null){
-			
-			Profile profile=null;
+
+		if (selectedProfileId != null) {
+
+			Profile profile = null;
 			try {
 				profile = ProfileRestUtils.get(Long.parseLong(selectedProfileId));
-				if(profile!=null)
-					this.selectedProfile=profile;
+				if (profile != null)
+					this.selectedProfile = profile;
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
+
 		}
 	}
 
@@ -144,6 +155,27 @@ public class DefaultProfileDialog extends DefaultLiderDialog {
 		btnOverridable.setText(Messages.getString("OVERRIDABLE"));
 		btnOverridable.setSelection(selectedProfile != null && selectedProfile.isOverridable());
 
+		IProfileDialog profileDialog = editorInput.getProfileDialog();
+		if (profileDialog instanceof IMailContentProviderDialog) {
+			btnMailCheckButton = new Button(composite, SWT.CHECK);
+			btnMailCheckButton.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false));
+			btnMailCheckButton.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					Button btn = (Button) e.getSource();
+					textMailContent.setVisible(btn.getSelection());
+				}
+			});
+			btnMailCheckButton.setText(Messages.getString("send_mail"));
+			btnMailCheckButton.setSelection(true);
+
+			textMailContent = new Text(composite, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
+			GridData gd_text = new GridData(SWT.FILL, SWT.CENTER, true, true, 1, 1);
+			gd_text.heightHint = 40;
+			textMailContent.setLayoutData(gd_text);
+			textMailContent.setText(((IMailContentProviderDialog) profileDialog).getMailContent());
+		}
+
 		// Create child composite for plugin
 		Composite childComposite = new Composite(parent, SWT.NONE);
 		childComposite.setLayout(new GridLayout(1, false));
@@ -168,10 +200,10 @@ public class DefaultProfileDialog extends DefaultLiderDialog {
 			Notifier.warning(null, Messages.getString("FILL_LABEL_FIELD"));
 			return;
 		}
-		
+
 		// Validate profile data
 		if (validateProfile()) {
-			
+
 			// Populate profile instance
 			ProfileRequest profile = new ProfileRequest();
 			profile.setPluginName(editorInput.getPluginName());
@@ -184,21 +216,31 @@ public class DefaultProfileDialog extends DefaultLiderDialog {
 			profile.setLabel(txtLabel.getText());
 			profile.setOverridable(btnOverridable.getSelection());
 			logger.debug("Profile request: {}", profile);
-	
+
 			try {
-				profile.setProfileData(editorInput.getProfileDialog().getProfileData());
+				Map<String, Object> profileData = editorInput.getProfileDialog().getProfileData() != null
+						? editorInput.getProfileDialog().getProfileData() : new HashMap<String, Object>();
+				// Mail parameters
+				IProfileDialog profileDialog = editorInput.getProfileDialog();
+				if (btnMailCheckButton != null && btnMailCheckButton.getSelection()
+						&& profileDialog instanceof IMailContentProviderDialog) {
+					profileData.put("mailSend", true);
+					profileData.put("mailContent", ((IMailContentProviderDialog) profileDialog).getMailContent());
+					profileData.put("mailSubject", ((IMailContentProviderDialog) profileDialog).getMailSubject());
+				}
+				profile.setProfileData(profileData);
 				if (selectedProfile != null && selectedProfile.getId() != null) {
 					ProfileRestUtils.update(profile);
 				} else {
 					ProfileRestUtils.add(profile);
 				}
-				if(editor!=null)
-				editor.refresh();
+				if (editor != null)
+					editor.refresh();
 			} catch (Exception e) {
 				logger.error(e.getMessage(), e);
 				Notifier.error(null, Messages.getString("ERROR_ON_SAVE"));
 			}
-	
+
 			close();
 		}
 	}
@@ -206,8 +248,7 @@ public class DefaultProfileDialog extends DefaultLiderDialog {
 	/**
 	 * Handles validation result of profile data.
 	 */
-	private boolean validateProfile() 
-	{
+	private boolean validateProfile() {
 		try {
 			if (editorInput != null) {
 				editorInput.getProfileDialog().validateBeforeSave();
@@ -220,12 +261,12 @@ public class DefaultProfileDialog extends DefaultLiderDialog {
 				Notifier.error(null, Messages.getString("ERROR_ON_VALIDATE"));
 			}
 			return false;
-		} catch (Exception e) { 
+		} catch (Exception e) {
 			e.printStackTrace();
 			Notifier.error(null, Messages.getString("ERROR_ON_VALIDATE"));
 			return false;
 		}
-		
+
 		Notifier.error(null, Messages.getString("ERROR_ON_VALIDATE"));
 		return false;
 	}
