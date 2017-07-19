@@ -72,14 +72,14 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
 	@Override
 	public void preWindowOpen() {
 		IWorkbenchWindowConfigurer configurer = getWindowConfigurer();
-		configurer.setInitialSize(new Point(500, 500));
+		//configurer.setInitialSize(new Point(500, 500));
 		configurer.setShowCoolBar(true);
 		configurer.setShowStatusLine(true);
 		configurer.setTitle("LİDER AHENK MERKEZİ YÖNETİM SİSTEMİ");
 		configurer.setShowPerspectiveBar(true);
 		configurer.setShowProgressIndicator(true);
 		configurer.setShowMenuBar(true);
-		//hookTitleUpdateListeners(configurer);
+		hookTitleUpdateListeners(configurer);
 	}
 
 	@Override

@@ -102,8 +102,7 @@ public class MailConfigurationEditor extends EditorPart {
 	public void createPartControl(Composite parent) {
 		
 		Composite composite = new Composite(parent, SWT.NONE);
-		composite.setLayout(new GridLayout(3, false));
-		new Label(composite, SWT.NONE);
+		composite.setLayout(new GridLayout(2, false));
 		new Label(composite, SWT.NONE);
 		
 		Button btnSave = new Button(composite, SWT.NONE);
@@ -286,6 +285,7 @@ public class MailConfigurationEditor extends EditorPart {
 		tableViewerMailList.setContentProvider(new ArrayContentProvider());
 		tableMailList = tableViewerMailList.getTable();
 		tableMailList.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+		new Label(composite, SWT.NONE);
 		
 		
 		createMailTableColumns();

@@ -36,11 +36,6 @@ import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 
 import org.jivesoftware.smack.ConnectionConfiguration.SecurityMode;
-import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
 import org.jivesoftware.smack.ConnectionListener;
 import org.jivesoftware.smack.ReconnectionManager;
 import org.jivesoftware.smack.ReconnectionManager.ReconnectionPolicy;
@@ -73,7 +68,7 @@ import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.ldap.listeners.LdapConnectionListener;
 import tr.org.liderahenk.liderconsole.core.ldap.listeners.TreePaintListener;
 import tr.org.liderahenk.liderconsole.core.ldap.utils.LdapUtils;
-import tr.org.liderahenk.liderconsole.core.views.LdapBrowserView;
+import tr.org.liderahenk.liderconsole.core.model.Agent;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier.NotifierMode;
 import tr.org.liderahenk.liderconsole.core.widgets.NotifierColorsFactory.NotifierTheme;
@@ -122,6 +117,8 @@ public class XMPPClient {
 	private XMPPTCPConnection connection;
 	private Roster roster;
 	private XMPPTCPConnectionConfiguration config;
+	
+	private Hashtable<String, Boolean> onlineAgentPresenceMap = new Hashtable<String, Boolean>();
 
 	public static synchronized XMPPClient getInstance() {
 		if (instance == null) {
@@ -306,13 +303,14 @@ public class XMPPClient {
 	public void getOnlineUsers() {
 
 		Thread thread = new Thread(new Runnable() {
+		
+
 			@Override
 			public void run() {
 				Collection<RosterEntry> entries = roster.getEntries();
 				Map<String, String> uidMap = LdapUtils.getInstance().getUidMap(LdapConnectionListener.getConnection(),
 						LdapConnectionListener.getMonitor());
 				
-				Map<String, Boolean> presenceMap=  new Hashtable<String, Boolean>();;
 
 				if (entries != null && !entries.isEmpty()) {
 					for (RosterEntry entry : entries) {
@@ -333,10 +331,10 @@ public class XMPPClient {
 									if (dn != null && !dn.isEmpty()) {
 										if (presence.getType() == Type.available) {
 											TreePaintListener.getInstance().put(dn, true);
-											//presenceMap.put(dn, true);
+											
+										
 										} else if (presence.getType() == Type.unavailable) {
 											TreePaintListener.getInstance().put(dn, false);
-											//presenceMap.put(dn, false);
 										}
 									}
 								} catch (Exception e) {
@@ -457,6 +455,9 @@ public class XMPPClient {
 		}
 
 		private void entriesAddedOrUpdated(Collection<String> entries) {
+			
+			
+			
 			Map<String, String> uidMap = LdapUtils.getInstance().getUidMap(LdapConnectionListener.getConnection(),
 					LdapConnectionListener.getMonitor());
 			for (String entry : entries) {
@@ -499,6 +500,8 @@ public class XMPPClient {
 
 		@Override
 		public void presenceChanged(Presence presence) {
+			
+			 
 			String jid = presence.getFrom().substring(0, presence.getFrom().indexOf('@'));
 			Map<String, String> uidMap = LdapUtils.getInstance().getUidMap(LdapConnectionListener.getConnection(),
 					LdapConnectionListener.getMonitor());
@@ -510,10 +513,13 @@ public class XMPPClient {
 					Notifier.notify(null, null, Messages.getString("ROSTER_ONLINE", dn), null, NotifierTheme.INFO_THEME,
 							NotifierMode.ONLY_SYSLOG);
 					TreePaintListener.getInstance().put(dn, true);
+					onlineAgentPresenceMap.put(dn, true);
+					
 				} else if (presence.getType() == Type.unavailable) {
 					Notifier.notify(null, null, Messages.getString("ROSTER_OFFLINE", dn), null,
 							NotifierTheme.INFO_THEME, NotifierMode.ONLY_SYSLOG);
 					TreePaintListener.getInstance().put(dn, false);
+					onlineAgentPresenceMap.put(dn, false);
 				}
 			}
 
@@ -613,6 +619,14 @@ public class XMPPClient {
 				+ ", maxPingTimeoutCount=" + maxPingTimeoutCount + ", retryCount=" + retryCount + ", pingTimeoutCount="
 				+ pingTimeoutCount + ", packetReplyTimeout=" + packetReplyTimeout + ", pingTimeout=" + pingTimeout
 				+ "]";
+	}
+
+	public Hashtable<String, Boolean> getOnlineAgentPresenceMap() {
+		return onlineAgentPresenceMap;
+	}
+
+	public void setOnlineAgentPresenceMap(Hashtable<String, Boolean> onlineAgentPresenceMap) {
+		this.onlineAgentPresenceMap = onlineAgentPresenceMap;
 	}
 
 }

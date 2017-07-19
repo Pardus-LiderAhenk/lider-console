@@ -95,6 +95,11 @@
             id="tr.org.liderahenk.liderconsole.core.commands.MailConfiguration"
             name="%command.mailconfiguration">
       </command>
+      <command
+            categoryId="tr.org.liderahenk.liderconsole.commands.category"
+            id="tr.org.liderahenk.liderconsole.core.commands.ServiceReportOnlineAhenk"
+            name="%command.servicereport.onlineahenk">
+      </command>
    </extension>
    
    <!-- HANDLERS -->
@@ -139,6 +144,10 @@
 	  <handler
             class="tr.org.liderahenk.liderconsole.core.handlers.MailConfigurationHandler"
             commandId="tr.org.liderahenk.liderconsole.core.commands.MailConfiguration">
+      </handler>
+	  <handler
+            class="tr.org.liderahenk.liderconsole.core.handlers.ServiceReportOnlineAhenkHandler"
+            commandId="tr.org.liderahenk.liderconsole.core.commands.ServiceReportOnlineAhenk">
       </handler>
 	  <handler
             class="tr.org.liderahenk.liderconsole.core.handlers.PolicyExecutionSelectHandler"
@@ -261,6 +270,12 @@
 	          id="tr.org.liderahenk.liderconsole.core.commands.MailConfiguration"
 	          icon="icons/16/chart-flow.png"
 	          tooltip="%command.mailconfiguration">
+        </command>
+		<command
+	          commandId="tr.org.liderahenk.liderconsole.core.commands.ServiceReportOnlineAhenk"
+	          id="tr.org.liderahenk.liderconsole.core.commands.ServiceReportOnlineAhenk"
+	          icon="icons/16/chart-flow.png"
+	          tooltip="%command.servicereport.onlineahenk">
         </command>
 		<command
 	          commandId="tr.org.liderahenk.liderconsole.core.commands.ExecutedTask"
@@ -489,6 +504,14 @@
 	       icon="icons/16/ldap.png"
 	       id="tr.org.liderahenk.liderconsole.core.editors.MailConfigurationEditor"
 	       name="%editor.lider.mailconfiguration">
+		</editor>
+		
+		<editor
+	       class="tr.org.liderahenk.liderconsole.core.editors.ServiceReportOnlineAhenkEditor"
+	       default="true"
+	       icon="icons/16/ldap.png"
+	       id="tr.org.liderahenk.liderconsole.core.editors.ServiceReportOnlineAhenkEditor"
+	       name="%editor.lider.onlineahenkservicereport">
 		</editor>
 		
 	    <editor
