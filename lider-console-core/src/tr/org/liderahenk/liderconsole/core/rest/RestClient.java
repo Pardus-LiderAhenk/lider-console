@@ -31,6 +31,7 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLContextBuilder;
 import org.apache.http.conn.ssl.TrustStrategy;
@@ -222,8 +223,16 @@ public class RestClient {
 			if (response != null) {
 				logger.debug("Response received: {}", response);
 			}
-		} catch (Exception e) {
+		} 
+		catch (HttpHostConnectException e) {
 			logger.error(e.getMessage(), e);
+			
+			Notifier.error(null, Messages.getString("LIDER_SERVICE_CLOSED"));
+		}
+		
+		catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			
 			Notifier.error(null, Messages.getString("ERROR_ON_REQUEST"));
 		} finally {
 			if (httpResponse != null) {
