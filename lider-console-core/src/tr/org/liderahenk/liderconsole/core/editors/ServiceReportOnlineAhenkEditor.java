@@ -37,6 +37,7 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
@@ -51,11 +52,13 @@ import org.slf4j.LoggerFactory;
 import tr.org.liderahenk.liderconsole.core.editorinput.DefaultEditorInput;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.ldap.enums.DNType;
+import tr.org.liderahenk.liderconsole.core.ldap.utils.LdapUtils;
 import tr.org.liderahenk.liderconsole.core.model.Agent;
 import tr.org.liderahenk.liderconsole.core.model.AgentServiceListItem;
 import tr.org.liderahenk.liderconsole.core.model.AgentServices;
 import tr.org.liderahenk.liderconsole.core.rest.requests.TaskRequest;
 import tr.org.liderahenk.liderconsole.core.rest.utils.TaskRestUtils;
+import tr.org.liderahenk.liderconsole.core.utils.PdfExporter;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
 import tr.org.liderahenk.liderconsole.core.xmpp.XMPPClient;
 import tr.org.liderahenk.liderconsole.core.xmpp.notifications.TaskStatusNotification;
@@ -135,7 +138,7 @@ public class ServiceReportOnlineAhenkEditor  extends EditorPart{
 
 	Group grpOnlineUsr = new Group(tabFolder, SWT.BORDER | SWT.SHADOW_IN);
 	tbtmCreateFile.setControl(grpOnlineUsr);
-	grpOnlineUsr.setLayout(new GridLayout(5, false));
+	grpOnlineUsr.setLayout(new GridLayout(6, false));
 
 	SimpleDateFormat format = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
 	labelRecordDate = new Label(grpOnlineUsr, SWT.NONE);
@@ -150,7 +153,9 @@ public class ServiceReportOnlineAhenkEditor  extends EditorPart{
 			getServices();
 		}
 	});
-	btnRefresh.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+	GridData gd_btnRefresh = new GridData(SWT.CENTER, SWT.CENTER, false, false, 2, 1);
+	gd_btnRefresh.widthHint = 200;
+	btnRefresh.setLayoutData(gd_btnRefresh);
 	btnRefresh.setText(Messages.getString("LiderManagementEditor.btnRefreshPolicy.toolTipText"));
 	new Label(grpOnlineUsr, SWT.NONE);
 	new Label(grpOnlineUsr, SWT.NONE);
@@ -160,9 +165,10 @@ public class ServiceReportOnlineAhenkEditor  extends EditorPart{
 	lblAgent.setText(Messages.getString("agent")); //$NON-NLS-1$
 
 	textAgent = new Text(grpOnlineUsr, SWT.BORDER);
-	GridData gd_textAgent = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+	GridData gd_textAgent = new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1);
 	gd_textAgent.widthHint = 324;
 	textAgent.setLayoutData(gd_textAgent);
+	new Label(grpOnlineUsr, SWT.NONE);
 	new Label(grpOnlineUsr, SWT.NONE);
 	new Label(grpOnlineUsr, SWT.NONE);
 	new Label(grpOnlineUsr, SWT.NONE);
@@ -172,9 +178,10 @@ public class ServiceReportOnlineAhenkEditor  extends EditorPart{
 	label.setText(Messages.getString("service_name"));
 
 	textServiceName = new Text(grpOnlineUsr, SWT.BORDER);
-	GridData gd_textPackageName = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+	GridData gd_textPackageName = new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1);
 	gd_textPackageName.widthHint = 324;
 	textServiceName.setLayoutData(gd_textPackageName);
+	new Label(grpOnlineUsr, SWT.NONE);
 	new Label(grpOnlineUsr, SWT.NONE);
 	new Label(grpOnlineUsr, SWT.NONE);
 	new Label(grpOnlineUsr, SWT.NONE);
@@ -190,8 +197,8 @@ public class ServiceReportOnlineAhenkEditor  extends EditorPart{
 	combo.setLayoutData(gd_combo);
 
 	Button btnFilter = new Button(grpOnlineUsr, SWT.NONE);
-	GridData gd_btnFilter = new GridData(SWT.LEFT, SWT.FILL, false, false, 1, 1);
-	gd_btnFilter.widthHint = 114;
+	GridData gd_btnFilter = new GridData(SWT.CENTER, SWT.FILL, false, false, 1, 1);
+	gd_btnFilter.widthHint = 120;
 	btnFilter.setLayoutData(gd_btnFilter);
 	btnFilter.addSelectionListener(new SelectionAdapter() {
 		@Override
@@ -206,6 +213,18 @@ public class ServiceReportOnlineAhenkEditor  extends EditorPart{
 		}
 	});
 	btnFilter.setText(Messages.getString("filter"));
+	
+		Button btnExportToPDF = new Button(grpOnlineUsr, SWT.NONE);
+		GridData gd_btnExportToPDF = new GridData(SWT.CENTER, SWT.CENTER, false, false, 1, 1);
+		gd_btnExportToPDF.widthHint = 120;
+		btnExportToPDF.setLayoutData(gd_btnExportToPDF);
+		btnExportToPDF.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				 exportToPdf();
+			}
+		});
+		btnExportToPDF.setText(Messages.getString("EXPORT_PDF"));
 	new Label(grpOnlineUsr, SWT.NONE);
 	new Label(grpOnlineUsr, SWT.NONE);
 	
@@ -213,26 +232,16 @@ public class ServiceReportOnlineAhenkEditor  extends EditorPart{
 	progressBar.setSelection(0);
 	progressBar.setMaximum(100);
 	GridData gdProgress = new GridData(GridData.FILL_HORIZONTAL);
-	gdProgress.horizontalSpan = 3;
+	gdProgress.horizontalSpan = 4;
 	gdProgress.heightHint = 10;
 	progressBar.setLayoutData(gdProgress);
-	progressBar.setVisible(true);
+	progressBar.setVisible(false);
 	new Label(grpOnlineUsr, SWT.NONE);
 	new Label(grpOnlineUsr, SWT.NONE);
-
-//	Button btnExportToPDF = new Button(grpOnlineUsr, SWT.NONE);
-//	btnExportToPDF.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1));
-//	btnExportToPDF.addSelectionListener(new SelectionAdapter() {
-//		@Override
-//		public void widgetSelected(SelectionEvent e) {
-//			 exportToPdf();
-//		}
-//	});
-//	btnExportToPDF.setText(Messages.getString("EXPORT"));
 
 	composite = new Composite(grpOnlineUsr, SWT.BORDER | SWT.SHADOW_IN);
 	composite.setLayout(new GridLayout(1, false));
-	composite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 5, 2));
+	composite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 6, 2));
 
 	tableViewerService = new TableViewer(composite,
 			SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION | SWT.BORDER);
@@ -464,49 +473,49 @@ public class ServiceReportOnlineAhenkEditor  extends EditorPart{
 	
 	protected void exportToPdf() {
 
-//		PdfExporter exporter = new PdfExporter(
-//				Messages.getString("service_report"));
-//
-//		exporter.addRow(Messages.getString("service_report"),
-//				PdfExporter.ALIGN_CENTER, exporter.getFont(
-//						PdfExporter.TIMES_ROMAN, 18, PdfExporter.BOLD,
-//						PdfExporter.RED));
-//		exporter.addEmptyLine(2);
-//
-//		String[] columnNames = { Messages.getString("table_column_agent"),
-//				Messages.getString("table_column_service_count") };
-//
-//		List<String[]> dataList = new ArrayList<>();
-//
-//		TableItem[] items = tableServiceList.getItems();
-//
-//		List<AgentServices> lstTableValue = new ArrayList<AgentServices>();
-//		for (int i = 0; i < items.length; i++) {
-//
-//			lstTableValue.add((AgentServices) items[i].getData());
-//		}
-//		for (AgentServices data : lstTableValue) {
-//
-//			String dn = data.getAgent().getDn();
-//			String col = "uid : "
-//					+ dn
-//					+ "\n"
-//					+ "cn : "
-//					+ LdapUtils.getInstance().findAttributeValueByDn(dn,
-//							"cn");
-//			dataList.add(new String[] { col,getServiceListStr(data.getServices()) });
-//		}
-//
-//		float[] columnWidths = { 1, 4 };
-//		exporter.addTable(columnWidths, columnNames, dataList);
-//		exporter.addRow(
-//				Messages.getString("report_date")
-//						+ ": "
-//						+ new SimpleDateFormat("dd/MM/yyyy hh:mm")
-//								.format(new java.util.Date()),
-//				PdfExporter.ALIGN_LEFT, exporter.getFont(PdfExporter.COURIER,
-//						8, PdfExporter.ITALIC, PdfExporter.BLUE));
-//		exporter.closeReport();
+		PdfExporter exporter = new PdfExporter(
+				Messages.getString("service_report"));
+
+		exporter.addRow(Messages.getString("service_report"),
+				PdfExporter.ALIGN_CENTER, exporter.getFont(
+						PdfExporter.TIMES_ROMAN, 18, PdfExporter.BOLD,
+						PdfExporter.RED));
+		exporter.addEmptyLine(2);
+
+		String[] columnNames = { Messages.getString("table_column_agent"),
+				Messages.getString("table_column_service_count") };
+
+		List<String[]> dataList = new ArrayList<>();
+
+		TableItem[] items = tableServiceList.getItems();
+
+		List<AgentServices> lstTableValue = new ArrayList<AgentServices>();
+		for (int i = 0; i < items.length; i++) {
+
+			lstTableValue.add((AgentServices) items[i].getData());
+		}
+		for (AgentServices data : lstTableValue) {
+
+			String dn = data.getAgent().getDn();
+			String col = "uid : "
+					+ dn
+					+ "\n"
+					+ "cn : "
+					+ LdapUtils.getInstance().findAttributeValueByDn(dn,
+							"cn");
+			dataList.add(new String[] { col,getServiceListStr(data.getServices()) });
+		}
+
+		float[] columnWidths = { 1, 4 };
+		exporter.addTable(columnWidths, columnNames, dataList);
+		exporter.addRow(
+				Messages.getString("report_date")
+						+ ": "
+						+ new SimpleDateFormat("dd/MM/yyyy hh:mm")
+								.format(new java.util.Date()),
+				PdfExporter.ALIGN_LEFT, exporter.getFont(PdfExporter.TIMES_ROMAN,
+						8, PdfExporter.ITALIC, PdfExporter.BLUE));
+		exporter.closeReport();
 
 	}
 	

@@ -57,7 +57,9 @@ Export-Package: tr.org.liderahenk.liderconsole.core.config,
  tr.org.liderahenk.liderconsole.core.xmpp.notifications
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: Agem Bilişim
-Import-Package: org.apache.directory.api.ldap.model.entry;version="1.0.0.RC2",
+Import-Package: com.itextpdf.text,
+ com.itextpdf.text.pdf,
+ org.apache.directory.api.ldap.model.entry;version="1.0.0.RC2",
  org.apache.directory.api.ldap.model.exception,
  org.apache.directory.api.ldap.model.message;version="1.0.0.RC2",
  org.apache.directory.api.ldap.model.name,

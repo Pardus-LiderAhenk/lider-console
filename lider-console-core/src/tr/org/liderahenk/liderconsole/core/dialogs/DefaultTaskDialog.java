@@ -19,6 +19,7 @@
 */
 package tr.org.liderahenk.liderconsole.core.dialogs;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashSet;
@@ -46,6 +47,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PlatformUI;
 import org.osgi.service.event.Event;
@@ -57,8 +59,12 @@ import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
 import tr.org.liderahenk.liderconsole.core.exceptions.ValidationException;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.ldap.enums.DNType;
+import tr.org.liderahenk.liderconsole.core.ldap.utils.LdapUtils;
+import tr.org.liderahenk.liderconsole.core.model.AgentServices;
+import tr.org.liderahenk.liderconsole.core.model.PdfContent;
 import tr.org.liderahenk.liderconsole.core.rest.requests.TaskRequest;
 import tr.org.liderahenk.liderconsole.core.rest.utils.TaskRestUtils;
+import tr.org.liderahenk.liderconsole.core.utils.PdfExporter;
 import tr.org.liderahenk.liderconsole.core.utils.SWTResourceManager;
 import tr.org.liderahenk.liderconsole.core.widgets.LiderConfirmBox;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
@@ -94,6 +100,9 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 	private Button btnMailCheckButton;
 	
 	private Text textMailContent;
+	private Button btnExportToPdf;
+
+	private boolean enableExportToPdf=false;
 
 	/**
 	 * @wbp.parser.constructor
@@ -112,6 +121,8 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 		this.hideActivationDate = false;
 		init();
 	}
+	
+	
 
 	public DefaultTaskDialog(Shell parentShell, Set<String> dnSet, boolean hideActivationDate) {
 		super(parentShell);
@@ -148,11 +159,30 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 		this.hideRunButton=hideRunButton;
 		init();
 	}
+	
+	public DefaultTaskDialog(Shell parentShell, Set<String> dnSet, boolean hideActivationDate, boolean sendMail, boolean hideRunButton, boolean enableExportToPdf) {
+		super(parentShell);
+		if (dnSet != null)
+			this.dnSet.addAll(dnSet);
+		this.hideActivationDate = hideActivationDate;
+		this.sendMail=sendMail;
+		this.hideRunButton=hideRunButton;
+		this.enableExportToPdf=enableExportToPdf;
+		init();
+	}
 
 	public DefaultTaskDialog(Shell parentShell, String dn, boolean hideActivationDate) {
 		super(parentShell);
 		this.dnSet.add(dn);
 		this.hideActivationDate = hideActivationDate;
+		init();
+	}
+	
+	public DefaultTaskDialog(Shell parentShell, String dn, boolean hideActivationDate,boolean enableExportToPdf) {
+		super(parentShell);
+		this.dnSet.add(dn);
+		this.hideActivationDate = hideActivationDate;
+		this.enableExportToPdf=enableExportToPdf;
 		init();
 	}
 
@@ -265,7 +295,9 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 		// Activation date inputs
 		//if (!hideActivationDate) {
 			createTaskActivationDateArea(container);
-		//}
+		
+		
+		
 		// Progress bar
 		progressBar = new ProgressBar(container, SWT.SMOOTH | SWT.INDETERMINATE);
 		progressBar.setSelection(0);
@@ -282,7 +314,6 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 	}
 
 	private void createTaskActivationDateArea(final Composite parent) {
-		new Label(parent, SWT.NONE);
 		
 		if(sendMail) {
 			compositeMail = new Composite(container, SWT.NONE);
@@ -291,7 +322,7 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 			
 			btnMailCheckButton = new Button(compositeMail, SWT.CHECK);
 			GridData gd_btnCheckButton = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-			gd_btnCheckButton.widthHint = 96;
+			gd_btnCheckButton.widthHint = 159;
 			btnMailCheckButton.setLayoutData(gd_btnCheckButton);
 			btnMailCheckButton.addSelectionListener(new SelectionAdapter() {
 				@Override
@@ -311,10 +342,11 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 			textMailContent.setText(getMailContent());
 		
 		}
+		new Label(container, SWT.NONE);
 		
 		Composite composite = new Composite(parent, SWT.NONE);
 		composite.setLayout(new GridLayout(4, false));
-		composite.setLayoutData(new GridData(SWT.BOTTOM, SWT.FILL, true, false));
+		composite.setLayoutData(new GridData(SWT.LEFT, SWT.FILL, true, false));
 
 		// Activation date enable/disable checkbox
 		btnEnableDate = new Button(composite, SWT.CHECK);
@@ -349,6 +381,30 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
+		
+		btnExportToPdf = createButton(parent, 4000, Messages.getString("EXPORT_PDF"), false);
+		btnExportToPdf.setVisible(enableExportToPdf);
+		
+		
+		btnExportToPdf.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				
+				PdfContent contentDesigner= getPdfContent();
+						
+				if(contentDesigner!=null)
+				exportToPdf(contentDesigner);
+			}
+
+			
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
+		
+		
+		
 		// Execute task now
 		btnExecuteNow = createButton(parent, 5000, Messages.getString("EXECUTE_NOW"), false);
 		btnExecuteNow.setImage(
@@ -564,6 +620,30 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 	public boolean isMailSendMust() {
 		return false;
 	}
+	
+	
+	public PdfContent getPdfContent(){
+		return null;
+				
+	};
+	
+	protected void exportToPdf(PdfContent pdfContent) {
+		PdfExporter exporter = new PdfExporter(pdfContent.getFileName());
 
+		exporter.addRow(pdfContent.getReportTitle(),PdfExporter.ALIGN_CENTER, exporter.getFont(PdfExporter.TIMES_ROMAN, 18, PdfExporter.BOLD,PdfExporter.RED));
+		exporter.addEmptyLine(1);
+		exporter.addRow(
+				Messages.getString("report_date")
+						+ ": "
+						+ new SimpleDateFormat("dd.MM.yyyy hh:mm a")
+								.format(new java.util.Date()),
+				PdfExporter.ALIGN_RIGHT, exporter.getFont(PdfExporter.TIMES_ROMAN,
+						8, PdfExporter.ITALIC, PdfExporter.BLUE));
+		
+		exporter.addTable(pdfContent.getColumnWidths(), pdfContent.getColumnNames(), pdfContent.getDataList());
+		
+		exporter.closeReport();
+
+	}
 	
 }

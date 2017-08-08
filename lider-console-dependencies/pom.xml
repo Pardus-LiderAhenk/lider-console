@@ -61,6 +61,9 @@
 								<artifact>
 									<id>org.swtchart:swtchartext:0.10.0</id>
 								</artifact>
+								<artifact>
+									<id>com.itextpdf:itextpdf:5.5.9</id>
+								</artifact>
 							</artifacts>
 						</configuration>
 					</execution>
