@@ -71,7 +71,7 @@ public class PdfExporter {
 	public static int ALIGN_LEFT=Element.ALIGN_LEFT;
 	public static int ALIGN_RIGHT=Element.ALIGN_RIGHT;
 	public static int ALIGN_CENTER=Element.ALIGN_CENTER;
-	public static final String IMAGE = "/icons/pardus-wallpaper.jpg";
+	public static final String IMAGE = "/icons/back.jpg";
 	private Document document;
 	private Paragraph preface;
 	private String path=PdfExporter.class.getProtectionDomain().getCodeSource().getLocation().getPath();

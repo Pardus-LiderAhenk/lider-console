@@ -56,18 +56,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
+import tr.org.liderahenk.liderconsole.core.current.UserSettings;
 import tr.org.liderahenk.liderconsole.core.exceptions.ValidationException;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.ldap.enums.DNType;
 import tr.org.liderahenk.liderconsole.core.ldap.utils.LdapUtils;
 import tr.org.liderahenk.liderconsole.core.model.AgentServices;
 import tr.org.liderahenk.liderconsole.core.model.PdfContent;
+import tr.org.liderahenk.liderconsole.core.model.UserSession;
 import tr.org.liderahenk.liderconsole.core.rest.requests.TaskRequest;
 import tr.org.liderahenk.liderconsole.core.rest.utils.TaskRestUtils;
 import tr.org.liderahenk.liderconsole.core.utils.PdfExporter;
 import tr.org.liderahenk.liderconsole.core.utils.SWTResourceManager;
 import tr.org.liderahenk.liderconsole.core.widgets.LiderConfirmBox;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
+import tr.org.liderahenk.liderconsole.core.xmpp.XMPPClient;
 
 /**
  * Default task dialog implementation that can be used by plugins in order to
@@ -629,9 +632,7 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 	
 	protected void exportToPdf(PdfContent pdfContent) {
 		PdfExporter exporter = new PdfExporter(pdfContent.getFileName());
-
-		exporter.addRow(pdfContent.getReportTitle(),PdfExporter.ALIGN_CENTER, exporter.getFont(PdfExporter.TIMES_ROMAN, 18, PdfExporter.BOLD,PdfExporter.RED));
-		exporter.addEmptyLine(1);
+		
 		exporter.addRow(
 				Messages.getString("report_date")
 						+ ": "
@@ -639,8 +640,15 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 								.format(new java.util.Date()),
 				PdfExporter.ALIGN_RIGHT, exporter.getFont(PdfExporter.TIMES_ROMAN,
 						8, PdfExporter.ITALIC, PdfExporter.BLUE));
+
+		exporter.addRow(pdfContent.getReportTitle(),PdfExporter.ALIGN_CENTER, exporter.getFont(PdfExporter.TIMES_ROMAN, 18, PdfExporter.BOLD,PdfExporter.RED));
 		
 		exporter.addTable(pdfContent.getColumnWidths(), pdfContent.getColumnNames(), pdfContent.getDataList());
+		
+		exporter.addRow(
+				"Hazırlayan : " + UserSettings.USER_ID,
+				PdfExporter.ALIGN_LEFT, exporter.getFont(PdfExporter.TIMES_ROMAN,
+						9, PdfExporter.ITALIC, PdfExporter.RED));
 		
 		exporter.closeReport();
 
