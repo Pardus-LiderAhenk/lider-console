@@ -391,7 +391,8 @@ public class LdapUtils {
 	}
 
 	public String findAttributeValueByDn(String dn, String attrName) {
-		return findAttributeValueByDn(dn, attrName, LdapConnectionListener.getConnection(), LdapConnectionListener.getMonitor());
+		return findAttributeValueByDn(dn, attrName, LdapConnectionListener.getConnection(),
+				LdapConnectionListener.getMonitor());
 	}
 
 	/**
@@ -618,16 +619,19 @@ public class LdapUtils {
 	}
 
 	public List<LdapEntry> findUsers(String dn, String[] returningAttributes, Connection conn,
-			StudioProgressMonitor monitor) {
+			StudioProgressMonitor monitor, String filterStr) {
 
 		// Create filter expression for user object classes
 		StringBuilder filter = new StringBuilder();
 		String[] userObjClsArr = ConfigProvider.getInstance().getStringArr(LiderConstants.CONFIG.USER_LDAP_OBJ_CLS);
 		if (userObjClsArr.length > 1) {
 			filter.append("(&");
+			for (String userObjCls : userObjClsArr) {
+				filter.append("(objectClass=").append(userObjCls).append(")");
+			}
 		}
-		for (String agentObjCls : userObjClsArr) {
-			filter.append("(objectClass=").append(agentObjCls).append(")");
+		if (filterStr != null && !filterStr.isEmpty()) {
+			filter.append(filterStr);
 		}
 		if (userObjClsArr.length > 1) {
 			filter.append(")");
@@ -662,9 +666,9 @@ public class LdapUtils {
 		return ldapEntryList;
 	}
 
-	public List<LdapEntry> findUsers(String dn, String[] returningAttributes) {
-		return findUsers(dn, returningAttributes, LdapConnectionListener.getConnection(),
-				LdapConnectionListener.getMonitor());
+	public List<LdapEntry> findUsers(String filter, String[] returningAttributes) {
+		return findUsers(null, returningAttributes, LdapConnectionListener.getConnection(),
+				LdapConnectionListener.getMonitor(), filter);
 	}
 
 	/**
