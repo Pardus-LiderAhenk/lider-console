@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import tr.org.liderahenk.liderconsole.core.config.ConfigProvider;
 import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
+import tr.org.liderahenk.liderconsole.core.ldap.enums.DNType;
 import tr.org.liderahenk.liderconsole.core.model.AppliedPolicy;
 import tr.org.liderahenk.liderconsole.core.model.Command;
 import tr.org.liderahenk.liderconsole.core.model.Policy;
@@ -176,7 +177,7 @@ public class PolicyRestUtils {
 			policies = mapper.readValue(mapper.writeValueAsString(response.getResultMap().get("policies")),
 					new TypeReference<List<Policy>>() {
 					});
-			//Notifier.success(null, Messages.getString("RECORD_LISTED"));
+			// Notifier.success(null, Messages.getString("RECORD_LISTED"));
 		} else {
 			Notifier.error(null, Messages.getString("ERROR_ON_LIST"));
 		}
@@ -257,7 +258,8 @@ public class PolicyRestUtils {
 	 * @throws Exception
 	 */
 	public static List<AppliedPolicy> listAppliedPolicies(String label, Date createDateRangeStart,
-			Date createDateRangeEnd, Integer status, Integer maxResults) throws Exception {
+			Date createDateRangeEnd, Integer status, Integer maxResults, String containsPlugin, DNType dnType)
+			throws Exception {
 
 		// Build URL
 		StringBuilder url = getBaseUrl();
@@ -279,6 +281,12 @@ public class PolicyRestUtils {
 		}
 		if (maxResults != null) {
 			params.add("maxResults=" + maxResults);
+		}
+		if (containsPlugin != null) {
+			params.add("containsPlugin=" + containsPlugin);
+		}
+		if (dnType != null) {
+			params.add("dnType=" + dnType);
 		}
 		if (!params.isEmpty()) {
 			url.append(StringUtils.join(params, "&"));

@@ -19,10 +19,14 @@
 */
 package tr.org.liderahenk.liderconsole.core.model;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Date;
 
+import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  * This is a specialized class which is used to list executed policies with some
@@ -47,6 +51,12 @@ public class AppliedPolicy implements Serializable {
 	private Integer warningResults;
 
 	private Integer errorResults;
+
+	// FIXME temporary MSB solution. Need to change JSON structure altogether
+	private String policy;
+	private Date applyDate;
+	private Date activationDate;
+	private Date expirationDate;
 
 	public Long getId() {
 		return id;
@@ -94,6 +104,60 @@ public class AppliedPolicy implements Serializable {
 
 	public void setErrorResults(Integer errorResults) {
 		this.errorResults = errorResults;
+	}
+
+	public String getPolicy() {
+		return policy;
+	}
+
+	ObjectMapper mapper = null;
+	private Policy pol;
+
+	public Policy getPolicyAsObj() {
+		if (pol != null) {
+			return pol;
+		}
+		if (mapper == null) {
+			mapper = new ObjectMapper();
+		}
+		try {
+			pol = mapper.readValue(this.policy, Policy.class);
+		} catch (JsonParseException e) {
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return pol;
+	}
+
+	public void setPolicy(String policy) {
+		this.policy = policy;
+	}
+
+	public Date getApplyDate() {
+		return applyDate;
+	}
+
+	public void setApplyDate(Date applyDate) {
+		this.applyDate = applyDate;
+	}
+
+	public Date getActivationDate() {
+		return activationDate;
+	}
+
+	public void setActivationDate(Date activationDate) {
+		this.activationDate = activationDate;
+	}
+
+	public Date getExpirationDate() {
+		return expirationDate;
+	}
+
+	public void setExpirationDate(Date expirationDate) {
+		this.expirationDate = expirationDate;
 	}
 
 }
