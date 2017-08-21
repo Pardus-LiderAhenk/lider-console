@@ -22,6 +22,7 @@ package tr.org.liderahenk.liderconsole.core.model;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
@@ -57,6 +58,7 @@ public class AppliedPolicy implements Serializable {
 	private Date applyDate;
 	private Date activationDate;
 	private Date expirationDate;
+	private List<String> uidList;
 
 	public Long getId() {
 		return id;
@@ -158,6 +160,14 @@ public class AppliedPolicy implements Serializable {
 
 	public void setExpirationDate(Date expirationDate) {
 		this.expirationDate = expirationDate;
+	}
+
+	public List<String> getUidList() {
+		return uidList;
+	}
+
+	public void setUidList(List<String> uidList) {
+		this.uidList = uidList;
 	}
 
 }
