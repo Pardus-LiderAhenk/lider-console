@@ -759,6 +759,43 @@ public class LdapUtils {
 		return findGroups(dn, LdapConnectionListener.getConnection(), LdapConnectionListener.getMonitor());
 	}
 
+	public List<String> findOUs(String dn) {
+		return findOUs(dn, LdapConnectionListener.getConnection(), LdapConnectionListener.getMonitor());
+	}
+
+	private List<String> findOUs(String dn, Connection conn, StudioProgressMonitor monitor) {
+
+		// Create filter expression for group object classes
+		StringBuilder filter = new StringBuilder();
+		String[] groupObjClsArr = ConfigProvider.getInstance().getStringArr(LiderConstants.CONFIG.OU_LDAP_OBJ_CLS);
+		if (groupObjClsArr.length > 1) {
+			filter.append("(&");
+		}
+		for (String groupObjCls : groupObjClsArr) {
+			filter.append("(objectClass=").append(groupObjCls).append(")");
+		}
+		if (groupObjClsArr.length > 1) {
+			filter.append(")");
+		}
+
+		List<String> dnList = new ArrayList<String>();
+
+		StudioNamingEnumeration enumeration = search(dn, filter.toString(), new String[] { OBJECT_CLASS },
+				SearchControls.SUBTREE_SCOPE, 0, conn, monitor);
+		if (enumeration != null) {
+			try {
+				while (enumeration.hasMore()) {
+					SearchResult item = enumeration.next();
+					dnList.add(item.getName());
+				}
+			} catch (NamingException e) {
+				logger.error(e.getMessage(), e);
+			}
+		}
+
+		return dnList;
+	}
+
 	/**
 	 * Check if provided DN belongs to an LDAP admin.
 	 * 
