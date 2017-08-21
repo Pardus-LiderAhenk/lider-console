@@ -353,11 +353,11 @@ public class AppliedPolicyEditor extends EditorPart {
 			List<AppliedPolicy> policies = null;
 			if (useParams) {
 				policies = PolicyRestUtils.listAppliedPolicies(txtLabel.getText(), convertDate(dtCreateDateRangeStart),
-						convertDate(dtCreateDateRangeEnd), null, null, null, null);
+						convertDate(dtCreateDateRangeEnd), null, null, null, null, null);
 			} else {
 				policies = PolicyRestUtils.listAppliedPolicies(null, null, null, null,
 						ConfigProvider.getInstance().getInt(LiderConstants.CONFIG.APPLIED_POLICIES_MAX_SIZE), null,
-						null);
+						null, null);
 			}
 			tableViewer.setInput(policies != null ? policies : new ArrayList<AppliedPolicy>());
 			tableViewer.refresh();

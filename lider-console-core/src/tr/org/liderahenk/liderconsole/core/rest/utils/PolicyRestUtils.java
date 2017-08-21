@@ -254,11 +254,12 @@ public class PolicyRestUtils {
 	 * @param createDateRangeStart
 	 * @param createDateRangeEnd
 	 * @param status
+	 * @param string 
 	 * @return
 	 * @throws Exception
 	 */
 	public static List<AppliedPolicy> listAppliedPolicies(String label, Date createDateRangeStart,
-			Date createDateRangeEnd, Integer status, Integer maxResults, String containsPlugin, DNType dnType)
+			Date createDateRangeEnd, Integer status, Integer maxResults, String containsPlugin, DNType dnType, String dn)
 			throws Exception {
 
 		// Build URL
@@ -287,6 +288,9 @@ public class PolicyRestUtils {
 		}
 		if (dnType != null) {
 			params.add("dnType=" + dnType);
+		}
+		if (dn != null) {
+			params.add("dn=" + dn);
 		}
 		if (!params.isEmpty()) {
 			url.append(StringUtils.join(params, "&"));

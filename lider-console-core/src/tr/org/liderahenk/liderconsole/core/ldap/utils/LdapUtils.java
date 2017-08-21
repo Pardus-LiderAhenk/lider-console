@@ -103,8 +103,8 @@ public class LdapUtils {
 	}
 
 	public static final String OBJECT_CLASS_FILTER = "(objectClass=*)";
-	private static final String OBJECT_CLASS = "objectClass";
-	private static final String MEMBER_ATTR = "member";
+	public static final String OBJECT_CLASS = "objectClass";
+	public static final String MEMBER_ATTR = "member";
 
 	/**
 	 * Main search method for LDAP connections.
@@ -671,6 +671,58 @@ public class LdapUtils {
 				LdapConnectionListener.getMonitor(), filter);
 	}
 
+	public List<LdapEntry> findOUs(String dn, String[] returningAttributes, Connection conn,
+			StudioProgressMonitor monitor, String filterStr) {
+		// Create filter expression for group object classes
+		StringBuilder filter = new StringBuilder();
+		String[] groupObjClsArr = ConfigProvider.getInstance().getStringArr(LiderConstants.CONFIG.OU_LDAP_OBJ_CLS);
+		if (groupObjClsArr.length > 1) {
+			filter.append("(&");
+			for (String groupObjCls : groupObjClsArr) {
+				filter.append("(objectClass=").append(groupObjCls).append(")");
+			}
+		}
+		if (filterStr != null && !filterStr.isEmpty()) {
+			filter.append(filterStr);
+		}
+		if (groupObjClsArr.length > 1) {
+			filter.append(")");
+		}
+
+		List<LdapEntry> ldapEntryList = null;
+
+		StudioNamingEnumeration enumeration = search(dn, filter.toString(), returningAttributes,
+				SearchControls.SUBTREE_SCOPE, 0, conn, monitor);
+		if (enumeration != null) {
+			try {
+				ldapEntryList = new ArrayList<LdapEntry>();
+				// Iterate over search items
+				while (enumeration.hasMore()) {
+					SearchResult item = enumeration.next();
+					Attributes attributes = item.getAttributes();
+					NamingEnumeration<? extends Attribute> attributesEnumeration = attributes.getAll();
+					Map<String, String> attributeMap = new HashMap<String, String>();
+					// Iterate over attributes (e.g. uid) of all search items
+					while (attributesEnumeration.hasMore()) {
+						Attribute attribute = attributesEnumeration.next();
+						attributeMap.put(attribute.getID(), attribute.get().toString());
+					}
+					LdapEntry ldapEntry = new LdapEntry(item.getName(), attributeMap, DNType.ORGANIZATIONAL_UNIT);
+					ldapEntryList.add(ldapEntry);
+				}
+			} catch (NamingException e) {
+				logger.error(e.getMessage(), e);
+			}
+		}
+
+		return ldapEntryList;
+	}
+
+	public List<LdapEntry> findOUs(String filter, String[] returningAttributes) {
+		return findOUs(null, returningAttributes, LdapConnectionListener.getConnection(),
+				LdapConnectionListener.getMonitor(), filter);
+	}
+
 	/**
 	 * Tries to find agent DNs under the provided DN
 	 * 
@@ -757,43 +809,6 @@ public class LdapUtils {
 
 	public List<String> findGroups(String dn) {
 		return findGroups(dn, LdapConnectionListener.getConnection(), LdapConnectionListener.getMonitor());
-	}
-
-	public List<String> findOUs(String dn) {
-		return findOUs(dn, LdapConnectionListener.getConnection(), LdapConnectionListener.getMonitor());
-	}
-
-	private List<String> findOUs(String dn, Connection conn, StudioProgressMonitor monitor) {
-
-		// Create filter expression for group object classes
-		StringBuilder filter = new StringBuilder();
-		String[] groupObjClsArr = ConfigProvider.getInstance().getStringArr(LiderConstants.CONFIG.OU_LDAP_OBJ_CLS);
-		if (groupObjClsArr.length > 1) {
-			filter.append("(&");
-		}
-		for (String groupObjCls : groupObjClsArr) {
-			filter.append("(objectClass=").append(groupObjCls).append(")");
-		}
-		if (groupObjClsArr.length > 1) {
-			filter.append(")");
-		}
-
-		List<String> dnList = new ArrayList<String>();
-
-		StudioNamingEnumeration enumeration = search(dn, filter.toString(), new String[] { OBJECT_CLASS },
-				SearchControls.SUBTREE_SCOPE, 0, conn, monitor);
-		if (enumeration != null) {
-			try {
-				while (enumeration.hasMore()) {
-					SearchResult item = enumeration.next();
-					dnList.add(item.getName());
-				}
-			} catch (NamingException e) {
-				logger.error(e.getMessage(), e);
-			}
-		}
-
-		return dnList;
 	}
 
 	/**
