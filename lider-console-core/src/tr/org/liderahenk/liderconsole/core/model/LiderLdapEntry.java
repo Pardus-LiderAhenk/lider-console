@@ -9,15 +9,9 @@ import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.SearchResult;
 
-import tr.org.liderahenk.liderconsole.core.config.ConfigProvider;
-import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
-
 
 public class LiderLdapEntry  extends  SearchResult {
 	
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	public static int LDAP_ENRTRY=0;
 	public static int SEARCH_RESULT=1;
@@ -31,6 +25,7 @@ public class LiderLdapEntry  extends  SearchResult {
 	private SearchResult rs;
 	private int type;
 	private String shortName;
+	private String uid;
 	
 	private List<AttributeWrapper> attributeList;
 	
@@ -38,6 +33,8 @@ public class LiderLdapEntry  extends  SearchResult {
 	private boolean hasPardusLider;
 	private boolean hasPardusAccount;
 	private boolean hasGroupOfNames;
+	
+	private boolean isOnline=false;
 	
 
 	public LiderLdapEntry(String name, Object obj, Attributes attrs) {
@@ -53,9 +50,14 @@ public class LiderLdapEntry  extends  SearchResult {
 		this.rs=rs;
 		this.type=LDAP_ENRTRY;
 		
-		if(rs!=null&& rs.getName()!=null)
-			this.shortName=rs.getName().split(",")[0];
-		
+		if(rs!=null&& rs.getName()!=null){
+			String nameWithDn=rs.getName().split(",")[0];
+			String[] names= nameWithDn.split("=");
+			
+			if(names.length>=2){
+				this.shortName=names[1];
+			}
+		}
 		if(attrs!=null){
 		fillAttributeList(attrs);
 		
@@ -81,6 +83,9 @@ public class LiderLdapEntry  extends  SearchResult {
 				}
 				if(attributeWrapper.getAttValue().equals("groupOfNames")){
 					setHasGroupOfNames(true);
+				}
+				if(attributeWrapper.getAttName().equals("uid")){
+					setUid(attributeWrapper.getAttValue());
 				}
 			
 			}
@@ -232,5 +237,17 @@ public class LiderLdapEntry  extends  SearchResult {
 	}
 	public void setHasGroupOfNames(boolean hasGroupOfNames) {
 		this.hasGroupOfNames = hasGroupOfNames;
+	}
+	public boolean isOnline() {
+		return isOnline;
+	}
+	public void setOnline(boolean isOnline) {
+		this.isOnline = isOnline;
+	}
+	public String getUid() {
+		return uid;
+	}
+	public void setUid(String uid) {
+		this.uid = uid;
 	}
 }

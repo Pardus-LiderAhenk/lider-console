@@ -619,7 +619,7 @@
       </view>
       
       <view
-            allowMultiple="false"
+            allowMultiple="true"
             category="tr.org.liderahenk.liderconsole.core.category"
             class="tr.org.liderahenk.liderconsole.core.views.LdapBrowserView"
             icon="icons/16/ldap.png"

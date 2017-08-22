@@ -87,9 +87,6 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 		return "tr.org.liderahenk.liderconsole.core.views.LdapBrowserView";
 	}
 
-	public LdapBrowserView() {
-
-	}
 
 	@Override
 	public void init(IViewSite site) throws PartInitException {
@@ -356,6 +353,7 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 	public void dispose() {
 		super.dispose();
 	}
+	
 
 	/**
 	 * CONTENT PROVIDERSSSS

@@ -33,6 +33,7 @@ import org.apache.directory.studio.connection.core.io.StudioNamingEnumeration;
 import org.apache.directory.studio.connection.core.jobs.CloseConnectionsRunnable;
 import org.apache.directory.studio.connection.core.jobs.StudioConnectionJob;
 import org.eclipse.e4.core.services.events.IEventBroker;
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MenuAdapter;
 import org.eclipse.swt.events.MenuEvent;
@@ -99,9 +100,12 @@ public class LdapConnectionListener implements IConnectionListener {
 			
 			if (browserView != null) {
 				final Tree tree = browserView.getTreeViewer().getTree();
+				final TreeViewer treeViewer= browserView.getTreeViewer();
+						
 		//		final Tree tree = browserView.getMainWidget().getViewer().getTree();
 				final TreePaintListener listener = TreePaintListener.getInstance();
 				listener.setTree(tree);
+				listener.setTreeViewer(treeViewer);
 
 				Display.getDefault().asyncExec(new Runnable() {
 					@Override

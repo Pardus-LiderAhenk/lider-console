@@ -586,10 +586,6 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 		handlers.add(handler);
 	}
 
-	/*
-	 * Getters
-	 */
-
 	/**
 	 * 
 	 * @return

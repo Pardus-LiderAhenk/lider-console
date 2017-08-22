@@ -109,7 +109,7 @@ public class LdapTreeLabelProvider implements ILabelProvider {
 			
 			LiderLdapEntry result= (LiderLdapEntry) obj;
 			if(result.getType()==LiderLdapEntry.SEARCH_RESULT)
-				return result.getName() + "";
+				return result.getName() + ""+ result.isOnline();
 			
 			return result.getShortName();
 			
