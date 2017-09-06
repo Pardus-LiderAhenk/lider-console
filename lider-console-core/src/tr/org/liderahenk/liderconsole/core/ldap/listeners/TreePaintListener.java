@@ -23,11 +23,12 @@ import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Map;
 
+import javax.naming.directory.Attributes;
+
 import org.apache.directory.api.ldap.model.schema.ObjectClass;
 import org.apache.directory.studio.ldapbrowser.core.model.IBookmark;
 import org.apache.directory.studio.ldapbrowser.core.model.IEntry;
 import org.apache.directory.studio.ldapbrowser.core.model.impl.SearchResult;
-import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
@@ -64,8 +65,6 @@ public class TreePaintListener implements Listener {
 	private final Image onlineImage;
 	private final Image agentImage;
 	private final Image userImage;
-
-	private TreeViewer treeViewer;
 
 	public static synchronized TreePaintListener getInstance() {
 		if (instance == null) {
@@ -109,9 +108,9 @@ public class TreePaintListener implements Listener {
 				public void run() {
 					if(tree!=null && !tree.isDisposed() )
 					{
+						System.out.println("tree redrawn");
 						tree.redraw();
 					}
-					
 				}
 			});
 		} catch (Exception e) {
@@ -163,7 +162,6 @@ public class TreePaintListener implements Listener {
 				if(entry.isHasPardusDevice()){
 					item.setImage(agentImage);
 					originalImage = item.getImage();
-					entry.setOnline(true);
 				}
 				else if(entry.isHasPardusAccount()){
 					item.setImage(userImage);
@@ -205,24 +203,19 @@ public class TreePaintListener implements Listener {
 			if (data instanceof LiderLdapEntry) {
 				LiderLdapEntry entry = (LiderLdapEntry) data;
 				String dn = entry.getName();
-				entry.setOnline(true);
 				
 				if (presenceMap.containsKey(dn)) {
 					Image miniIcon;
 					if (presenceMap.get(dn) && xmppConnected) {
 						miniIcon = onlineImage;
-						entry.setOnline(true);
 					} else {
 						miniIcon = offlineImage;
-						entry.setOnline(false);
 					}
 					event.gc.drawImage(miniIcon, event.x, event.y + 8);
 				}
 			}
 
 			event.gc.drawText(text, event.x + 24, event.y, true);
-			
-			this.redraw();
 			break;
 		}
 		case SWT.EraseItem: {
@@ -242,10 +235,6 @@ public class TreePaintListener implements Listener {
 	 */
 	public void setTree(Tree tree) {
 		this.tree = tree;
-	}
-	
-	public void setTreeViewer(TreeViewer treeViewer) {
-		this.treeViewer = treeViewer;
 	}
 
 	/**

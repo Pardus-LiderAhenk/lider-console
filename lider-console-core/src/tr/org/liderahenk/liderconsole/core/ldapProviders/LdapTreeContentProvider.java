@@ -10,6 +10,7 @@ import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 
 import org.apache.directory.studio.connection.core.Connection;
+import org.apache.directory.studio.ldapbrowser.common.actions.Messages;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeContentProvider;
@@ -32,8 +33,6 @@ import tr.org.liderahenk.liderconsole.core.model.LiderLdapEntry;
 import tr.org.liderahenk.liderconsole.core.utils.LiderCoreUtils;
 import tr.org.liderahenk.liderconsole.core.views.ILdapBrowserView;
 import tr.org.liderahenk.liderconsole.core.views.LdapBrowserView;
-
-import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 
 public class LdapTreeContentProvider implements ITreeContentProvider {
 
@@ -171,7 +170,6 @@ public class LdapTreeContentProvider implements ITreeContentProvider {
 						liderLdapEntry.setChildrens(LiderCoreUtils.convertSearchResult2LiderLdapEntry(childEntries));
 					}
 
-					liderLdapEntry.setOnline(true);
 					entryList.add(liderLdapEntry);
 					//
 					// Attribute cnName=rs.getAttributes().get("cn");
@@ -214,7 +212,6 @@ public class LdapTreeContentProvider implements ITreeContentProvider {
 					if (childEntries != null) {
 						liderLdapEntry.setChildrens(LiderCoreUtils.convertSearchResult2LiderLdapEntry(childEntries));
 					}
-					
 
 					entryList.add(liderLdapEntry);
 				}

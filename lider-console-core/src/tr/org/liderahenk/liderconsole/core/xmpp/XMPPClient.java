@@ -35,12 +35,6 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 
-import org.apache.directory.studio.connection.core.Connection;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PlatformUI;
 import org.jivesoftware.smack.ConnectionConfiguration.SecurityMode;
 import org.jivesoftware.smack.ConnectionListener;
 import org.jivesoftware.smack.ReconnectionManager;
@@ -74,7 +68,7 @@ import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.ldap.listeners.LdapConnectionListener;
 import tr.org.liderahenk.liderconsole.core.ldap.listeners.TreePaintListener;
 import tr.org.liderahenk.liderconsole.core.ldap.utils.LdapUtils;
-import tr.org.liderahenk.liderconsole.core.views.LdapBrowserView;
+import tr.org.liderahenk.liderconsole.core.model.Agent;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier.NotifierMode;
 import tr.org.liderahenk.liderconsole.core.widgets.NotifierColorsFactory.NotifierTheme;
@@ -338,7 +332,6 @@ public class XMPPClient {
 										if (presence.getType() == Type.available) {
 											TreePaintListener.getInstance().put(dn, true);
 											
-											
 										
 										} else if (presence.getType() == Type.unavailable) {
 											TreePaintListener.getInstance().put(dn, false);
@@ -375,21 +368,6 @@ public class XMPPClient {
 
 		thread.start();
 	}
-	
-	
-	public LdapBrowserView getActiveLiderBrowserView(){
-		
-		IWorkbench workbench = PlatformUI.getWorkbench();
-		IWorkbenchWindow[] windows = workbench.getWorkbenchWindows();
-		if (windows != null && windows.length > 0) {
-
-			IWorkbenchWindow window = windows[0];
-				
-				return (LdapBrowserView) window.getActivePage().findView(LiderConstants.VIEWS.LIDER_LDAP_BROWSER_VIEW);
-			
-		} else return null;
-		
-	} 
 
 	/**
 	 * Listen to connection status changes.
@@ -478,6 +456,8 @@ public class XMPPClient {
 
 		private void entriesAddedOrUpdated(Collection<String> entries) {
 			
+			
+			
 			Map<String, String> uidMap = LdapUtils.getInstance().getUidMap(LdapConnectionListener.getConnection(),
 					LdapConnectionListener.getMonitor());
 			for (String entry : entries) {
@@ -521,8 +501,6 @@ public class XMPPClient {
 		@Override
 		public void presenceChanged(Presence presence) {
 			
-			
-			
 			 
 			String jid = presence.getFrom().substring(0, presence.getFrom().indexOf('@'));
 			Map<String, String> uidMap = LdapUtils.getInstance().getUidMap(LdapConnectionListener.getConnection(),
@@ -549,20 +527,6 @@ public class XMPPClient {
 
 			logger.warn("Actual roster presence for {} changed to {}", roster.getPresence(jid).getFrom(),
 					roster.getPresence(jid).toString());
-			
-			
-//			Display.getDefault().syncExec(new Runnable() {
-//			    public void run() {
-//			    	
-//			    	Connection connection = LdapConnectionListener.getConnection();
-//			    	
-//			    	
-//			    	
-//			    	getActiveLiderBrowserView().getTreeViewer().setInput(connection);
-//			    	getActiveLiderBrowserView().getTreeViewer().refresh();
-//			    }
-//			});
-			
 		}
 	}
 

@@ -56,39 +56,39 @@ public abstract class SingleSelectionHandler extends AbstractHandler {
 		if(entry!=null)
 			dn=entry.getName();
 
-//		IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindowChecked(event);
-//		IWorkbenchPage page = window.getActivePage();
-//		ISelection selection = page.getSelection();
-//		if (selection == null) {
-//			// Under certain circumstances, selection may be null (This might
-//			// be an eclipse bug?) In that case, this line below can also
-//			// provide the selection.
-//			selection = HandlerUtil.getCurrentSelection(event);
-//		}
-//
-//		if (selection instanceof IStructuredSelection) {
-//
-//			IStructuredSelection sselection = (IStructuredSelection) selection;
-//			Object selectedElement = sselection.getFirstElement();
-//
-//			if (selectedElement != null) {
-//
-//				if (selectedElement instanceof SearchResult) {
-//					dn = ((SearchResult) selectedElement).getDn().toString();
-//				} else if (selectedElement instanceof IBookmark) {
-//					dn = ((IBookmark) selectedElement).getDn().toString();
-//				} else if (selectedElement instanceof javax.naming.directory.SearchResult) {
-//					dn = ((javax.naming.directory.SearchResult) selectedElement).getName();
-//				} else if (selectedElement instanceof IEntry) {
-//					dn = ((IEntry) selectedElement).getDn().toString();
-//				} else if (selectedElement instanceof ISearch) {
-//					dn = ((ISearch) selectedElement).getName();
-//				} else if (selectedElement instanceof SearchGroupEntry) {
-//					dn = ((SearchGroupEntry) selectedElement).getDn();
-//				}
-//			}
-//
-//		}
+		IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindowChecked(event);
+		IWorkbenchPage page = window.getActivePage();
+		ISelection selection = page.getSelection();
+		if (selection == null) {
+			// Under certain circumstances, selection may be null (This might
+			// be an eclipse bug?) In that case, this line below can also
+			// provide the selection.
+			selection = HandlerUtil.getCurrentSelection(event);
+		}
+
+		if (selection instanceof IStructuredSelection) {
+
+			IStructuredSelection sselection = (IStructuredSelection) selection;
+			Object selectedElement = sselection.getFirstElement();
+
+			if (selectedElement != null) {
+
+				if (selectedElement instanceof SearchResult) {
+					dn = ((SearchResult) selectedElement).getDn().toString();
+				} else if (selectedElement instanceof IBookmark) {
+					dn = ((IBookmark) selectedElement).getDn().toString();
+				} else if (selectedElement instanceof javax.naming.directory.SearchResult) {
+					dn = ((javax.naming.directory.SearchResult) selectedElement).getName();
+				} else if (selectedElement instanceof IEntry) {
+					dn = ((IEntry) selectedElement).getDn().toString();
+				} else if (selectedElement instanceof ISearch) {
+					dn = ((ISearch) selectedElement).getName();
+				} else if (selectedElement instanceof SearchGroupEntry) {
+					dn = ((SearchGroupEntry) selectedElement).getDn();
+				}
+			}
+
+		}
 
 		if (dn == null || dn.isEmpty()) {
 			Notifier.error(null, Messages.getString("ERROR_ON_LDAP_SELECTION"));
