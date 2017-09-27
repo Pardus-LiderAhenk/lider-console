@@ -37,13 +37,15 @@ import org.codehaus.jackson.map.ObjectMapper;
  *
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class AppliedPolicy implements Serializable {
+public class AppliedPolicy implements Serializable, Cloneable {
 
 	private static final long serialVersionUID = 6837143297810499571L;
 
 	private Long id;
 
 	private String label;
+	
+	private int policyType = 0;
 
 	private Date createDate;
 
@@ -168,6 +170,30 @@ public class AppliedPolicy implements Serializable {
 
 	public void setUidList(List<String> uidList) {
 		this.uidList = uidList;
+	}
+	
+	@Override
+	public AppliedPolicy clone() throws CloneNotSupportedException {
+		AppliedPolicy ap = new AppliedPolicy();
+		ap.setActivationDate(this.activationDate);
+		ap.setApplyDate(this.applyDate);
+		ap.setCreateDate(this.createDate);
+		ap.setErrorResults(this.errorResults);
+		ap.setExpirationDate(this.expirationDate);
+		ap.setLabel(this.label);
+		ap.setPolicy(this.getPolicy());
+		ap.setId(this.getId());
+		ap.setSuccessResults(this.getSuccessResults());
+		ap.setWarningResults(this.getWarningResults());
+		return ap;
+	}
+
+	public int getPolicyType() {
+		return policyType;
+	}
+
+	public void setPolicyType(int policyType) {
+		this.policyType = policyType;
 	}
 
 }
