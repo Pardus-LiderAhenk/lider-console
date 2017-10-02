@@ -108,14 +108,35 @@ public class LdapTreeLabelProvider implements ILabelProvider {
 		if(obj instanceof LiderLdapEntry){
 			
 			LiderLdapEntry result= (LiderLdapEntry) obj;
-			if(result.getType()==LiderLdapEntry.SEARCH_RESULT)
-				return result.getName() + "";
+			if(result.getType()==LiderLdapEntry.SEARCH_RESULT){
+				String treeLabel="";
+				
+				
+				if(result.getChildrens()==null) treeLabel=result.getShortName();
+				else treeLabel= result.getShortName() + " ("+ result.getChildrens().size()+")";
+				
+				return  treeLabel;
+				
+			}
 			
-			return result.getShortName();
+			String treeLabel="";
+			
+			if(result.getChildrens()==null)
+				{
+				
+				treeLabel=result.getShortName();
+				}
+			else
+			{ 
+				treeLabel= result.getShortName() + " ("+ result.getChildrens().size()+")";
+			}
+			
+			return  treeLabel;
 			
 		}
 		
 		if (obj != null) {
+			
 			return obj.toString();
 		}
 		return "";

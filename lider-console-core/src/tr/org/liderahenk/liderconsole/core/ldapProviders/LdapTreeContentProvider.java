@@ -10,7 +10,6 @@ import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 
 import org.apache.directory.studio.connection.core.Connection;
-import org.apache.directory.studio.ldapbrowser.common.actions.Messages;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeContentProvider;
@@ -117,10 +116,10 @@ public class LdapTreeContentProvider implements ITreeContentProvider {
 	}
 
 	@Override
-	public Object[] getChildren(Object parent) {
-
-		if ((parent instanceof BrowserCategory)) {
-			BrowserCategory category = (BrowserCategory) parent;
+	public Object[] getChildren(Object selectedEntry) {
+		
+		if ((selectedEntry instanceof BrowserCategory)) {
+			BrowserCategory category = (BrowserCategory) selectedEntry;
 			Connection connection = category.getParent();
 			switch (category.getType()) {
 			case 0:
@@ -140,14 +139,16 @@ public class LdapTreeContentProvider implements ITreeContentProvider {
 			return new Object[0];
 		}
 
-		else if (parent instanceof String) {
+		else if (selectedEntry instanceof String) {
 			//String[] returningAttributes = new String[] { "objectClass", "ou" };
 			// First, do LDAP search
 
-			// String filter = "(&(objectClass=organizationalUnit))";
-			String filter = "(objectClass=*)";
-
-			List<SearchResult> entries = LdapUtils.getInstance().searchAndReturnList((String) parent, filter,
+			//String filter = "(&(objectClass=pardusAccount))";
+			// String filter = "(objectClass=*)";
+		//	String filter = "(objectClass=inetOrgPerson)";
+			
+			String filter ="(|(objectClass=person)(|(objectClass=organizationalUnit)))";
+			List<SearchResult> entries = LdapUtils.getInstance().searchAndReturnList((String) selectedEntry, filter,
 					null, SearchControls.ONELEVEL_SCOPE, 0, LdapConnectionListener.getConnection(),
 					LdapConnectionListener.getMonitor());
 
@@ -159,8 +160,7 @@ public class LdapTreeContentProvider implements ITreeContentProvider {
 
 					SearchResult rs = entries.get(i);
 
-					LiderLdapEntry liderLdapEntry = new LiderLdapEntry(rs.getName(), rs.getObject(), rs.getAttributes(),
-							rs);
+					LiderLdapEntry liderLdapEntry = new LiderLdapEntry(rs.getName(), rs.getObject(), rs.getAttributes(),rs);
 
 					List<SearchResult> childEntries = LdapUtils.getInstance().searchAndReturnList(
 							liderLdapEntry.getName(), filter, null, SearchControls.ONELEVEL_SCOPE, 0,
@@ -171,17 +171,9 @@ public class LdapTreeContentProvider implements ITreeContentProvider {
 					}
 
 					entryList.add(liderLdapEntry);
-					//
-					// Attribute cnName=rs.getAttributes().get("cn");
-					// if(cnName!=null)
-					// newList.add(cnName.toString());
-					// Attribute ouName=rs.getAttributes().get("ou");
-					// if(ouName!=null)
-					// newList.add(ouName.toString());
+					
 
 				}
-
-				// return newList.toArray();
 
 				return entryList.toArray();
 			} else
@@ -189,10 +181,12 @@ public class LdapTreeContentProvider implements ITreeContentProvider {
 
 		}
 
-		else if (parent instanceof LiderLdapEntry) {
+		else if (selectedEntry instanceof LiderLdapEntry) {
 			String filter = "(objectClass=*)";
+		//	String filter = "&(objectClass=inetOrgPerson)";
+			
 			List<SearchResult> entries = LdapUtils.getInstance().searchAndReturnList(
-					((LiderLdapEntry) parent).getName(), filter, null, SearchControls.ONELEVEL_SCOPE, 0,
+					((LiderLdapEntry) selectedEntry).getName(), filter, null, SearchControls.ONELEVEL_SCOPE, 0,
 					LdapConnectionListener.getConnection(), LdapConnectionListener.getMonitor());
 
 			if (entries != null) {
@@ -202,9 +196,9 @@ public class LdapTreeContentProvider implements ITreeContentProvider {
 
 					SearchResult rs = entries.get(i);
 
-					LiderLdapEntry liderLdapEntry = new LiderLdapEntry(rs.getName(), rs.getObject(), rs.getAttributes(),
-							rs);
+					LiderLdapEntry liderLdapEntry = new LiderLdapEntry(rs.getName(), rs.getObject(), rs.getAttributes(), rs);
 
+					 
 					List<SearchResult> childEntries = LdapUtils.getInstance().searchAndReturnList(
 							liderLdapEntry.getName(), filter, null, SearchControls.ONELEVEL_SCOPE, 0,
 							LdapConnectionListener.getConnection(), LdapConnectionListener.getMonitor());
@@ -218,7 +212,7 @@ public class LdapTreeContentProvider implements ITreeContentProvider {
 
 				return entryList.toArray();
 			} else
-				return new Object[] {Messages.getString("NOT_FOUND") };
+				return new Object[] {"Bulunamadı"};
 
 		}
 
@@ -243,20 +237,22 @@ public class LdapTreeContentProvider implements ITreeContentProvider {
 
 	@Override
 	public boolean hasChildren(Object parent) {
+		
 
 		if ((parent instanceof BrowserCategory)) {
 			return true;
 		}
 		
 		if (parent instanceof String){
-			
 			if(parent.equals(""))return false;
 			else return true;
 		}
 			
 
-		if (parent instanceof LiderLdapEntry)
+		if (parent instanceof LiderLdapEntry){
+			 
 			return ((LiderLdapEntry) parent).isHasChildren();
+		}
 
 		return false;
 	}
@@ -267,9 +263,10 @@ public class LdapTreeContentProvider implements ITreeContentProvider {
 
 	@Override
 	public Object[] getElements(Object parent) {
+		
 
 		if (parent instanceof Connection) {
-
+			
 			Connection connection = (Connection) parent;
 			if (!this.connectionToCategoriesMap.containsKey(connection)) {
 				BrowserCategory[] categories = new BrowserCategory[3];
@@ -298,6 +295,7 @@ public class LdapTreeContentProvider implements ITreeContentProvider {
 		//
 
 		if (parent instanceof Object[]) {
+			
 
 			Object[] inputArr = (Object[]) parent;
 
@@ -326,7 +324,7 @@ public class LdapTreeContentProvider implements ITreeContentProvider {
 		}
 
 		if (parent instanceof List<?>) {
-
+			
 			List<LiderLdapEntry> list = (List<LiderLdapEntry>) parent;
 
 			return list.toArray();
@@ -334,7 +332,7 @@ public class LdapTreeContentProvider implements ITreeContentProvider {
 		}
 
 		else
-			return new Object[] {Messages.getString("LOGIN")};
+			return new Object[] {"Lütfen Login Olunuz.."};
 
 	}
 
@@ -344,7 +342,6 @@ public class LdapTreeContentProvider implements ITreeContentProvider {
 	@Override
 	public void dispose() {
 		// Nothing to dispose
-		System.out.println("dispose");
 	}
 
 	/**

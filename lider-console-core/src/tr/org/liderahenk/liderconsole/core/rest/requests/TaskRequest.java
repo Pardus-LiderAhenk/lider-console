@@ -27,6 +27,7 @@ import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import tr.org.liderahenk.liderconsole.core.ldap.enums.DNType;
+import tr.org.liderahenk.liderconsole.core.model.DnWrapper;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TaskRequest implements IRequest {

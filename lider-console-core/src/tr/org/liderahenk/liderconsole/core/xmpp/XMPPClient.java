@@ -206,6 +206,9 @@ public class XMPPClient {
 	 */
 	private void connect() throws Exception {
 		connection = new XMPPTCPConnection(config);
+		logger.info("xmpp configuraion packet replay timeout " + packetReplyTimeout);
+		System.out.println("xmpp configuraion packet replay timeout " + packetReplyTimeout);
+		connection.setPacketReplyTimeout(packetReplyTimeout);
 		// Retry connection if it fails.
 		while (!connection.isConnected() && retryCount < maxRetryConnectionCount) {
 			retryCount++;

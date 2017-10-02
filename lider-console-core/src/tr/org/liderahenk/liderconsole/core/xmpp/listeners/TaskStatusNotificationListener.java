@@ -89,7 +89,6 @@ public class TaskStatusNotificationListener implements StanzaListener, StanzaFil
 				
 				final TaskStatusNotification taskStatus = mapper.readValue(msg.getBody(),
 						TaskStatusNotification.class);
-
 				// Show task status notification
 				Display.getDefault().asyncExec(new Runnable() {
 					@Override

@@ -222,7 +222,7 @@ public class LdapConnectionListener implements IConnectionListener {
 
 		String baseDn = LdapUtils.getInstance().findBaseDn(conn);
 		if (baseDn == null || baseDn.equals("")) {
-			Notifier.error(null, "LDAP_BASE_DN_ERROR");
+			Notifier.error(null, Messages.getString("LDAP_BASE_DN_ERROR"));
 			return;
 		}
 
@@ -248,7 +248,7 @@ public class LdapConnectionListener implements IConnectionListener {
 			}
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
-			Notifier.error(null, "LDAP_USER_CREDENTIALS_ERROR");
+			Notifier.error(null, Messages.getString("LDAP_USER_CREDENTIALS_ERROR"));
 			return;
 		}
 
@@ -364,8 +364,8 @@ public class LdapConnectionListener implements IConnectionListener {
 //						activePage.showView(LdapBrowserView.getId());
 //						activePage.openEditor(new DefaultEditorInput(Messages.getString("LDAP_SEARCH")),
 //								LiderConstants.EDITORS.LDAP_SEARCH_EDITOR);
-						activePage.openEditor(new DefaultEditorInput(Messages.getString("LDAP_SEARCH")),
-								LiderConstants.EDITORS.LIDER_MAINPAGE_EDITOR);
+//						activePage.openEditor(new DefaultEditorInput(Messages.getString("LDAP_SEARCH")),
+//								LiderConstants.EDITORS.LIDER_MAINPAGE_EDITOR);
 //						
 						
 						

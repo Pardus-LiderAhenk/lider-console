@@ -108,6 +108,7 @@ public class LiderConstants {
 		public static final String REST_PROFILE_BASE_URL = "rest.profile.base.url";
 		public static final String REST_PLUGIN_BASE_URL = "rest.plugin.base.url";
 		public static final String REST_AGENT_BASE_URL = "rest.agent.base.url";
+		public static final String REST_USER_BASE_URL = "rest.user.base.url";
 		public static final String REST_POLICY_BASE_URL = "rest.policy.base.url";
 		public static final String REST_REPORT_BASE_URL = "rest.report.base.url";
 		public static final String REST_TASK_BASE_URL = "rest.task.base.url";

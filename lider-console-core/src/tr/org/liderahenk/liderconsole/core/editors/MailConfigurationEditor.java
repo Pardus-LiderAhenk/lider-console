@@ -15,6 +15,7 @@ import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -40,6 +41,7 @@ import tr.org.liderahenk.liderconsole.core.rest.requests.MailManagementRequest;
 import tr.org.liderahenk.liderconsole.core.rest.utils.PluginRestUtils;
 import tr.org.liderahenk.liderconsole.core.utils.SWTResourceManager;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
+import org.eclipse.swt.widgets.Combo;
 
 
 /**
@@ -58,7 +60,7 @@ public class MailConfigurationEditor extends EditorPart {
 	private DefaultEditorInput editorInput;
 	private TableViewer tableViewerPluginList;
 	private Text textMailAddress;
-	private Text textContent;
+	private Text textContentTimePeriod;
 	private Table tableMailList;
 	private Table tableParameterList;
 
@@ -69,6 +71,10 @@ public class MailConfigurationEditor extends EditorPart {
 	private List<MailAddress> mailAddressList;
 	
 	private Plugin selectedPlugin;
+
+	private Combo comboMailSendStartegy;
+
+	private Combo comboTimePeriodType;
 	
 	@Override
 	public void doSave(IProgressMonitor monitor) {
@@ -116,6 +122,16 @@ public class MailConfigurationEditor extends EditorPart {
 					mailContent.setMailContent("");
 					if(selectedPlugin!=null){
 						mailContent.setPlugin(selectedPlugin);
+						
+						
+						if(comboMailSendStartegy.getSelectionIndex()>0){
+							mailContent.setMailSendStartegy(comboMailSendStartegy.getSelectionIndex());
+							if(!textContentTimePeriod.getText().equals(""))
+								mailContent.setMailSchdTimePeriod(textContentTimePeriod.getText());
+						}
+						
+						mailContent.setMailSchdTimePeriodType(comboTimePeriodType.getSelectionIndex());
+						
 						
 						List<MailAddress> addresses= getMailAddressList();
 						List<MailAddress> addList= new ArrayList<>();
@@ -194,7 +210,7 @@ public class MailConfigurationEditor extends EditorPart {
 								selectedEntry.getName(), selectedEntry.getVersion());
 						
 						mailAddressList= (List<MailAddress>) returns.get("mailAddressList");
-//						List<MailContent> mailContentList= (List<MailContent>) returns.get("mailContentList");
+						List<MailContent> mailContentList= (List<MailContent>) returns.get("mailContentList");
 //						List<MailParameter> mailParameterList= (List<MailParameter>) returns.get("mailParameterList");
 						
 						List<MailAddress> addresses= new ArrayList<>(); 
@@ -209,13 +225,18 @@ public class MailConfigurationEditor extends EditorPart {
 						populateMailTable(addresses);
 //						populateParameterTable(mailParameterList);
 //						
-//						if(mailContentList!=null && mailContentList.size()>0)
-//						{
-//						String mailContent= ((MailContent)mailContentList.get(mailContentList.size()-1)).getMailContent();
-//							textContent.setText(mailContent);
-//						
-//						}
+						if(mailContentList!=null && mailContentList.size()>0)
+						{
+							MailContent mailContent= mailContentList.get(mailContentList.size()-1);
+							
+							textContentTimePeriod.setText(mailContent.getMailSchdTimePeriod()==null ? "" : mailContent.getMailSchdTimePeriod() );
+							comboTimePeriodType.select(mailContent.getMailSchdTimePeriodType());
+							
+							comboMailSendStartegy.select(mailContent.getMailSendStartegy());
+						
+						}
 					
+						textContentTimePeriod.setEnabled(true);
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -285,7 +306,6 @@ public class MailConfigurationEditor extends EditorPart {
 		tableViewerMailList.setContentProvider(new ArrayContentProvider());
 		tableMailList = tableViewerMailList.getTable();
 		tableMailList.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
-		new Label(composite, SWT.NONE);
 		
 		
 		createMailTableColumns();
@@ -330,29 +350,82 @@ public class MailConfigurationEditor extends EditorPart {
 //		createParameterTableColumns();
 //		
 //		
-//		Group grpContent = new Group(composite, SWT.NONE);
-//		grpContent.setLayout(new GridLayout(1, false));
-//		grpContent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
-//		grpContent.setText("Içerik Tanımla");
-//		
-//		textContent = new Text(grpContent, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
-//		textContent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		Group grpContent = new Group(composite, SWT.NONE);
+		grpContent.setLayout(new GridLayout(3, false));
+		grpContent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		grpContent.setText("Mail Konfigurasyon Ayarları");
+		
+		Label lblMailSendStartegy = new Label(grpContent, SWT.NONE);
+		lblMailSendStartegy.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		lblMailSendStartegy.setText(Messages.getString("Mail_Cfg_Strategy")); //$NON-NLS-1$
+		
+		comboMailSendStartegy = new Combo(grpContent, SWT.NONE);
+		comboMailSendStartegy.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
+		comboMailSendStartegy.setItems(new String[]{
+				"HEMEN GÖNDER","ZAMANLANMIŞ GÖNDER"
+		});
+		
+		comboMailSendStartegy.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				switch (comboMailSendStartegy.getSelectionIndex()) {
+				case 0:
+					textContentTimePeriod.setText("");
+					textContentTimePeriod.setEnabled(false);
+					break;
+				case 1:
+					textContentTimePeriod.setEnabled(true);
+					break;
+
+				default:
+					break;
+				}
+				
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+		
+		Label lblMailTimePeriod = new Label(grpContent, SWT.NONE);
+		lblMailTimePeriod.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		lblMailTimePeriod.setText(Messages.getString("Mail_Cfg_TimePeriod")); //$NON-NLS-1$
+		
+		textContentTimePeriod = new Text(grpContent, SWT.BORDER);
+		textContentTimePeriod.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+		
+		comboTimePeriodType = new Combo(grpContent, SWT.NONE);
+		comboTimePeriodType.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+		comboTimePeriodType.setItems(new String[]{"Dakika", "Saat","Gün"});
+		comboTimePeriodType.select(0);
 		// TODO Auto-generated method stub
 		
 	}
 
 	protected void clearComponents() {
-		if(textContent!=null)
-		textContent.setText("");
+		
+		if(textContentTimePeriod!=null){
+		textContentTimePeriod.setText("");
+		}
 		if(textMailAddress!=null)
 		textMailAddress.setText("");
+		
+		
+		if(comboMailSendStartegy!=null)
+			comboMailSendStartegy.select(0);
+		
+		if(comboTimePeriodType!=null)
+			comboTimePeriodType.select(0);
 		
 	}
 
 	private void populateMailTable(List<MailAddress> mailList) {
 		
 		tableViewerMailList.setInput(mailList != null ? mailList : new ArrayList<MailAddress>());
-	
 		
 	}
 

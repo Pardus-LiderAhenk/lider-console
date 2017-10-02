@@ -21,7 +21,6 @@ package tr.org.liderahenk.liderconsole.core.editors;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.List;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -38,17 +37,13 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
-import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.EditorPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tr.org.liderahenk.liderconsole.core.Activator;
 import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
-import tr.org.liderahenk.liderconsole.core.ldap.utils.LiderLdapConnection;
-import tr.org.liderahenk.liderconsole.core.views.LdapBrowserView;
 
 /**
  * 

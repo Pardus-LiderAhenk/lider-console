@@ -1,12 +1,11 @@
 package tr.org.liderahenk.liderconsole.core.editors;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import javax.naming.directory.SearchResult;
 
 import org.eclipse.core.commands.Command;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -36,6 +35,7 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -45,6 +45,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
@@ -64,14 +65,15 @@ import tr.org.liderahenk.liderconsole.core.editorinput.DefaultEditorInput;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.model.LiderLdapEntry;
 import tr.org.liderahenk.liderconsole.core.model.Policy;
+import tr.org.liderahenk.liderconsole.core.model.UserAgent;
 import tr.org.liderahenk.liderconsole.core.rest.utils.PolicyRestUtils;
+import tr.org.liderahenk.liderconsole.core.rest.utils.UserRestUtils;
 import tr.org.liderahenk.liderconsole.core.utils.SWTResourceManager;
 import tr.org.liderahenk.liderconsole.core.widgets.LiderConfirmBox;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
 
 /**
- * Lider task and profiles managed by this class. 
- * Triggered when entry selected.
+ * Lider task and profiles managed by this class. Triggered when entry selected.
  * 
  */
 public class LiderManagementEditor extends EditorPart {
@@ -91,10 +93,9 @@ public class LiderManagementEditor extends EditorPart {
 	private Label lbDnInfo;
 	private Group groupTask;
 	private Group groupPolicy;
-	private static List<LiderLdapEntry> liderLdapEntries;
+	private static List<LiderLdapEntry> liderLdapTaskEntries;
 	public static String selectedDn;
 
-	List<SearchResult> entries = null;
 	private Table table;
 	private Table tablePolicyList;
 
@@ -111,6 +112,7 @@ public class LiderManagementEditor extends EditorPart {
 
 	boolean isHasPardusDevice = false;
 	boolean isHasGroupOfNames = false;
+	boolean isPardusDeviceGroup = false;
 	boolean isSelectionSingle = false;
 	boolean isSelectionMulti = false;
 
@@ -119,7 +121,13 @@ public class LiderManagementEditor extends EditorPart {
 
 	private List<PluginTaskWrapper> pluginTaskList;
 	private Button btnAhenkInfo;
+	private Table tableUserAgents;
+	private TableViewer tableViewerUserAgents;
+	
+	private Image onlineUserAgentImage;
+	private Image offlineUserAgentImage;
 
+	
 	public LiderManagementEditor() {
 
 	}
@@ -136,11 +144,18 @@ public class LiderManagementEditor extends EditorPart {
 
 	@Override
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
+		
 		setSite(site);
 		setInput(input);
 		editorInput = (DefaultEditorInput) input;
-		
+
 		fillWithEntries(); // check selected tree component
+		
+		onlineUserAgentImage = new Image(Display.getDefault(),
+				this.getClass().getClassLoader().getResourceAsStream("icons/32/online-mini.png"));
+		offlineUserAgentImage = new Image(Display.getDefault(),
+				this.getClass().getClassLoader().getResourceAsStream("icons/32/offline-red-mini.png"));
+
 
 	}
 
@@ -172,34 +187,35 @@ public class LiderManagementEditor extends EditorPart {
 		lbDnInfo = new Label(compositeAction, SWT.NONE);
 		lbDnInfo.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
 		lbDnInfo.setText("");
-		
+
 		btnAhenkInfo = new Button(compositeAction, SWT.NONE);
 		btnAhenkInfo.setText(Messages.getString("AHENK_INFO"));
 		btnAhenkInfo.setVisible(isHasPardusDevice && isSelectionSingle);
 		btnAhenkInfo.addSelectionListener(new SelectionListener() {
-			
+
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				if(liderLdapEntries!=null && liderLdapEntries.size()>0){
-					LiderLdapEntry entry= liderLdapEntries.get(0);
-					AgentDetailDialog dialog = new AgentDetailDialog(parent.getShell(),entry.getName());
+
+				IStructuredSelection selection = (IStructuredSelection) dnListTableViewer.getSelection();
+				Object firstElement = selection.getFirstElement();
+				if (firstElement instanceof LiderLdapEntry) {
+
+					LiderLdapEntry selectedEntry = (LiderLdapEntry) firstElement;
+
+					AgentDetailDialog dialog = new AgentDetailDialog(parent.getShell(), selectedEntry.getName());
 					dialog.create();
 					dialog.selectedTab(0);
 					dialog.open();
-					
 				}
-				
+
 			}
-			
+
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
-				// TODO Auto-generated method stub
-				
+
 			}
 		});
-		
-		
-	
+
 		dnListTableViewer = new TableViewer(compositeAction, SWT.BORDER | SWT.FULL_SELECTION);
 		dnListTableViewer.getTable().setToolTipText("Seçili DN özelliklerini görmek için tıklayınız..");
 
@@ -301,86 +317,60 @@ public class LiderManagementEditor extends EditorPart {
 			}
 		});
 
-		
-		
-		if (liderLdapEntries.size() > 0) {
-			populateTable(liderLdapEntries);
-			lbDnInfo.setText("Seçili Dn Sayısı : " + liderLdapEntries.size());
+
+		if (liderLdapTaskEntries.size() > 0) {
+			populateTable(liderLdapTaskEntries);
+			lbDnInfo.setText("Seçili Dn Sayısı : " + liderLdapTaskEntries.size());
 			// liderLdapEntries=liderEntries; // task icin
-		} else {
-			populateTable(liderLdapEntries);
-			lbDnInfo.setText("Seçili Dn Sayısı : " + liderLdapEntries.size());
-		}
-		
-
-		// task area
-		if (isHasPardusDevice || isHasGroupOfNames) {
-			
-			
-			groupTask = new Group(sashForm, SWT.NONE | SWT.H_SCROLL | SWT.V_SCROLL);
-			GridLayout gridLayout = new GridLayout(1, false);
-
-			groupTask.setLayout(gridLayout);
-			groupTask.setText(Messages.getString("task_list"));
-			sashForm.setWeights(new int[] { 1, 3 });
-
-			textSearchTask = new Text(groupTask, SWT.BORDER);
-			GridData layoutData = new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1);
-			layoutData.widthHint = 80;
-			textSearchTask.setLayoutData(layoutData);
-
-			compositeTask = new Composite(groupTask, GridData.FILL);
-			compositeTask.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-			compositeTask.setLayout(new GridLayout(4, true));
-
-			textSearchTask.setMessage(Messages.getString("search"));
-			textSearchTask.addKeyListener(new KeyListener() {
-
-				@Override
-				public void keyReleased(KeyEvent e) {
-
-					String taskLabel = textSearchTask.getText();
-					if (taskLabel.length() >= 2) {
-
-						if (pluginTaskList != null)
-							for (PluginTaskWrapper pluginTaskWrapper : pluginTaskList) {
-
-								if (pluginTaskWrapper.getTaskButton() != null)
-									pluginTaskWrapper.getTaskButton()
-											.setBackground(SWTResourceManager.getColor(RGB_DEFAULT));
-
-								if (pluginTaskWrapper.getLabel().toUpperCase().contains(taskLabel.toUpperCase())
-										&& pluginTaskWrapper.getTaskButton() != null) {
-									pluginTaskWrapper.getTaskButton()
-											.setBackground(SWTResourceManager.getColor(RGB_SELECTED));
-								}
-							}
-					}
-
-					if (e.keyCode == 8) // retun pressed fill default value 8
-					{
-						if (pluginTaskList != null)
-							for (PluginTaskWrapper pluginTaskWrapper : pluginTaskList) {
-								if (pluginTaskWrapper.getTaskButton() != null)
-									pluginTaskWrapper.getTaskButton()
-											.setBackground(SWTResourceManager.getColor(RGB_DEFAULT));
-							}
-					}
-
-				}
-
-				@Override
-				public void keyPressed(KeyEvent e) {
-					// TODO Auto-generated method stub
-
-				}
-			});
-
-			setButtonsToButtonTaskComponent();
 		}
 
+		// task area for only agents, ou which has pardus device or is pardusDeviceGroup
+		if (isHasPardusDevice || isHasGroupOfNames || isPardusDeviceGroup) {
+
+
+			createTaskButtonArea(sashForm, null);
+		}
+		// task area for online users agents,, user must be login this agent
 		else {
-			sashForm.setWeights(new int[] { 1 });
+			// getting agent for user. if user online for agent
+			try {
+
+				if (isSelectionSingle) {
+
+					LiderLdapEntry selectedEntry = liderLdapTaskEntries.get(0);
+
+					List<UserAgent> agents = UserRestUtils.getOnlineUserAgent(selectedEntry.getUid());
+ 
+					if (!agents.isEmpty()) {
+						
+						
+						UserAgent selectedUserAgent= agents.get(agents.size()-1); //last record 
+						
+						
+						// set lider ldap entries for plugin task dialogs..  task dialog handlers get lider ldap entries..
+						
+						liderLdapTaskEntries=new ArrayList<>();
+						
+						liderLdapTaskEntries.add(new LiderLdapEntry(selectedUserAgent.getAgentDn(), null, null));
+						
+						
+						List<UserAgent> onlineAgentList= new ArrayList<>();
+						for (UserAgent userAgent : agents) {
+							if(userAgent.getIsOnline()){
+								onlineAgentList.add(userAgent);
+							}
+						}
+						
+						createTaskButtonArea(sashForm, onlineAgentList);
+					}
+
+				}
+
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
+
+			// sashForm.setWeights(new int[] { 1 });
 		}
 
 		sc.setContent(composite);
@@ -388,9 +378,109 @@ public class LiderManagementEditor extends EditorPart {
 		sc.setExpandVertical(true);
 	}
 
+	private void createTaskButtonArea(SashForm sashForm, List<UserAgent> onlineAgents) {
+
+		groupTask = new Group(sashForm, SWT.NONE | SWT.H_SCROLL | SWT.V_SCROLL);
+		GridLayout gridLayout = new GridLayout(3, false);
+
+		groupTask.setLayout(gridLayout);
+		groupTask.setText(Messages.getString("task_list"));
+		sashForm.setWeights(new int[] { 1, 3 });
+		new Label(groupTask, SWT.NONE);
+		
+		
+		if(onlineAgents!=null && onlineAgents.size()>0){
+			
+				tableViewerUserAgents = new TableViewer(groupTask, SWT.BORDER | SWT.FULL_SELECTION);
+				tableUserAgents = tableViewerUserAgents.getTable();
+				tableViewerUserAgents.getTable().setToolTipText("Seçili kullanıcının login olduğu ahenk listesi");
+				GridData gd_tableUserAgents = new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1);
+				gd_tableUserAgents.heightHint = 61;
+				tableUserAgents.setLayoutData(gd_tableUserAgents);
+				tableViewerUserAgents.setContentProvider(new ArrayContentProvider());
+				tableUserAgents.setHeaderVisible(true);
+				tableUserAgents.setLinesVisible(true);
+				createUserAgentsTableColumns();
+				
+			
+				
+				tableViewerUserAgents.setInput(onlineAgents != null ? onlineAgents : new ArrayList<UserAgent>());
+				
+				tableViewerUserAgents.addSelectionChangedListener(new ISelectionChangedListener() {
+					@Override
+					public void selectionChanged(SelectionChangedEvent event) {
+						IStructuredSelection selection = (IStructuredSelection) tableViewerUserAgents.getSelection();
+						Object firstElement = selection.getFirstElement();
+						if (firstElement instanceof UserAgent) {
+							
+							liderLdapTaskEntries=new ArrayList<>();
+							
+							liderLdapTaskEntries.add(new LiderLdapEntry(((UserAgent)firstElement).getAgentDn(), null, null));
+						}
+					}
+				});
+		
+		
+		}
+
+		textSearchTask = new Text(groupTask, SWT.BORDER);
+		GridData layoutData = new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1);
+		layoutData.widthHint = 80;
+		textSearchTask.setLayoutData(layoutData);
+
+		compositeTask = new Composite(groupTask, GridData.FILL);
+		compositeTask.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
+		compositeTask.setLayout(new GridLayout(4, true));
+
+		textSearchTask.setMessage(Messages.getString("search"));
+		textSearchTask.addKeyListener(new KeyListener() {
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+
+				String taskLabel = textSearchTask.getText();
+				if (taskLabel.length() >= 2) {
+
+					if (pluginTaskList != null)
+						for (PluginTaskWrapper pluginTaskWrapper : pluginTaskList) {
+
+							if (pluginTaskWrapper.getTaskButton() != null)
+								pluginTaskWrapper.getTaskButton()
+										.setBackground(SWTResourceManager.getColor(RGB_DEFAULT));
+
+							if (pluginTaskWrapper.getLabel().toUpperCase().contains(taskLabel.toUpperCase())
+									&& pluginTaskWrapper.getTaskButton() != null) {
+								pluginTaskWrapper.getTaskButton()
+										.setBackground(SWTResourceManager.getColor(RGB_SELECTED));
+							}
+						}
+				}
+
+				if (e.keyCode == 8) // retun pressed fill default value 8
+				{
+					if (pluginTaskList != null)
+						for (PluginTaskWrapper pluginTaskWrapper : pluginTaskList) {
+							if (pluginTaskWrapper.getTaskButton() != null)
+								pluginTaskWrapper.getTaskButton()
+										.setBackground(SWTResourceManager.getColor(RGB_DEFAULT));
+						}
+				}
+
+			}
+
+			@Override
+			public void keyPressed(KeyEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+		});
+
+		setButtonsToButtonTaskComponent();
+	}
+
 	private void fillWithEntries() {
 
-		liderLdapEntries = editorInput.getLiderLdapEntries();
+		liderLdapTaskEntries = editorInput.getLiderLdapEntries();
 
 		ArrayList<LiderLdapEntry> liderEntries = new ArrayList<>();
 
@@ -400,12 +490,19 @@ public class LiderManagementEditor extends EditorPart {
 		// addChildDNs(liderLdapEntry.getName(),liderEntries);
 		// }
 
-		for (LiderLdapEntry le : liderLdapEntries) {
+		for (LiderLdapEntry le : liderLdapTaskEntries) {
 
-			if (le.getChildrens() != null && le.getChildrens().size() > 0) {
+			if(le.getChildren() !=null){
+				liderEntries.add(le.getChildren());
+			}
+			
+			
+			if ((le.getChildrens() != null && le.getChildrens().size() > 0)) {
 
 				liderEntries.addAll(le.getChildrens());
-			} else {
+			}
+			
+			else {
 				liderEntries.add(le);
 			}
 			if (le.isHasPardusDevice()) {
@@ -413,18 +510,25 @@ public class LiderManagementEditor extends EditorPart {
 			}
 			if (le.isHasGroupOfNames())
 				isHasGroupOfNames = true;
+			
+			if (le.isHasPardusDeviceGroup()) {
+				isPardusDeviceGroup = true;
+			}
 
 		}
-
+		// for children
 		for (LiderLdapEntry le : liderEntries) {
 
 			if (le.isHasPardusDevice()) {
 				isHasPardusDevice = true;
 			}
+			if (le.isHasPardusDeviceGroup()) {
+				isPardusDeviceGroup = true;
+			}
 
 		}
 
-		if (liderEntries.size() > 1) {
+		if (liderEntries.size() > 1 || isPardusDeviceGroup ) {
 			isSelectionMulti = true;
 		} else if (liderEntries.size() == 1) {
 			isSelectionSingle = true;
@@ -454,6 +558,89 @@ public class LiderManagementEditor extends EditorPart {
 		});
 
 	}
+	
+	/**
+	 * Create table columns related to policy database columns.
+	 * 
+	 */
+	private void createUserAgentsTableColumns() {
+		
+		TableViewerColumn state = SWTResourceManager.createTableViewerColumn(tableViewerUserAgents,
+				Messages.getString("status"), 80);
+		
+		state.getColumn().setAlignment(SWT.LEFT);
+		state.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof UserAgent) {
+					return  ((UserAgent) element).getIsOnline() ? "Online" :"Offline"  ;
+				}
+				return Messages.getString("UNTITLED");
+			}
+			
+			@Override
+			public Image getImage(Object element) {
+				if (element instanceof UserAgent) {
+					if (((UserAgent) element).getIsOnline())
+							{
+						return onlineUserAgentImage;
+					} else
+						return offlineUserAgentImage;
+				}
+				return null;
+			}
+		});
+		
+		
+		// SELECTED DN NAME List<UserAgent>
+		TableViewerColumn dn = SWTResourceManager.createTableViewerColumn(tableViewerUserAgents,
+				Messages.getString("user_agent"), 430);
+		
+		dn.getColumn().setAlignment(SWT.LEFT);
+		dn.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof UserAgent) {
+					return ((UserAgent) element).getAgentDn();
+				}
+				return Messages.getString("UNTITLED");
+			}
+		});
+		// SELECTED DN NAME List<UserAgent>
+		TableViewerColumn loginDate = SWTResourceManager.createTableViewerColumn(tableViewerUserAgents,
+				Messages.getString("login_date"), 150);
+		
+		loginDate.getColumn().setAlignment(SWT.LEFT);
+		loginDate.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof UserAgent) {
+					return new SimpleDateFormat("dd-MM-yy h:mm").format(((UserAgent) element).getUserLoginDate());
+				}
+				return Messages.getString("UNTITLED");
+			}
+		});
+		
+		
+		TableViewerColumn ip = SWTResourceManager.createTableViewerColumn(tableViewerUserAgents,
+				Messages.getString("IP_ADDRESS"), 100);
+		
+		ip.getColumn().setAlignment(SWT.LEFT);
+		ip.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof UserAgent) {
+					
+					if(((UserAgent) element).getUserIp() ==null)
+					return ((UserAgent) element).getIp()  ;
+					else if(((UserAgent) element).getUserIp() !=null)
+						return ((UserAgent) element).getIp() +" - "+ ((UserAgent) element).getUserIp() ;
+				}
+				return Messages.getString("UNTITLED");
+			}
+		});
+		
+	}
 
 	public LiderManagementEditor getSelf() {
 		return this;
@@ -477,7 +664,20 @@ public class LiderManagementEditor extends EditorPart {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 
-				List<LiderLdapEntry> selectedDnList = getLiderLdapEntries();
+				//List<LiderLdapEntry> selectedDnList = getLiderLdapEntries();
+				// select dn from profile table for only execute profile 
+				List<LiderLdapEntry> selectedDnList = new ArrayList<>();
+				
+				TableItem[] items = dnListTableViewer.getTable().getItems();;
+				for (int i = 0; i < items.length; i++) {
+					TableItem tableItem=items[i];
+					if(tableItem.getData() instanceof LiderLdapEntry){
+						LiderLdapEntry liderLdapEntry=(LiderLdapEntry) tableItem.getData();
+					
+						selectedDnList.add(liderLdapEntry);
+					}
+					
+				}
 
 				Set<String> dnSet = null;
 
@@ -741,11 +941,11 @@ public class LiderManagementEditor extends EditorPart {
 	}
 
 	public static List<LiderLdapEntry> getLiderLdapEntries() {
-		return liderLdapEntries;
+		return liderLdapTaskEntries;
 	}
 
 	public void setLiderLdapEntries(List<LiderLdapEntry> liderLdapEntries) {
-		LiderManagementEditor.liderLdapEntries = liderLdapEntries;
+		LiderManagementEditor.liderLdapTaskEntries = liderLdapEntries;
 	}
 
 	/**
@@ -846,109 +1046,4 @@ public class LiderManagementEditor extends EditorPart {
 		this.selectedPolicy = selectedPolicy;
 	}
 
-	class PluginTaskWrapper {
-
-		String label;
-
-		String pluginName;
-
-		String pluginVersion;
-
-		String taskCommandId;
-
-		String selectionType;
-
-		String description;
-
-		Button taskButton;
-
-		String imagePath;
-
-		public PluginTaskWrapper() {
-			// TODO Auto-generated constructor stub
-		}
-
-		public PluginTaskWrapper(String label, String pluginName, String pluginVersion, String taskCommandId,
-				String selectionType, String description, String imagePath) {
-			super();
-			this.label = label;
-			this.pluginName = pluginName;
-			this.pluginVersion = pluginVersion;
-			this.taskCommandId = taskCommandId;
-			this.selectionType = selectionType;
-			this.description = description;
-			this.imagePath = imagePath;
-		}
-
-		public String getLabel() {
-			return label;
-		}
-
-		public void setLabel(String label) {
-			this.label = label;
-		}
-
-		public String getPluginName() {
-			return pluginName;
-		}
-
-		public void setPluginName(String pluginName) {
-			this.pluginName = pluginName;
-		}
-
-		public String getPluginVersion() {
-			return pluginVersion;
-		}
-
-		public void setPluginVersion(String pluginVersion) {
-			this.pluginVersion = pluginVersion;
-		}
-
-		public String getTaskCommandId() {
-			return taskCommandId;
-		}
-
-		public void setTaskCommandId(String taskCommandId) {
-			this.taskCommandId = taskCommandId;
-		}
-
-		public String getSelectionType() {
-			return selectionType;
-		}
-
-		public void setSelectionType(String selectionType) {
-			this.selectionType = selectionType;
-		}
-
-		public String getDescription() {
-			return description;
-		}
-
-		public void setDescription(String description) {
-			this.description = description;
-		}
-
-		public Button getTaskButton() {
-			return taskButton;
-		}
-
-		public void setTaskButton(Button taskButton) {
-			this.taskButton = taskButton;
-		}
-
-		@Override
-		public String toString() {
-			// TODO Auto-generated method stub
-			return getLabel();
-		}
-
-		public String getImagePath() {
-			return imagePath;
-		}
-
-		public void setImagePath(String imagePath) {
-			this.imagePath = imagePath;
-		}
-
-	}
 }
