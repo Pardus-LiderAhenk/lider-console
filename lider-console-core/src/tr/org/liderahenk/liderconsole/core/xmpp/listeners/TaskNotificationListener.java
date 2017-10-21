@@ -77,7 +77,7 @@ public class TaskNotificationListener implements StanzaListener, StanzaFilter {
 			if (packet instanceof Message) {
 
 				Message msg = (Message) packet;
-				logger.info("Task message received from => {}, body => {}", msg.getFrom(), msg.getBody());
+				//logger.info("Task message received from => {}, body => {}", msg.getFrom(), msg.getBody());
 
 				ObjectMapper mapper = new ObjectMapper();
 				mapper.getDeserializationConfig().setDateFormat(new SimpleDateFormat("dd-MM-yyyy HH:mm"));

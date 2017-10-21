@@ -459,8 +459,6 @@ public class XMPPClient {
 
 		private void entriesAddedOrUpdated(Collection<String> entries) {
 			
-			
-			
 			Map<String, String> uidMap = LdapUtils.getInstance().getUidMap(LdapConnectionListener.getConnection(),
 					LdapConnectionListener.getMonitor());
 			for (String entry : entries) {

@@ -110,7 +110,7 @@ public abstract class DefaultTaskDialog extends Dialog {
 	private Button btnDnDetails;
 	
 	private List<DnWrapper> dnList;
-	private List<DnWrapper> selectedDnList;
+	private List<DnWrapper> dnWrapperListRemoved;
 
 	/**
 	 * @wbp.parser.constructor
@@ -309,7 +309,7 @@ public abstract class DefaultTaskDialog extends Dialog {
 		groupTitle = new Group(container, SWT.BORDER);
 		groupTitle.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
 		groupTitle.setLayout(new GridLayout(2, false));
-		groupTitle.setBackground(SWTResourceManager.getColor(SWT.COLOR_TITLE_FOREGROUND));
+		groupTitle.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		
 		lblDnInfo = new Label(groupTitle, SWT.NONE);
 		
@@ -321,14 +321,13 @@ public abstract class DefaultTaskDialog extends Dialog {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				
-				DnListDetailsDialog detailsDialog= new DnListDetailsDialog(getParentShell(), dnList);
+				DnListDetailsDialog detailsDialog= new DnListDetailsDialog(getParentShell(), dnList, dnWrapperListRemoved);
 				detailsDialog.open();
-				List<DnWrapper> selectedList=  detailsDialog.getSelectedDnList();
-				selectedDnList= new ArrayList<>();
 				
-				for (DnWrapper dnWrapper : selectedList) {
-					if(dnWrapper.isSelected()) selectedDnList.add(dnWrapper);
-				}
+				
+				dnList=  detailsDialog.getSelectedDnList();
+				dnWrapperListRemoved=  detailsDialog.getRemovedDnList();
+				
 				
 				
 				setDnInfoTitle();
@@ -366,7 +365,7 @@ public abstract class DefaultTaskDialog extends Dialog {
 	}
 
 	private void setDnInfoTitle() {
-		String dnInfo= Messages.getString("total_dn_size")+" : "+ dnList.size() +"  "+ Messages.getString("selected_dn_size")+" : "+selectedDnList.size();
+		String dnInfo= Messages.getString("total_dn_size")+" : "+ (dnList.size()+dnWrapperListRemoved.size()) +"  "+ Messages.getString("selected_dn_size")+" : "+dnList.size();
 		lblDnInfo.setText(dnInfo);
 	}
 	
@@ -380,7 +379,7 @@ public abstract class DefaultTaskDialog extends Dialog {
 		
 		if(sendMail) {
 			compositeMail = new Composite(container, SWT.NONE);
-			compositeMail.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, true, 1, 1));
+			compositeMail.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
 			compositeMail.setLayout(new GridLayout(2, false));
 			
 			btnMailCheckButton = new Button(compositeMail, SWT.CHECK);
@@ -489,10 +488,6 @@ public abstract class DefaultTaskDialog extends Dialog {
 								paramaterMap.put("mailSubject", getMailSubject());
 							}
 							
-							
-
-							 ;
-							
 							TaskRequest task = new TaskRequest(getDnForTaskSend() , DNType.AHENK,
 									getPluginName(), getPluginVersion(), getCommandId(), paramaterMap, null,
 									!hideActivationDate && btnEnableDate.getSelection()
@@ -556,8 +551,6 @@ public abstract class DefaultTaskDialog extends Dialog {
 								paramaterMap.put("mailSubject", getMailSubject());
 							}
 							
-							
-							
 							TaskRequest task = new TaskRequest(getDnForTaskSend(), DNType.AHENK,
 									getPluginName(), getPluginVersion(), getCommandId(), paramaterMap,
 									dialog.getCronExpression(),
@@ -586,6 +579,7 @@ public abstract class DefaultTaskDialog extends Dialog {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				unsubscribeEventHandlers();
+				onClose();
 			}
 
 			@Override
@@ -597,7 +591,7 @@ public abstract class DefaultTaskDialog extends Dialog {
 	private List<String> getDnForTaskSend() {
 		List<String> taskSenderDnList= new ArrayList<>();
 		
-		for (DnWrapper dnWrapper : selectedDnList) {
+		for (DnWrapper dnWrapper : dnList) {
 			
 			taskSenderDnList.add(dnWrapper.getDn());
 		}
@@ -672,6 +666,8 @@ public abstract class DefaultTaskDialog extends Dialog {
 		eventBroker.subscribe(LiderConstants.EVENT_TOPICS.TASK_STATUS_NOTIFICATION_RECEIVED, handler);
 		handlers.add(handler);
 		
+		
+		
 		setDnList();
 	}
 
@@ -679,17 +675,12 @@ public abstract class DefaultTaskDialog extends Dialog {
 		List<String> dnSetToList= new ArrayList<String>(dnSet);
 		
 		dnList = new ArrayList<>();
-		selectedDnList= new ArrayList<>();
+		dnWrapperListRemoved= new ArrayList<>();
 
 		for (int i = 0; i < dnSetToList.size(); i++) {
 			dnList.add(new DnWrapper(dnSetToList.get(i), true));
-			selectedDnList.add(new DnWrapper(dnSetToList.get(i), true));
 		}
 	}
-
-	/*
-	 * Getters
-	 */
 
 	/**
 	 * 
@@ -754,5 +745,8 @@ public abstract class DefaultTaskDialog extends Dialog {
 		exporter.closeReport();
 
 	}
-	
+	public void hideExecuteButtons(){
+		btnExecuteNow.setVisible(false);
+		btnExecuteScheduled.setVisible(false);
+	}
 }

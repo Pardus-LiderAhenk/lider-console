@@ -106,7 +106,6 @@ public class TreePaintListener implements Listener {
 				public void run() {
 					if(tree!=null && !tree.isDisposed() )
 					{
-						System.out.println("tree redrawn");
 						tree.redraw();
 					}
 				}
