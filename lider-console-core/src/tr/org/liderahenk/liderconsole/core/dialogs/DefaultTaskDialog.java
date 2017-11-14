@@ -29,9 +29,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.e4.core.services.events.IEventBroker;
+import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
-import org.eclipse.jface.dialogs.IMessageProvider;
-import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -44,10 +43,10 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DateTime;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PlatformUI;
 import org.osgi.service.event.Event;
@@ -60,17 +59,14 @@ import tr.org.liderahenk.liderconsole.core.current.UserSettings;
 import tr.org.liderahenk.liderconsole.core.exceptions.ValidationException;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.ldap.enums.DNType;
-import tr.org.liderahenk.liderconsole.core.ldap.utils.LdapUtils;
-import tr.org.liderahenk.liderconsole.core.model.AgentServices;
+import tr.org.liderahenk.liderconsole.core.model.DnWrapper;
 import tr.org.liderahenk.liderconsole.core.model.PdfContent;
-import tr.org.liderahenk.liderconsole.core.model.UserSession;
 import tr.org.liderahenk.liderconsole.core.rest.requests.TaskRequest;
 import tr.org.liderahenk.liderconsole.core.rest.utils.TaskRestUtils;
 import tr.org.liderahenk.liderconsole.core.utils.PdfExporter;
 import tr.org.liderahenk.liderconsole.core.utils.SWTResourceManager;
 import tr.org.liderahenk.liderconsole.core.widgets.LiderConfirmBox;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
-import tr.org.liderahenk.liderconsole.core.xmpp.XMPPClient;
 
 /**
  * Default task dialog implementation that can be used by plugins in order to
@@ -80,7 +76,7 @@ import tr.org.liderahenk.liderconsole.core.xmpp.XMPPClient;
  * @author <a href="mailto:emre.akkaya@agem.com.tr">Emre Akkaya</a>
  *
  */
-public abstract class DefaultTaskDialog extends TitleAreaDialog {
+public abstract class DefaultTaskDialog extends Dialog {
 
 	private static final Logger logger = LoggerFactory.getLogger(DefaultTaskDialog.class);
 
@@ -106,10 +102,24 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 	private Button btnExportToPdf;
 
 	private boolean enableExportToPdf=false;
+	private Group groupTitle;
+
+	private Label horizantalSeperator;
+	private Label lblTaskTitle;
+	private Label lblDnInfo;
+	private Button btnDnDetails;
+	
+	private List<DnWrapper> dnList;
+	private List<DnWrapper> dnWrapperListRemoved;
 
 	/**
 	 * @wbp.parser.constructor
 	 */
+	
+	public DefaultTaskDialog(Shell parentShell) {
+		super(parentShell);
+	}
+	
 	public DefaultTaskDialog(Shell parentShell, Set<String> dnSet) {
 		super(parentShell);
 		if (dnSet != null)
@@ -142,6 +152,7 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 		this.hideActivationDate = hideActivationDate;
 		this.sendMail=sendMail;
 		init();
+		
 	}
 	
 	/**
@@ -247,8 +258,8 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 	@Override
 	public void create() {
 		super.create();
-		setTitle(createTitle());
-		setMessage(Messages.getString("selected_dn_size")+" : "+dnSet.size()+"\n"+generateMsg(dnSet), IMessageProvider.INFORMATION);
+		//setTitle(createTitle());
+		//setMessage(Messages.getString("selected_dn_size")+" : "+dnSet.size()+"\n"+generateMsg(dnSet), IMessageProvider.INFORMATION);
 	}
 
 	public void openWithEventBroker() {
@@ -288,18 +299,52 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 
 	@Override
 	protected Control createDialogArea(final Composite parent) {
+		
 		// Container
 		container = new Composite(parent, SWT.NONE);
 		container.setLayoutData(new GridData(GridData.FILL_BOTH));
 		container.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		container.setLayout(new GridLayout(1, false));
+		
+		groupTitle = new Group(container, SWT.BORDER);
+		groupTitle.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+		groupTitle.setLayout(new GridLayout(2, false));
+		groupTitle.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		
+		lblDnInfo = new Label(groupTitle, SWT.NONE);
+		
+		
+		setDnInfoTitle();
+		
+		btnDnDetails = new Button(groupTitle, SWT.NONE);
+		btnDnDetails.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				
+				DnListDetailsDialog detailsDialog= new DnListDetailsDialog(getParentShell(), dnList, dnWrapperListRemoved);
+				detailsDialog.open();
+				
+				
+				dnList=  detailsDialog.getSelectedDnList();
+				dnWrapperListRemoved=  detailsDialog.getRemovedDnList();
+				
+				
+				
+				setDnInfoTitle();
+			}
+		});
+		btnDnDetails.setAlignment(SWT.RIGHT);
+		btnDnDetails.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false, 1, 1));
+		btnDnDetails.setText(Messages.getString("dn_details")); //$NON-NLS-1$
+		
 		// Task-related inputs
 		createTaskDialogArea(container);
 		// Activation date inputs
 		//if (!hideActivationDate) {
-			createTaskActivationDateArea(container);
 		
-		
+		horizantalSeperator = new Label(container, SWT.SEPARATOR | SWT.HORIZONTAL);
+		horizantalSeperator.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
+		createTaskActivationDateArea(container);
 		
 		// Progress bar
 		progressBar = new ProgressBar(container, SWT.SMOOTH | SWT.INDETERMINATE);
@@ -313,14 +358,28 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 		// some plugins must use mail..
 		if(isMailSendMust())
 			btnMailCheckButton.setEnabled(false);
+		
+		horizantalSeperator = new Label(container, SWT.SEPARATOR | SWT.HORIZONTAL);
+		horizantalSeperator.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
 		return container;
 	}
+
+	private void setDnInfoTitle() {
+		String dnInfo= Messages.getString("total_dn_size")+" : "+ (dnList.size()+dnWrapperListRemoved.size()) +"  "+ Messages.getString("selected_dn_size")+" : "+dnList.size();
+		lblDnInfo.setText(dnInfo);
+	}
+	
+	@Override
+    protected void configureShell(Shell newShell) {
+        super.configureShell(newShell);
+        newShell.setText(createTitle().toUpperCase());
+    }
 
 	private void createTaskActivationDateArea(final Composite parent) {
 		
 		if(sendMail) {
 			compositeMail = new Composite(container, SWT.NONE);
-			compositeMail.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, true, 1, 1));
+			compositeMail.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
 			compositeMail.setLayout(new GridLayout(2, false));
 			
 			btnMailCheckButton = new Button(compositeMail, SWT.CHECK);
@@ -345,7 +404,6 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 			textMailContent.setText(getMailContent());
 		
 		}
-		new Label(container, SWT.NONE);
 		
 		Composite composite = new Composite(parent, SWT.NONE);
 		composite.setLayout(new GridLayout(4, false));
@@ -430,12 +488,13 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 								paramaterMap.put("mailSubject", getMailSubject());
 							}
 							
-							TaskRequest task = new TaskRequest(new ArrayList<String>(dnSet), DNType.AHENK,
+							TaskRequest task = new TaskRequest(getDnForTaskSend() , DNType.AHENK,
 									getPluginName(), getPluginVersion(), getCommandId(), paramaterMap, null,
 									!hideActivationDate && btnEnableDate.getSelection()
 											? SWTResourceManager.convertDate(dtActivationDate, dtActivationDateTime)
 											: null,
 									new Date());
+							
 							TaskRestUtils.execute(task);
 							// Progress bar will be automatically hidden on
 							// TASK_STATUS message received
@@ -447,6 +506,8 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 					}
 				}
 			}
+
+			
 
 			@Override
 			public void widgetDefaultSelected(SelectionEvent e) {
@@ -490,14 +551,14 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 								paramaterMap.put("mailSubject", getMailSubject());
 							}
 							
-							TaskRequest task = new TaskRequest(new ArrayList<String>(dnSet), DNType.AHENK,
+							TaskRequest task = new TaskRequest(getDnForTaskSend(), DNType.AHENK,
 									getPluginName(), getPluginVersion(), getCommandId(), paramaterMap,
 									dialog.getCronExpression(),
 									!hideActivationDate && btnEnableDate.getSelection()
 											? SWTResourceManager.convertDate(dtActivationDate, dtActivationDateTime)
 											: null,
 									new Date());
-							TaskRestUtils.execute(task);
+							TaskRestUtils.execute(task,false);
 							progressBar.setVisible(false);
 						} catch (Exception e1) {
 							progressBar.setVisible(false);
@@ -518,6 +579,7 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				unsubscribeEventHandlers();
+				onClose();
 			}
 
 			@Override
@@ -526,6 +588,17 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 		});
 	}
 
+	private List<String> getDnForTaskSend() {
+		List<String> taskSenderDnList= new ArrayList<>();
+		
+		for (DnWrapper dnWrapper : dnList) {
+			
+			taskSenderDnList.add(dnWrapper.getDn());
+		}
+		
+		return taskSenderDnList;
+	}
+	
 	/**
 	 * Generate title message from DN set. Abbreviate DNs if necessary.
 	 * 
@@ -537,8 +610,16 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 			StringBuilder msg = new StringBuilder("");
 			int i = 0;
 			for (String dn : dnSet) {
-				msg.append(dn).append(" ");
-				if (i == 3) {
+				
+				String[] dnName=dn.split(",");
+				
+				if(dnName!=null && dnName.length>0)
+				
+				msg.append(dnName[0]).append(",");
+				
+				else msg.append(dn).append(",");
+				
+				if (i ==5 ) {
 					break;
 				}
 				i++;
@@ -584,11 +665,22 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 		};
 		eventBroker.subscribe(LiderConstants.EVENT_TOPICS.TASK_STATUS_NOTIFICATION_RECEIVED, handler);
 		handlers.add(handler);
+		
+		
+		
+		setDnList();
 	}
 
-	/*
-	 * Getters
-	 */
+	private void setDnList() {
+		List<String> dnSetToList= new ArrayList<String>(dnSet);
+		
+		dnList = new ArrayList<>();
+		dnWrapperListRemoved= new ArrayList<>();
+
+		for (int i = 0; i < dnSetToList.size(); i++) {
+			dnList.add(new DnWrapper(dnSetToList.get(i), true));
+		}
+	}
 
 	/**
 	 * 
@@ -653,5 +745,8 @@ public abstract class DefaultTaskDialog extends TitleAreaDialog {
 		exporter.closeReport();
 
 	}
-	
+	public void hideExecuteButtons(){
+		btnExecuteNow.setVisible(false);
+		btnExecuteScheduled.setVisible(false);
+	}
 }

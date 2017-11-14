@@ -205,11 +205,11 @@ public class Notifier {
 				if (mode == NotifierMode.SYSLOG_AND_POPUP || mode == NotifierMode.ONLY_SYSLOG) {
 					writeToSysLog(title, text, description, theme);
 				}
-				if (mode == NotifierMode.SYSLOG_AND_POPUP || mode == NotifierMode.ONLY_POPUP) {
-					final Shell shell = createNotificationWindow(image, title, text,
-							NotifierColorsFactory.getColorsForTheme(theme));
-					makeShellAppears(shell);
-				}
+//				if (mode == NotifierMode.SYSLOG_AND_POPUP || mode == NotifierMode.ONLY_POPUP) {
+//					final Shell shell = createNotificationWindow(image, title, text,
+//							NotifierColorsFactory.getColorsForTheme(theme));
+//					makeShellAppears(shell);
+//				}
 			}
 
 		});

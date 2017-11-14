@@ -82,14 +82,13 @@ public class TaskStatusNotificationListener implements StanzaListener, StanzaFil
 			if (packet instanceof Message) {
 
 				Message msg = (Message) packet;
-				logger.info("Task status message received from => {}, body => {}", msg.getFrom(), msg.getBody());
+				//logger.info("Task status message received from => {}, body => {}", msg.getFrom(), msg.getBody());
 
 				ObjectMapper mapper = new ObjectMapper();
 				mapper.getDeserializationConfig().setDateFormat(new SimpleDateFormat("dd-MM-yyyy HH:mm"));
 				
 				final TaskStatusNotification taskStatus = mapper.readValue(msg.getBody(),
 						TaskStatusNotification.class);
-
 				// Show task status notification
 				Display.getDefault().asyncExec(new Runnable() {
 					@Override
@@ -121,6 +120,7 @@ public class TaskStatusNotificationListener implements StanzaListener, StanzaFil
 				eventBroker.post(taskStatus.getPluginName().toUpperCase(Locale.ENGLISH), taskStatus);
 			}
 		} catch (Exception e) {
+			e.printStackTrace();
 			logger.error(e.getMessage(), e);
 		}
 	}

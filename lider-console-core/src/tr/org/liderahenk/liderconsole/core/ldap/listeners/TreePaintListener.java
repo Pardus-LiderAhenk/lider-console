@@ -23,8 +23,6 @@ import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Map;
 
-import javax.naming.directory.Attributes;
-
 import org.apache.directory.api.ldap.model.schema.ObjectClass;
 import org.apache.directory.studio.ldapbrowser.core.model.IBookmark;
 import org.apache.directory.studio.ldapbrowser.core.model.IEntry;
@@ -108,7 +106,6 @@ public class TreePaintListener implements Listener {
 				public void run() {
 					if(tree!=null && !tree.isDisposed() )
 					{
-						System.out.println("tree redrawn");
 						tree.redraw();
 					}
 				}
