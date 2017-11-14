@@ -19,6 +19,7 @@
 */
 package tr.org.liderahenk.liderconsole.core.rest.utils;
 
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -290,7 +291,8 @@ public class PolicyRestUtils {
 			params.add("dnType=" + dnType);
 		}
 		if (dn != null) {
-			params.add("dn=" + dn);
+			dn = dn.replace(" ", "+");
+			params.add("dn=" + URLEncoder.encode(dn,"UTF-8"));
 		}
 		if (!params.isEmpty()) {
 			url.append(StringUtils.join(params, "&"));
