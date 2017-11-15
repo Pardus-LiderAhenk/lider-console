@@ -156,15 +156,18 @@ public class TreePaintListener implements Listener {
 			if (originalImage != agentImage && originalImage != userImage && data instanceof LiderLdapEntry) {
 				
 				LiderLdapEntry entry=(LiderLdapEntry) data;
-				if(entry.isHasPardusDevice()){
+				//System.out.println(" entry : " +entry.getShortName()+ " type :  "+ entry.getEntryType());
+				if(entry.getEntryType()==LiderLdapEntry.PARDUS_DEVICE){
 					item.setImage(agentImage);
-					originalImage = item.getImage();
+				//	originalImage = item.getImage();
 				}
-				else if(entry.isHasPardusAccount()){
+				else if(entry.getEntryType()==LiderLdapEntry.PARDUS_ACCOUNT){
 					item.setImage(userImage);
-					//originalImage = item.getImage();
+				//	originalImage = item.getImage();
 				}
-				
+//				else{
+//					item.setImage(offlineImage);
+//				}
 //				if (LdapUtils.getInstance().isAgent(classes.)) {
 //					item.setImage(agentImage);
 //					originalImage = item.getImage();

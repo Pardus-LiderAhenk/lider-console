@@ -1,12 +1,14 @@
 package tr.org.liderahenk.liderconsole.core.editors;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
+import javax.naming.NamingException;
+import javax.naming.directory.SearchControls;
+import javax.naming.directory.SearchResult;
+import org.apache.directory.studio.connection.core.io.StudioNamingEnumeration;
 import org.eclipse.core.commands.Command;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.runtime.IConfigurationElement;
@@ -63,14 +65,16 @@ import tr.org.liderahenk.liderconsole.core.dialogs.PolicyDefinitionDialog;
 import tr.org.liderahenk.liderconsole.core.dialogs.PolicyExecutionSelectDialog;
 import tr.org.liderahenk.liderconsole.core.editorinput.DefaultEditorInput;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
+import tr.org.liderahenk.liderconsole.core.ldap.listeners.LdapConnectionListener;
+import tr.org.liderahenk.liderconsole.core.ldap.utils.LdapUtils;
 import tr.org.liderahenk.liderconsole.core.model.LiderLdapEntry;
 import tr.org.liderahenk.liderconsole.core.model.Policy;
 import tr.org.liderahenk.liderconsole.core.model.UserAgent;
 import tr.org.liderahenk.liderconsole.core.rest.utils.PolicyRestUtils;
-import tr.org.liderahenk.liderconsole.core.rest.utils.UserRestUtils;
 import tr.org.liderahenk.liderconsole.core.utils.SWTResourceManager;
 import tr.org.liderahenk.liderconsole.core.widgets.LiderConfirmBox;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
+import tr.org.liderahenk.liderconsole.core.xmpp.XMPPClient;
 
 /**
  * Lider task and profiles managed by this class. Triggered when entry selected.
@@ -83,6 +87,10 @@ public class LiderManagementEditor extends EditorPart {
 	private static final RGB RGB_DEFAULT = new RGB(245, 255, 255);
 
 	private static final Logger logger = LoggerFactory.getLogger(LiderManagementEditor.class);
+	
+	private static List<LiderLdapEntry> liderLdapTaskEntries;
+	
+	public static String selectedUserDn;
 
 	private Font font = SWTResourceManager.getFont("Noto Sans", 10, SWT.BOLD);
 
@@ -93,7 +101,7 @@ public class LiderManagementEditor extends EditorPart {
 	private Label lbDnInfo;
 	private Group groupTask;
 	private Group groupPolicy;
-	private static List<LiderLdapEntry> liderLdapTaskEntries;
+	
 	public static String selectedDn;
 
 	private Table table;
@@ -129,7 +137,6 @@ public class LiderManagementEditor extends EditorPart {
 
 	
 	public LiderManagementEditor() {
-
 	}
 
 	@Override
@@ -155,8 +162,8 @@ public class LiderManagementEditor extends EditorPart {
 				this.getClass().getClassLoader().getResourceAsStream("icons/32/online-mini.png"));
 		offlineUserAgentImage = new Image(Display.getDefault(),
 				this.getClass().getClassLoader().getResourceAsStream("icons/32/offline-red-mini.png"));
-
-
+		
+		selectedUserDn=null;
 	}
 
 	@Override
@@ -339,30 +346,71 @@ public class LiderManagementEditor extends EditorPart {
 
 					LiderLdapEntry selectedEntry = liderLdapTaskEntries.get(0);
 
-					List<UserAgent> agents = UserRestUtils.getOnlineUserAgent(selectedEntry.getUid());
- 
-					if (!agents.isEmpty()) {
+//					List<UserAgent> agents = UserRestUtils.getOnlineUserAgent(selectedEntry.getUid());
+					
+					if(selectedEntry.getSunucuNo()!=null && selectedEntry.getEntryType() == LiderLdapEntry.PARDUS_ACCOUNT ){
 						
+						String sunucuNo= selectedEntry.getSunucuNo();
 						
-						UserAgent selectedUserAgent= agents.get(agents.size()-1); //last record 
+						String baseDn = LdapConnectionListener.getConnection().getConnectionParameter().getExtendedProperty("ldapbrowser.baseDn");
 						
+						String filter="(&(objectClass=pardusDevice)(&(sunucuNo="+sunucuNo+")))";
 						
-						// set lider ldap entries for plugin task dialogs..  task dialog handlers get lider ldap entries..
+						StudioNamingEnumeration enumeration=LdapUtils.getInstance().search(baseDn, filter, new String[] {}, SearchControls.SUBTREE_SCOPE,10, LdapConnectionListener.getConnection(),
+								LdapConnectionListener.getMonitor());
 						
-						liderLdapTaskEntries=new ArrayList<>();
+						List<UserAgent> agents = new ArrayList<UserAgent>();
 						
-						liderLdapTaskEntries.add(new LiderLdapEntry(selectedUserAgent.getAgentDn(), null, null));
-						
-						
-						List<UserAgent> onlineAgentList= new ArrayList<>();
-						for (UserAgent userAgent : agents) {
-							if(userAgent.getIsOnline()){
-								onlineAgentList.add(userAgent);
+						try {
+							if (enumeration != null) {
+								while (enumeration.hasMore()) {
+									SearchResult item = enumeration.next();
+									String dn = item.getName();
+									UserAgent agent= new UserAgent();
+									agent.setAgentDn(dn);
+									
+									
+									boolean isOnline=XMPPClient.getInstance().getOnlineAgentPresenceMap().containsKey(dn);
+									
+									agent.setIsOnline(isOnline);
+									
+									
+									agents.add(agent);
+									
+								}
 							}
+						} catch (NamingException e) {
+							logger.error(e.getMessage(), e);
 						}
 						
-						createTaskButtonArea(sashForm, onlineAgentList);
+						if (!agents.isEmpty()) {
+							
+							UserAgent selectedUserAgent= agents.get(agents.size()-1); //last record 
+							
+							
+							// set lider ldap entries for plugin task dialogs..  task dialog handlers get lider ldap entries..
+							
+							liderLdapTaskEntries=new ArrayList<>();
+							
+							liderLdapTaskEntries.add(new LiderLdapEntry(selectedUserAgent.getAgentDn(), null, null));
+							//liderLdapTaskEntries.add(new LiderLdapEntry(dn, null, null));
+							
+							
+//							List<UserAgent> onlineAgentList= new ArrayList<>();
+//							for (UserAgent userAgent : agents) {
+//								if(userAgent.getIsOnline()){
+//									onlineAgentList.add(userAgent);
+//								}
+//							}
+							
+							selectedUserDn = selectedEntry.getName();
+							createTaskButtonArea(sashForm, agents);
+						}
+						
 					}
+ 
+					//if (!agents.isEmpty()) {
+						
 
 				}
 
@@ -419,6 +467,10 @@ public class LiderManagementEditor extends EditorPart {
 						}
 					}
 				});
+				
+				tableViewerUserAgents.getTable().select(onlineAgents.size()-1);
+				
+				
 		
 		
 		}
@@ -484,12 +536,6 @@ public class LiderManagementEditor extends EditorPart {
 
 		ArrayList<LiderLdapEntry> liderEntries = new ArrayList<>();
 
-		// for (LiderLdapEntry liderLdapEntry : liderLdapEntries) {
-		// //dnSet.add(liderLdapEntry.getName());
-		//
-		// addChildDNs(liderLdapEntry.getName(),liderEntries);
-		// }
-
 		for (LiderLdapEntry le : liderLdapTaskEntries) {
 
 			if(le.getChildren() !=null){
@@ -505,26 +551,19 @@ public class LiderManagementEditor extends EditorPart {
 			else {
 				liderEntries.add(le);
 			}
-			if (le.isHasPardusDevice()) {
-				isHasPardusDevice = true;
-			}
-			if (le.isHasGroupOfNames())
-				isHasGroupOfNames = true;
-			
-			if (le.isHasPardusDeviceGroup()) {
-				isPardusDeviceGroup = true;
-			}
 
 		}
 		// for children
 		for (LiderLdapEntry le : liderEntries) {
 
-			if (le.isHasPardusDevice()) {
+			if (le.getEntryType()==LiderLdapEntry.PARDUS_DEVICE) {
 				isHasPardusDevice = true;
 			}
-			if (le.isHasPardusDeviceGroup()) {
+			if (le.getEntryType()==LiderLdapEntry.PARDUS_DEVICE_GROUP) {
 				isPardusDeviceGroup = true;
 			}
+			if (le.isHasGroupOfNames())
+				isHasGroupOfNames = true;
 
 		}
 
@@ -581,7 +620,7 @@ public class LiderManagementEditor extends EditorPart {
 			@Override
 			public Image getImage(Object element) {
 				if (element instanceof UserAgent) {
-					if (((UserAgent) element).getIsOnline())
+					if (((UserAgent) element).getIsOnline()) 
 							{
 						return onlineUserAgentImage;
 					} else
@@ -607,38 +646,38 @@ public class LiderManagementEditor extends EditorPart {
 			}
 		});
 		// SELECTED DN NAME List<UserAgent>
-		TableViewerColumn loginDate = SWTResourceManager.createTableViewerColumn(tableViewerUserAgents,
-				Messages.getString("login_date"), 150);
-		
-		loginDate.getColumn().setAlignment(SWT.LEFT);
-		loginDate.setLabelProvider(new ColumnLabelProvider() {
-			@Override
-			public String getText(Object element) {
-				if (element instanceof UserAgent) {
-					return new SimpleDateFormat("dd-MM-yy h:mm").format(((UserAgent) element).getUserLoginDate());
-				}
-				return Messages.getString("UNTITLED");
-			}
-		});
-		
-		
-		TableViewerColumn ip = SWTResourceManager.createTableViewerColumn(tableViewerUserAgents,
-				Messages.getString("IP_ADDRESS"), 100);
-		
-		ip.getColumn().setAlignment(SWT.LEFT);
-		ip.setLabelProvider(new ColumnLabelProvider() {
-			@Override
-			public String getText(Object element) {
-				if (element instanceof UserAgent) {
-					
-					if(((UserAgent) element).getUserIp() ==null)
-					return ((UserAgent) element).getIp()  ;
-					else if(((UserAgent) element).getUserIp() !=null)
-						return ((UserAgent) element).getIp() +" - "+ ((UserAgent) element).getUserIp() ;
-				}
-				return Messages.getString("UNTITLED");
-			}
-		});
+//		TableViewerColumn loginDate = SWTResourceManager.createTableViewerColumn(tableViewerUserAgents,
+//				Messages.getString("login_date"), 150);
+//		
+//		loginDate.getColumn().setAlignment(SWT.LEFT);
+//		loginDate.setLabelProvider(new ColumnLabelProvider() {
+//			@Override
+//			public String getText(Object element) {
+//				if (element instanceof UserAgent) {
+//					return new SimpleDateFormat("dd-MM-yy h:mm").format(((UserAgent) element).getUserLoginDate());
+//				}
+//				return Messages.getString("UNTITLED");
+//			}
+//		});
+//		
+//		
+//		TableViewerColumn ip = SWTResourceManager.createTableViewerColumn(tableViewerUserAgents,
+//				Messages.getString("IP_ADDRESS"), 100);
+//		
+//		ip.getColumn().setAlignment(SWT.LEFT);
+//		ip.setLabelProvider(new ColumnLabelProvider() {
+//			@Override
+//			public String getText(Object element) {
+//				if (element instanceof UserAgent) {
+//					
+//					if(((UserAgent) element).getUserIp() ==null)
+//					return ((UserAgent) element).getIp()  ;
+//					else if(((UserAgent) element).getUserIp() !=null)
+//						return ((UserAgent) element).getIp() +" - "+ ((UserAgent) element).getUserIp() ;
+//				}
+//				return Messages.getString("UNTITLED");
+//			}
+//		});
 		
 	}
 

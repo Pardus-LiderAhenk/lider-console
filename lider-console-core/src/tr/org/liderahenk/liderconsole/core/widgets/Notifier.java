@@ -214,6 +214,20 @@ public class Notifier {
 
 		});
 	}
+	
+	public static void notifyandShow(final Image image, final String title, final String text, final String description,
+			final NotifierTheme theme) {
+		Display.getDefault().asyncExec(new Runnable() {
+			@Override
+			public void run() {
+					writeToSysLog(title, text, description, theme);
+					final Shell shell = createNotificationWindow(image, title, text,
+							NotifierColorsFactory.getColorsForTheme(theme));
+					makeShellAppears(shell);
+			}
+
+		});
+	}
 
 	/**
 	 * 
@@ -435,7 +449,7 @@ public class Notifier {
 	 * @param shell
 	 *            shell that will appear
 	 */
-	private static void makeShellAppears(final Shell shell) {
+	public static void makeShellAppears(final Shell shell) {
 		if (shell == null || shell.isDisposed()) {
 			return;
 		}

@@ -54,7 +54,8 @@ Export-Package: tr.org.liderahenk.liderconsole.core.config,
  tr.org.liderahenk.liderconsole.core.widgets,
  tr.org.liderahenk.liderconsole.core.xmpp,
  tr.org.liderahenk.liderconsole.core.xmpp.enums,
- tr.org.liderahenk.liderconsole.core.xmpp.notifications
+ tr.org.liderahenk.liderconsole.core.xmpp.notifications,
+ tr.org.liderahenk.liderconsole.core.editors
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: Agem Bilişim
 Import-Package: com.itextpdf.text,
