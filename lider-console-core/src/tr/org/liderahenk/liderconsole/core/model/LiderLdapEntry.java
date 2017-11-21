@@ -9,6 +9,8 @@ import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.SearchResult;
 
+import tr.org.liderahenk.liderconsole.core.current.UserSettings;
+
 public class LiderLdapEntry extends SearchResult {
 
 	private static final long serialVersionUID = 1L;
@@ -38,14 +40,13 @@ public class LiderLdapEntry extends SearchResult {
 	private boolean isOnline = false;
 	private String sunucuNo;
 
+	public boolean is_loggin_user=false;
+	
 	public LiderLdapEntry(String name, Object obj, Attributes attrs) {
 		super(name, obj, attrs);
 		hasChildren = false;
 		this.type = LDAP_ENRTRY;
-		if (attrs != null)
-			fillAttributeList(attrs);
-
-		setPardusAttributes();
+		init(attrs);
 	}
 
 	public LiderLdapEntry(String name, String shortName, Object obj, Attributes attrs) {
@@ -53,10 +54,7 @@ public class LiderLdapEntry extends SearchResult {
 		hasChildren = false;
 		this.type = LDAP_ENRTRY;
 		this.shortName = shortName;
-		if (attrs != null)
-			fillAttributeList(attrs);
-
-		setPardusAttributes();
+		init(attrs);
 	}
 
 	public LiderLdapEntry(String name, Object obj, Attributes attrs, SearchResult rs) {
@@ -64,6 +62,10 @@ public class LiderLdapEntry extends SearchResult {
 		hasChildren = false;
 		this.rs = rs;
 		this.type = LDAP_ENRTRY;
+		
+		String user_dn=UserSettings.USER_DN;
+		
+		if( user_dn.equals(name)) is_loggin_user=true; else is_loggin_user=false;
 
 		if (rs != null && rs.getName() != null) {
 			String nameWithDn = rs.getName().split(",")[0];
@@ -74,12 +76,18 @@ public class LiderLdapEntry extends SearchResult {
 			// this.shortName=names[1];
 			// }
 		}
-		if (attrs != null) {
+		
+		init(attrs);
+
+	}
+	
+	private void init(Attributes attrs) {
+		if (attrs != null)
 			fillAttributeList(attrs);
 
-			setPardusAttributes();
-		}
-
+		setPardusAttributes();
+		
+		
 	}
 
 	private void setPardusAttributes() {

@@ -131,13 +131,17 @@ public class LdapTreeLabelProvider implements ILabelProvider {
 				treeLabel= result.getShortName() + " ("+ result.getChildrens().size()+")";
 			}
 			
+			if(result.is_loggin_user){
+				treeLabel="Kullanıcı : "+result.getShortName();
+			}
+			
 			return  treeLabel;
 			
 		}
 		
 		if (obj != null) {
 			
-			return obj.toString();
+			return "DOMAIN ("+obj.toString() +")" ;
 		}
 		return "";
 		

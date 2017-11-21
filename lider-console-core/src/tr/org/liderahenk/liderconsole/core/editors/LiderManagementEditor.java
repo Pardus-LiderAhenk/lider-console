@@ -71,6 +71,7 @@ import tr.org.liderahenk.liderconsole.core.model.LiderLdapEntry;
 import tr.org.liderahenk.liderconsole.core.model.Policy;
 import tr.org.liderahenk.liderconsole.core.model.UserAgent;
 import tr.org.liderahenk.liderconsole.core.rest.utils.PolicyRestUtils;
+import tr.org.liderahenk.liderconsole.core.rest.utils.UserRestUtils;
 import tr.org.liderahenk.liderconsole.core.utils.SWTResourceManager;
 import tr.org.liderahenk.liderconsole.core.widgets.LiderConfirmBox;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
@@ -346,7 +347,7 @@ public class LiderManagementEditor extends EditorPart {
 
 					LiderLdapEntry selectedEntry = liderLdapTaskEntries.get(0);
 
-//					List<UserAgent> agents = UserRestUtils.getOnlineUserAgent(selectedEntry.getUid());
+					List<UserAgent> agents = null;
 					
 					if(selectedEntry.getSunucuNo()!=null && selectedEntry.getEntryType() == LiderLdapEntry.PARDUS_ACCOUNT ){
 						
@@ -359,7 +360,7 @@ public class LiderManagementEditor extends EditorPart {
 						StudioNamingEnumeration enumeration=LdapUtils.getInstance().search(baseDn, filter, new String[] {}, SearchControls.SUBTREE_SCOPE,10, LdapConnectionListener.getConnection(),
 								LdapConnectionListener.getMonitor());
 						
-						List<UserAgent> agents = new ArrayList<UserAgent>();
+						 agents = new ArrayList<UserAgent>();
 						
 						try {
 							if (enumeration != null) {
@@ -383,35 +384,39 @@ public class LiderManagementEditor extends EditorPart {
 							logger.error(e.getMessage(), e);
 						}
 						
-						if (!agents.isEmpty()) {
-							
-							UserAgent selectedUserAgent= agents.get(agents.size()-1); //last record 
-							
-							
-							// set lider ldap entries for plugin task dialogs..  task dialog handlers get lider ldap entries..
-							
-							liderLdapTaskEntries=new ArrayList<>();
-							
-							liderLdapTaskEntries.add(new LiderLdapEntry(selectedUserAgent.getAgentDn(), null, null));
-							//liderLdapTaskEntries.add(new LiderLdapEntry(dn, null, null));
-							
-							
-//							List<UserAgent> onlineAgentList= new ArrayList<>();
-//							for (UserAgent userAgent : agents) {
-//								if(userAgent.getIsOnline()){
-//									onlineAgentList.add(userAgent);
-//								}
-//							}
-							
-							selectedUserDn = selectedEntry.getName();
-							createTaskButtonArea(sashForm, agents);
-						}
+						
 						
 					}
+					else{
  
 					//if (!agents.isEmpty()) {
+						agents = UserRestUtils.getOnlineUserAgent(selectedEntry.getUid());
 						
-
+						
+					}
+					
+					if (!agents.isEmpty()) {
+						
+						UserAgent selectedUserAgent= agents.get(agents.size()-1); //last record 
+						
+						// set lider ldap entries for plugin task dialogs..  task dialog handlers get lider ldap entries..
+						
+						liderLdapTaskEntries=new ArrayList<>();
+						
+						liderLdapTaskEntries.add(new LiderLdapEntry(selectedUserAgent.getAgentDn(), null, null));
+						//liderLdapTaskEntries.add(new LiderLdapEntry(dn, null, null));
+						
+						
+//						List<UserAgent> onlineAgentList= new ArrayList<>();
+//						for (UserAgent userAgent : agents) {
+//							if(userAgent.getIsOnline()){
+//								onlineAgentList.add(userAgent);
+//							}
+//						}
+						
+						selectedUserDn = selectedEntry.getName();
+						createTaskButtonArea(sashForm, agents);
+					}
 				}
 
 			} catch (Exception e1) {
