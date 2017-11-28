@@ -61,6 +61,8 @@ public class AppliedPolicy implements Serializable, Cloneable {
 	private Date activationDate;
 	private Date expirationDate;
 	private List<String> uidList;
+	
+	private Boolean appliedToUser = false;
 
 	public Long getId() {
 		return id;
@@ -194,6 +196,14 @@ public class AppliedPolicy implements Serializable, Cloneable {
 
 	public void setPolicyType(int policyType) {
 		this.policyType = policyType;
+	}
+
+	public Boolean getAppliedToUser() {
+		return appliedToUser;
+	}
+
+	public void setAppliedToUser(Boolean appliedToUser) {
+		this.appliedToUser = appliedToUser;
 	}
 
 }

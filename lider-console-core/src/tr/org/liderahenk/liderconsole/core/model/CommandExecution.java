@@ -39,6 +39,8 @@ public class CommandExecution implements Serializable {
 	private String dn;
 
 	private Date createDate;
+	
+	private String uid;
 
 	private List<CommandExecutionResult> commandExecutionResults;
 
@@ -46,12 +48,13 @@ public class CommandExecution implements Serializable {
 	}
 
 	public CommandExecution(Long id, DNType dnType, String dn, Date createDate,
-			List<CommandExecutionResult> commandExecutionResults) {
+			List<CommandExecutionResult> commandExecutionResults,String uid) {
 		this.id = id;
 		this.dnType = dnType;
 		this.dn = dn;
 		this.createDate = createDate;
 		this.commandExecutionResults = commandExecutionResults;
+		this.uid = uid;
 	}
 
 	@Override
@@ -133,6 +136,14 @@ public class CommandExecution implements Serializable {
 
 	public void setCommandExecutionResults(List<CommandExecutionResult> commandExecutionResults) {
 		this.commandExecutionResults = commandExecutionResults;
+	}
+
+	public String getUid() {
+		return uid;
+	}
+
+	public void setUid(String uid) {
+		this.uid = uid;
 	}
 
 }
