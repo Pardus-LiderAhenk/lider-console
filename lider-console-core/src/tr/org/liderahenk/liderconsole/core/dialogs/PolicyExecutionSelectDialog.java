@@ -43,6 +43,7 @@ import org.slf4j.LoggerFactory;
 
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.ldap.enums.DNType;
+import tr.org.liderahenk.liderconsole.core.ldap.utils.LdapUtils;
 import tr.org.liderahenk.liderconsole.core.model.Policy;
 import tr.org.liderahenk.liderconsole.core.rest.requests.PolicyExecutionRequest;
 import tr.org.liderahenk.liderconsole.core.rest.utils.PolicyRestUtils;
@@ -107,7 +108,7 @@ public class PolicyExecutionSelectDialog extends DefaultLiderDialog {
 
 		lblDnInfo = new Label(composite, SWT.NONE);
 		lblDnInfo.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false, 2, 1));
-		lblDnInfo.setText(Messages.getString("selected_dn_size") + " : " + dnSet.size());
+		
 
 		dnlistViewer = new ListViewer(composite, SWT.BORDER | SWT.V_SCROLL);
 		org.eclipse.swt.widgets.List list = dnlistViewer.getList();
@@ -129,11 +130,26 @@ public class PolicyExecutionSelectDialog extends DefaultLiderDialog {
 
 			@Override
 			public Object[] getElements(Object inputElement) {
-				Set<String> v = (Set<String>) inputElement;
+				List<String> v = (List<String>) inputElement;
 				return v.toArray();
 			}
 		});
-		dnlistViewer.setInput(dnSet);
+		
+		List<String> dnList=  new ArrayList<String>(this.dnSet);
+		
+		if(dnList!=null && dnList.size()>0){
+			
+			List<String> targetEntries = LdapUtils.getInstance().findUsers(dnList.get(0)); // secili entry nin tum child entryleri bulunur.
+			
+			if(targetEntries.size()==0)
+			targetEntries= LdapUtils.getInstance().findAgents(dnList.get(0)); // ahenkler icin ve kullanıcılar icin gecerli olabilir.
+			
+			
+			dnlistViewer.setInput(targetEntries);
+			lblDnInfo.setText(Messages.getString("selected_dn_size_policy") + " : " + targetEntries.size());
+		
+		}
+		
 		// Policy label
 		Label lblLabel = new Label(composite, SWT.NONE);
 		lblLabel.setText(Messages.getString("POLICY_LABEL"));
@@ -260,6 +276,7 @@ public class PolicyExecutionSelectDialog extends DefaultLiderDialog {
 		PolicyExecutionRequest policy = new PolicyExecutionRequest();
 		policy.setId(getSelectedPolicyId());
 		policy.setDnType(getSelectedDnType());
+		
 		policy.setDnList(new ArrayList<String>(this.dnSet));
 		policy.setActivationDate(btnEnableDate.getSelection()
 				? SWTResourceManager.convertDate(dtActivationDate, dtActivationDateTime) : null);

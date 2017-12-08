@@ -22,6 +22,7 @@ public class LiderLdapEntry extends SearchResult {
 	public static int PARDUS_DEVICE = 1;
 	public static int PARDUS_ACCOUNT = 2;
 	public static int PARDUS_DEVICE_GROUP = 3;
+	public static int PARDUS_ORGANIZATIONAL_UNIT = 4;
 
 	private int entryType;
 
@@ -116,7 +117,12 @@ public class LiderLdapEntry extends SearchResult {
 				if (attributeWrapper.getAttName().equals("uid")) {
 					setUid(attributeWrapper.getAttValue());
 				}
+				
 
+				if (attributeWrapper.getAttName().equals("sunucuNo")) {
+					setSunucuNo(attributeWrapper.getAttValue());
+				}
+				
 				if (attributeWrapper.getAttName().equals("description")) {
 					String description = attributeWrapper.getAttValue();
 					if (description.equals("pardusDeviceGroup")) {
@@ -124,10 +130,13 @@ public class LiderLdapEntry extends SearchResult {
 						setEntryType(LiderLdapEntry.PARDUS_DEVICE_GROUP);
 					}
 				}
-
-				if (attributeWrapper.getAttName().equals("sunucuNo")) {
-					setSunucuNo(attributeWrapper.getAttValue());
+				
+				if(getEntryType() !=LiderLdapEntry.PARDUS_DEVICE_GROUP && attributeWrapper.getAttValue().equals("organizationalUnit"))
+				{
+					
+					setEntryType(LiderLdapEntry.PARDUS_ORGANIZATIONAL_UNIT);
 				}
+				
 
 			}
 		}

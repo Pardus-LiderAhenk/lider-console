@@ -19,23 +19,13 @@
 */
 package tr.org.liderahenk.liderconsole.core.handlers;
 
-import org.apache.directory.studio.ldapbrowser.core.model.IBookmark;
-import org.apache.directory.studio.ldapbrowser.core.model.IEntry;
-import org.apache.directory.studio.ldapbrowser.core.model.ISearch;
-import org.apache.directory.studio.ldapbrowser.core.model.impl.SearchResult;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.handlers.HandlerUtil;
 
 import tr.org.liderahenk.liderconsole.core.editors.LiderManagementEditor;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.model.LiderLdapEntry;
-import tr.org.liderahenk.liderconsole.core.model.SearchGroupEntry;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
 
 /**
@@ -52,7 +42,7 @@ public abstract class SingleSelectionHandler extends AbstractHandler {
 
 		String dn = null;
 		
-		LiderLdapEntry entry= LiderManagementEditor.getLiderLdapEntries().get(0);
+		LiderLdapEntry entry= LiderManagementEditor.getLiderLdapEntriesForTask().get(0);
 		if(entry!=null)
 			dn=entry.getName();
 

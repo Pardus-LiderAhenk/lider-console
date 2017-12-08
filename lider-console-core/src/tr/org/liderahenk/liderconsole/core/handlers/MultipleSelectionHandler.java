@@ -60,7 +60,7 @@ public abstract class MultipleSelectionHandler extends AbstractHandler {
 
 		Set<String> dnSet = null;
 		
-		List<LiderLdapEntry> selectedDnList = LiderManagementEditor.getLiderLdapEntries();
+		List<LiderLdapEntry> selectedDnList = LiderManagementEditor.getLiderLdapEntriesForTask();
 		
 		if(selectedDnList !=null && selectedDnList.size()>0){
 			dnSet = new HashSet<String>();

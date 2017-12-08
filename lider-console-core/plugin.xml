@@ -539,6 +539,7 @@
 		    id="tr.org.liderahenk.liderconsole.core.editors.ExecutedPolicyEditor"
 		    name="%editor.executed.policy">
 	    </editor> 
+	    
 	</extension>
 
 	<!-- LISTENERS -->	

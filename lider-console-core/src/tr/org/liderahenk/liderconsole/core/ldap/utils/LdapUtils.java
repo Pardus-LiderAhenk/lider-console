@@ -827,7 +827,7 @@ public class LdapUtils {
 		for (String groupObjCls : groupObjClsArr) {
 			filter.append("(objectClass=").append(groupObjCls).append(")");
 		}
-		filter.append("(cn=Administrators)");
+		filter.append("(cn=adminGroups)");
 		filter.append(")");
 
 		StudioNamingEnumeration enumeration = search(null, filter.toString(), new String[] { MEMBER_ATTR },

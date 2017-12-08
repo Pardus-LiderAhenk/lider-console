@@ -20,8 +20,6 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
@@ -31,8 +29,6 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.ui.IViewSite;
@@ -103,7 +99,6 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 		return "tr.org.liderahenk.liderconsole.core.views.LdapBrowserView";
 	}
 
-
 	@Override
 	public void init(IViewSite site) throws PartInitException {
 		super.init(site);
@@ -161,6 +156,16 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 		treeViewer.setContentProvider(new LdapTreeContentProvider(this));
 		treeViewer.setLabelProvider(new LdapTreeLabelProvider());
 
+		treeViewer.addSelectionChangedListener(new ISelectionChangedListener() {
+
+			public void selectionChanged(SelectionChangedEvent event) {
+				
+				selectEntry(event);
+			}
+
+
+		});
+
 		treeViewerSearchResult = new TreeViewer(compositeTree, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
 		treeSearchResult = treeViewerSearchResult.getTree();
 		GridData gd_treeSearchResult = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1);
@@ -172,81 +177,17 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 
 		treeViewerSearchResult.setContentProvider(new SearchResultContentProvider());
 		treeViewerSearchResult.setLabelProvider(new SearchResultLabelProvider());
-		
+
 		treeViewerSearchResult.addSelectionChangedListener(new ISelectionChangedListener() {
-			
+
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
-				
-				
 
-				IStructuredSelection selection = (IStructuredSelection) event.getSelection();
+				selectEntry(event);
 
-				if (selection.size() > 0) {
-					// final String dn= (String) selection.getFirstElement();
-					final List<LiderLdapEntry> liderLdapEntries= new ArrayList<>();
-					final List<LiderLdapEntry> liderSearchResultLdapEntries= new ArrayList<>();
-					
-					 Iterator iterator=	 selection.iterator();
-					 
-					 while(iterator.hasNext()){
-						Object select= iterator.next();
-						if(select instanceof LiderLdapEntry){
-							if(((LiderLdapEntry) select).getType()==LiderLdapEntry.LDAP_ENRTRY)
-							liderLdapEntries.add((LiderLdapEntry)select);
-							else if(((LiderLdapEntry) select).getType()==LiderLdapEntry.SEARCH_RESULT){
-								liderSearchResultLdapEntries.add((LiderLdapEntry)select);
-							}
-						}
-					 }
-					 
-					 if(liderSearchResultLdapEntries.size()>0){
-						 openLiderManagementEditor(liderSearchResultLdapEntries);
-						LdapBrowserView browserView= (LdapBrowserView) PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(LdapBrowserView.getId());
-						 browserView.setInputForSearchResult(liderSearchResultLdapEntries.get(0));
-					 }
-					
-
-					if (liderLdapEntries.size()>0)
-					{
-						openLiderManagementEditor(liderLdapEntries);
-
-					}
-
-				}
-			
-				
 			}
-			
-			private void openLiderManagementEditor(final List<LiderLdapEntry> liderLdapEntries) {
-				final IWorkbench workbench = PlatformUI.getWorkbench();
-				IWorkbenchWindow[] windows = workbench.getWorkbenchWindows();
-				if (windows != null && windows.length > 0) {
-					IWorkbenchWindow window = windows[0];
-					final IWorkbenchPage activePage = window.getActivePage();
-					Display.getDefault().asyncExec(new Runnable() {
-						@Override
-						public void run() {
-							try {
-					
 
-								DefaultEditorInput input = new DefaultEditorInput("Lider_Management");
-								input.setLiderLdapEntries(liderLdapEntries);
-
-								LiderManagementEditor editor = (LiderManagementEditor) activePage.findEditor(input);
-
-								if (editor != null) {
-									activePage.closeEditor(editor, true);
-								}
-								activePage.openEditor(input, LiderConstants.EDITORS.LIDER_MANAGEMENT_EDITOR, false);
-
-							} catch (PartInitException e) {
-								e.printStackTrace();
-							}
-						}
-					});
-				}
-			}
+		
 		});
 
 		Connection connection = LdapConnectionListener.getConnection();
@@ -268,22 +209,22 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 		if (!searchActive)
 			treeViewer.expandToLevel(1);
 
-		//treeViewer.refresh();
+		// treeViewer.refresh();
 	}
 
 	public void setInputForSearchResult(Object input) {
 
 		if (treeViewerSearchResult != null) {
 			LiderLdapEntry entry = (LiderLdapEntry) input;
-			
+
 			// cn=can,ou=it ,dc=mys,dc=pardus,dc=org.tr
 			String[] entryArr = entry.getName().split(",");
 			String dc = "";
 
-			//children list
+			// children list
 			ArrayList<LiderLdapEntry> entryList = new ArrayList<>();
-			
-			// get base dn 
+
+			// get base dn
 			for (int i = 0; i < entryArr.length; i++) {
 				if (entryArr[i].startsWith("dc")) {
 					dc += entryArr[i];
@@ -292,70 +233,69 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 					}
 				}
 			}
-			
-			
-//			for (int i = 0; i < entryArr.length; i++) {
-//				String name=entryArr[i];
-//				if(name.startsWith("dc")) continue;
-//				
-//				String remains="";
-//				
-//				for(int k = i+1; k < entryArr.length; k++){
-//					
-//					if(k==entryArr.length-1)
-//						remains += entryArr[k];
-//					else
-//					remains += entryArr[k]+",";
-//				}
-//				
-//				name= name+","+remains;
-//				LiderLdapEntry entri= new LiderLdapEntry(name, null, null);
-//				entryList.add(entri);
-//				
-//			}
-			
-	//			for (int i = 0; i < entryArr.length; i++) {
-	//				String firstName= entryArr[0];
-	//				if(firstName.startsWith("dc")) continue;
-	//				
-	//				else{
-	//					entryArr.
-	//				},
-	//			}
-			
+
+			// for (int i = 0; i < entryArr.length; i++) {
+			// String name=entryArr[i];
+			// if(name.startsWith("dc")) continue;
+			//
+			// String remains="";
+			//
+			// for(int k = i+1; k < entryArr.length; k++){
+			//
+			// if(k==entryArr.length-1)
+			// remains += entryArr[k];
+			// else
+			// remains += entryArr[k]+",";
+			// }
+			//
+			// name= name+","+remains;
+			// LiderLdapEntry entri= new LiderLdapEntry(name, null, null);
+			// entryList.add(entri);
+			//
+			// }
+
+			// for (int i = 0; i < entryArr.length; i++) {
+			// String firstName= entryArr[0];
+			// if(firstName.startsWith("dc")) continue;
+			//
+			// else{
+			// entryArr.
+			// },
+			// }
+
 			for (int i = entryArr.length - 1; i < entryArr.length; i--) {
 
 				if (i < 0)
 					break;
 				if (i >= 0 && !entryArr[i].startsWith("dc")) {
-					
-					String firstName=entryArr[i];
-					String remains="";
-					
-					for(int k = i+1; k < entryArr.length; k++){
-						
-						if(k==entryArr.length-1)
-						remains += entryArr[k];
+
+					String firstName = entryArr[i];
+					String remains = "";
+
+					for (int k = i + 1; k < entryArr.length; k++) {
+
+						if (k == entryArr.length - 1)
+							remains += entryArr[k];
 						else
-						remains += entryArr[k]+",";
+							remains += entryArr[k] + ",";
 					}
-					String shortName=firstName;
-					firstName= firstName+","+remains;
-					
-				//	(&(objectClass=*)(|(&(objectClass=pardusAccount)(objectClass=pardusLider))(&(objectClass=pardusDevice)(objectClass=device))(objectClass=groupOfNames))(cn=can))
-					List<SearchResult> entries = LdapUtils.getInstance().searchAndReturnList(firstName, "(objectClass=*)",
-							null, SearchControls.OBJECT_SCOPE, 1, LdapConnectionListener.getConnection(),
-							LdapConnectionListener.getMonitor());
-					
+					String shortName = firstName;
+					firstName = firstName + "," + remains;
+
+					// (&(objectClass=*)(|(&(objectClass=pardusAccount)(objectClass=pardusLider))(&(objectClass=pardusDevice)(objectClass=device))(objectClass=groupOfNames))(cn=can))
+					List<SearchResult> entries = LdapUtils.getInstance().searchAndReturnList(firstName,
+							"(objectClass=*)", null, SearchControls.OBJECT_SCOPE, 1,
+							LdapConnectionListener.getConnection(), LdapConnectionListener.getMonitor());
+
 					List<LiderLdapEntry> entryListesi = LiderCoreUtils.convertSearchResult2LiderLdapEntry(entries);
-					
-			//		LiderLdapEntry entri= new LiderLdapEntry(firstName,shortName, new Object(), null);
+
+					// LiderLdapEntry entri= new
+					// LiderLdapEntry(firstName,shortName, new Object(), null);
 					entryList.add(entryListesi.get(0));
-					
+
 				}
 			}
-			
-			
+
 			LiderLdapEntry mainEntry = new LiderLdapEntry(dc, null, null);
 			setTreeViewerSearchInput(mainEntry, entryList);
 			treeViewerSearchResult.setInput(mainEntry);
@@ -373,7 +313,7 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 		if (entryList.size() == 0) {
 			return null;
 		} else {
-			
+
 			LiderLdapEntry ldapEntry = entryList.get(0);
 			entry.setChildren(ldapEntry);
 			entryList.remove(0);
@@ -471,18 +411,22 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 						entryParentName += ",";
 
 				}
-//				if (entryParentName != null && !entryParentName.equals("")) {
-//
-//					String parentFilter = "(&(objectClass=*)(" + entryParentName.split(",")[0] + "))";
-//
-//					List<SearchResult> parentEntry = LdapUtils.getInstance().searchAndReturnList(entryParentName,
-//							parentFilter, returningAttributes.toArray(new String[] {}), SearchControls.SUBTREE_SCOPE, 0,
-//							LdapConnectionListener.getConnection(), LdapConnectionListener.getMonitor());
-//
-//					if (parentEntry != null && parentEntry.size() > 0)
-//						entry.setParent(LiderCoreUtils.convertSearchResult2LiderLdapEntry(parentEntry).get(0));
-//
-//				}
+				// if (entryParentName != null && !entryParentName.equals("")) {
+				//
+				// String parentFilter = "(&(objectClass=*)(" +
+				// entryParentName.split(",")[0] + "))";
+				//
+				// List<SearchResult> parentEntry =
+				// LdapUtils.getInstance().searchAndReturnList(entryParentName,
+				// parentFilter, returningAttributes.toArray(new String[] {}),
+				// SearchControls.SUBTREE_SCOPE, 0,
+				// LdapConnectionListener.getConnection(),
+				// LdapConnectionListener.getMonitor());
+				//
+				// if (parentEntry != null && parentEntry.size() > 0)
+				// entry.setParent(LiderCoreUtils.convertSearchResult2LiderLdapEntry(parentEntry).get(0));
+				//
+				// }
 			}
 
 			Connection connection = LdapConnectionListener.getConnection();
@@ -501,7 +445,6 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 	public void dispose() {
 		super.dispose();
 	}
-	
 
 	/**
 	 * CONTENT PROVIDERSSSS
@@ -619,6 +562,95 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 			return element.toString();
 		}
 
+	}
+	
+	
+	
+
+
+	private void selectEntry(SelectionChangedEvent event) {
+		
+		IStructuredSelection selection = (IStructuredSelection) event.getSelection();
+		
+		
+		if (selection.size() > 0) {
+			
+			
+			final List<LiderLdapEntry> liderLdapEntries = new ArrayList<>();
+			final List<LiderLdapEntry> liderSearchResultLdapEntries = new ArrayList<>();
+
+			Iterator iterator = selection.iterator();
+
+			while (iterator.hasNext()) {
+				Object select = iterator.next();
+				if (select instanceof LiderLdapEntry) {
+					if (((LiderLdapEntry) select).getType() == LiderLdapEntry.LDAP_ENRTRY)
+						liderLdapEntries.add((LiderLdapEntry) select);
+					else if (((LiderLdapEntry) select).getType() == LiderLdapEntry.SEARCH_RESULT) {
+						liderSearchResultLdapEntries.add((LiderLdapEntry) select);
+					}
+				}
+			}
+
+			if (liderSearchResultLdapEntries.size() > 0) {
+				openLiderManagementEditor(liderSearchResultLdapEntries);
+				LdapBrowserView browserView = (LdapBrowserView) PlatformUI.getWorkbench()
+						.getActiveWorkbenchWindow().getActivePage().findView(LdapBrowserView.getId());
+				browserView.setInputForSearchResult(liderSearchResultLdapEntries.get(0));
+			}
+
+			if (liderLdapEntries.size() > 0) {
+				openLiderManagementEditor(liderLdapEntries);
+
+			}
+
+		}
+	}
+	
+	
+	public void openLiderManagementEditor(final List<LiderLdapEntry> liderLdapEntries) {
+		
+		
+		final IWorkbench workbench = PlatformUI.getWorkbench();
+		IWorkbenchWindow[] windows = workbench.getWorkbenchWindows();
+		if (windows != null && windows.length > 0) {
+			IWorkbenchWindow window = windows[0];
+			final IWorkbenchPage activePage = window.getActivePage();
+			Display.getDefault().asyncExec(new Runnable() {
+				@Override
+				public void run() {
+					try {
+
+						DefaultEditorInput input = new DefaultEditorInput("Lider_Management");
+						input.setLiderLdapEntries(liderLdapEntries);
+
+//						LiderManagementEditor editor = (LiderManagementEditor) activePage.findEditor(input);
+//
+//						if (editor != null) {
+							activePage.closeAllEditors(false);
+							
+//						}
+						
+							
+//						if( liderLdapEntries.size()==1) {
+//							
+//							LiderLdapEntry entry= liderLdapEntries.get(0);
+//							
+//							if(entry.getEntryType()== LiderLdapEntry.PARDUS_DEVICE)
+//							
+//							activePage.openEditor(input, "tr.org.liderahenk.liderconsole.core.editors.LiderPardusDeviceEditor", false);
+//							
+//						}
+						
+						activePage.openEditor(input,LiderConstants.EDITORS.LIDER_MANAGEMENT_EDITOR, false);
+						
+
+					} catch (PartInitException e) {
+						e.printStackTrace();
+					}
+				}
+			});
+		}
 	}
 
 }

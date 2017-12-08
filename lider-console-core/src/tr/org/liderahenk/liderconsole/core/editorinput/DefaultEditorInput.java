@@ -41,6 +41,10 @@ public class DefaultEditorInput implements IEditorInput {
 	private String dnInfo;
 	
 	private List<LiderLdapEntry>  liderLdapEntries;
+	
+	private int selectedEntryType;
+	
+	
 
 	public DefaultEditorInput(String label) {
 		super();

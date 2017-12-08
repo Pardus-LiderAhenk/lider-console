@@ -2,7 +2,6 @@ package tr.org.liderahenk.liderconsole.core.ldapProviders;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -10,28 +9,15 @@ import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 
 import org.apache.directory.studio.connection.core.Connection;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
-import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeContentProvider;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
 
-import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
-import tr.org.liderahenk.liderconsole.core.editorinput.DefaultEditorInput;
-import tr.org.liderahenk.liderconsole.core.editors.LiderManagementEditor;
 import tr.org.liderahenk.liderconsole.core.ldap.listeners.LdapConnectionListener;
 import tr.org.liderahenk.liderconsole.core.ldap.utils.LdapUtils;
 import tr.org.liderahenk.liderconsole.core.model.LiderLdapEntry;
 import tr.org.liderahenk.liderconsole.core.utils.LiderCoreUtils;
 import tr.org.liderahenk.liderconsole.core.views.ILdapBrowserView;
-import tr.org.liderahenk.liderconsole.core.views.LdapBrowserView;
 
 public class LdapTreeContentProvider implements ITreeContentProvider {
 
@@ -39,79 +25,10 @@ public class LdapTreeContentProvider implements ITreeContentProvider {
 
 	private Map<Connection, BrowserCategory[]> connectionToCategoriesMap= new HashMap<>();
 
-	private ISelectionChangedListener pageListener = new ISelectionChangedListener() {
-		public void selectionChanged(SelectionChangedEvent event) {
-			IStructuredSelection selection = (IStructuredSelection) event.getSelection();
-
-			if (selection.size() > 0) {
-				// final String dn= (String) selection.getFirstElement();
-				final List<LiderLdapEntry> liderLdapEntries= new ArrayList<>();
-				final List<LiderLdapEntry> liderSearchResultLdapEntries= new ArrayList<>();
-				
-				 Iterator iterator=	 selection.iterator();
-				 
-				 while(iterator.hasNext()){
-					Object select= iterator.next();
-					if(select instanceof LiderLdapEntry){
-						if(((LiderLdapEntry) select).getType()==LiderLdapEntry.LDAP_ENRTRY)
-						liderLdapEntries.add((LiderLdapEntry)select);
-						else if(((LiderLdapEntry) select).getType()==LiderLdapEntry.SEARCH_RESULT){
-							liderSearchResultLdapEntries.add((LiderLdapEntry)select);
-						}
-					}
-				 }
-				 
-				 if(liderSearchResultLdapEntries.size()>0){
-					 openLiderManagementEditor(liderSearchResultLdapEntries);
-					LdapBrowserView browserView= (LdapBrowserView) PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(LdapBrowserView.getId());
-					 browserView.setInputForSearchResult(liderSearchResultLdapEntries.get(0));
-				 }
-				
-
-				if (liderLdapEntries.size()>0)
-				{
-					openLiderManagementEditor(liderLdapEntries);
-
-				}
-
-			}
-		}
-
-		private void openLiderManagementEditor(final List<LiderLdapEntry> liderLdapEntries) {
-			final IWorkbench workbench = PlatformUI.getWorkbench();
-			IWorkbenchWindow[] windows = workbench.getWorkbenchWindows();
-			if (windows != null && windows.length > 0) {
-				IWorkbenchWindow window = windows[0];
-				final IWorkbenchPage activePage = window.getActivePage();
-				Display.getDefault().asyncExec(new Runnable() {
-					@Override
-					public void run() {
-						try {
-				
-
-							DefaultEditorInput input = new DefaultEditorInput("Lider_Management");
-							input.setLiderLdapEntries(liderLdapEntries);
-
-							LiderManagementEditor editor = (LiderManagementEditor) activePage.findEditor(input);
-
-							if (editor != null) {
-								activePage.closeEditor(editor, true);
-							}
-							activePage.openEditor(input, LiderConstants.EDITORS.LIDER_MANAGEMENT_EDITOR, false);
-
-						} catch (PartInitException e) {
-							e.printStackTrace();
-						}
-					}
-				});
-			}
-		}
-	};
 
 	public LdapTreeContentProvider(ILdapBrowserView widget) {
 
 		this.viewer = widget.getTreeViewer();
-		this.viewer.addSelectionChangedListener(this.pageListener);
 
 	}
 
@@ -147,7 +64,7 @@ public class LdapTreeContentProvider implements ITreeContentProvider {
 			// String filter = "(objectClass=*)";
 		//	String filter = "(objectClass=inetOrgPerson)";
 			
-			String filter ="(|(objectClass=person)(|(objectClass=organizationalUnit)))";
+			String filter ="(|(objectClass=person)(objectClass=organizationalUnit)(objectClass=pardusDevice))";
 			List<SearchResult> entries = LdapUtils.getInstance().searchAndReturnList((String) selectedEntry, filter,
 					null, SearchControls.ONELEVEL_SCOPE, 0, LdapConnectionListener.getConnection(),
 					LdapConnectionListener.getMonitor());

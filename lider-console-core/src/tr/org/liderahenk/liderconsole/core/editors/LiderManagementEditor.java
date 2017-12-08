@@ -89,7 +89,8 @@ public class LiderManagementEditor extends EditorPart {
 
 	private static final Logger logger = LoggerFactory.getLogger(LiderManagementEditor.class);
 	
-	private static List<LiderLdapEntry> liderLdapTaskEntries;
+	private static List<LiderLdapEntry> selectedEntries;
+	private static List<LiderLdapEntry> selectedEntriesForTask;
 	
 	public static String selectedUserDn;
 
@@ -104,6 +105,7 @@ public class LiderManagementEditor extends EditorPart {
 	private Group groupPolicy;
 	
 	public static String selectedDn;
+	public static List<String> selectedDnUserList;
 
 	private Table table;
 	private Table tablePolicyList;
@@ -119,11 +121,13 @@ public class LiderManagementEditor extends EditorPart {
 	private Policy selectedPolicy;
 	private Button btnExecutePolicy;
 
-	boolean isHasPardusDevice = false;
+	boolean isPardusDeviceOrHasPardusDevice = false;
+	boolean isPardusAccount = false;
 	boolean isHasGroupOfNames = false;
 	boolean isPardusDeviceGroup = false;
 	boolean isSelectionSingle = false;
 	boolean isSelectionMulti = false;
+	boolean isPardusOu = false;
 
 	private Composite compositeTask;
 	private Text textSearchTask;
@@ -135,6 +139,9 @@ public class LiderManagementEditor extends EditorPart {
 	
 	private Image onlineUserAgentImage;
 	private Image offlineUserAgentImage;
+	private Composite compositeInfoButtons;
+	private Button btnSetPasswordPolicy;
+	private Button btnSetPassword;
 
 	
 	public LiderManagementEditor() {
@@ -153,6 +160,9 @@ public class LiderManagementEditor extends EditorPart {
 	@Override
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
 		
+		selectedUserDn=null;
+		selectedDnUserList= new ArrayList<>();
+		
 		setSite(site);
 		setInput(input);
 		editorInput = (DefaultEditorInput) input;
@@ -164,7 +174,8 @@ public class LiderManagementEditor extends EditorPart {
 		offlineUserAgentImage = new Image(Display.getDefault(),
 				this.getClass().getClassLoader().getResourceAsStream("icons/32/offline-red-mini.png"));
 		
-		selectedUserDn=null;
+	
+		
 	}
 
 	@Override
@@ -190,45 +201,118 @@ public class LiderManagementEditor extends EditorPart {
 
 		Composite compositeAction = new Composite(composite, SWT.BORDER);
 		compositeAction.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		compositeAction.setLayout(new GridLayout(2, false));
+		compositeAction.setLayout(new GridLayout(4, false));
 
 		lbDnInfo = new Label(compositeAction, SWT.NONE);
 		lbDnInfo.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
 		lbDnInfo.setText("");
+		new Label(compositeAction, SWT.NONE);
+		
+		compositeInfoButtons = new Composite(compositeAction, SWT.NONE);
+		compositeInfoButtons.setLayout(new GridLayout(3, false));
+		
+		if (isPardusAccount){
+			btnSetPassword = new Button(compositeInfoButtons, SWT.NONE);
+			btnSetPassword.setText(Messages.getString("set_password")); //$NON-NLS-1$
+			btnSetPassword.addSelectionListener(new SelectionListener() {
+				
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					
+					final ICommandService commandService = (ICommandService) PlatformUI.getWorkbench()
+							.getService(ICommandService.class);
+					
 
-		btnAhenkInfo = new Button(compositeAction, SWT.NONE);
-		btnAhenkInfo.setText(Messages.getString("AHENK_INFO"));
-		btnAhenkInfo.setVisible(isHasPardusDevice && isSelectionSingle);
-		btnAhenkInfo.addSelectionListener(new SelectionListener() {
+					Command command = commandService.getCommand("tr.org.liderahenk.liderconsole.commands.PasswordTask");  //password plugin command id
 
-			@Override
-			public void widgetSelected(SelectionEvent e) {
+					try {
+						command.executeWithChecks(new ExecutionEvent());
+					} catch (Exception e1) {
+						logger.error(e1.getMessage(), e1);
+					}
+				
+					
+					
+				}
+				
+				@Override
+				public void widgetDefaultSelected(SelectionEvent e) {
+					// TODO Auto-generated method stub
+					
+				}
+			});
+			
 
-				IStructuredSelection selection = (IStructuredSelection) dnListTableViewer.getSelection();
-				Object firstElement = selection.getFirstElement();
-				if (firstElement instanceof LiderLdapEntry) {
+			btnSetPasswordPolicy = new Button(compositeInfoButtons, SWT.NONE);
+			btnSetPasswordPolicy.setSize(81, 27);
+			btnSetPasswordPolicy.setText(Messages.getString("set_password_policy"));
+			
+			btnSetPasswordPolicy.addSelectionListener(new SelectionListener() {
+				
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					
+					final ICommandService commandService = (ICommandService) PlatformUI.getWorkbench()
+							.getService(ICommandService.class);
+					
 
-					LiderLdapEntry selectedEntry = (LiderLdapEntry) firstElement;
+					Command command = commandService.getCommand("tr.org.liderahenk.liderconsole.commands.AddPasswordPolicyTask");  //password plugin command id
 
-					AgentDetailDialog dialog = new AgentDetailDialog(parent.getShell(), selectedEntry.getName());
-					dialog.create();
-					dialog.selectedTab(0);
-					dialog.open();
+					try {
+						command.executeWithChecks(new ExecutionEvent());
+					} catch (Exception e1) {
+						logger.error(e1.getMessage(), e1);
+					}
+				
+					
+					
+				}
+				
+				@Override
+				public void widgetDefaultSelected(SelectionEvent e) {
+					// TODO Auto-generated method stub
+					
+				}
+			});
+			
+		}
+		else {
+
+			btnAhenkInfo = new Button(compositeInfoButtons, SWT.NONE);
+			btnAhenkInfo.setText(Messages.getString("AHENK_INFO"));
+			btnAhenkInfo.setVisible(isPardusDeviceOrHasPardusDevice && isSelectionSingle);
+			btnAhenkInfo.addSelectionListener(new SelectionListener() {
+
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+
+					IStructuredSelection selection = (IStructuredSelection) dnListTableViewer.getSelection();
+					Object firstElement = selection.getFirstElement();
+					if (firstElement instanceof LiderLdapEntry) {
+
+						LiderLdapEntry selectedEntry = (LiderLdapEntry) firstElement;
+
+						AgentDetailDialog dialog = new AgentDetailDialog(parent.getShell(), selectedEntry.getName());
+						dialog.create();
+						dialog.selectedTab(0);
+						dialog.open();
+					}
+
 				}
 
-			}
+				@Override
+				public void widgetDefaultSelected(SelectionEvent e) {
 
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-
-			}
-		});
+				}
+			});
+		}
+		new Label(compositeAction, SWT.NONE);
 
 		dnListTableViewer = new TableViewer(compositeAction, SWT.BORDER | SWT.FULL_SELECTION);
 		dnListTableViewer.getTable().setToolTipText("Seçili DN özelliklerini görmek için tıklayınız..");
 
 		table = dnListTableViewer.getTable();
-		GridData gd_table = new GridData(SWT.FILL, SWT.TOP, true, false, 2, 1);
+		GridData gd_table = new GridData(SWT.FILL, SWT.TOP, true, false, 4, 1);
 		gd_table.heightHint = 58;
 		table.setLayoutData(gd_table);
 		// scrolledComposite.setContent(table);
@@ -281,7 +365,7 @@ public class LiderManagementEditor extends EditorPart {
 		SashForm sashForm = new SashForm(compositeAction, SWT.VERTICAL);
 		sashForm.setTextDirection(0);
 		sashForm.setSashWidth(2);
-		sashForm.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+		sashForm.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 4, 1));
 
 		// POLICY AREA
 
@@ -326,15 +410,20 @@ public class LiderManagementEditor extends EditorPart {
 		});
 
 
-		if (liderLdapTaskEntries.size() > 0) {
-			populateTable(liderLdapTaskEntries);
-			lbDnInfo.setText("Seçili Dn Sayısı : " + liderLdapTaskEntries.size());
+		if (selectedEntries.size() > 0) {
+			populateTable(selectedEntries);
+			lbDnInfo.setText("Seçili Dn Sayısı : " + selectedEntries.size());
 			// liderLdapEntries=liderEntries; // task icin
 		}
 
+		
+		
+		
+		
 		// task area for only agents, ou which has pardus device or is pardusDeviceGroup
-		if (isHasPardusDevice || isHasGroupOfNames || isPardusDeviceGroup) {
+		if (isPardusDeviceOrHasPardusDevice || isHasGroupOfNames || isPardusDeviceGroup) {
 
+			selectedEntriesForTask= selectedEntries;
 
 			createTaskButtonArea(sashForm, null);
 		}
@@ -345,7 +434,7 @@ public class LiderManagementEditor extends EditorPart {
 
 				if (isSelectionSingle) {
 
-					LiderLdapEntry selectedEntry = liderLdapTaskEntries.get(0);
+					LiderLdapEntry selectedEntry = selectedEntries.get(0);
 
 					List<UserAgent> agents = null;
 					
@@ -401,9 +490,9 @@ public class LiderManagementEditor extends EditorPart {
 						
 						// set lider ldap entries for plugin task dialogs..  task dialog handlers get lider ldap entries..
 						
-						liderLdapTaskEntries=new ArrayList<>();
+						selectedEntriesForTask=new ArrayList<>();
 						
-						liderLdapTaskEntries.add(new LiderLdapEntry(selectedUserAgent.getAgentDn(), null, null));
+						selectedEntriesForTask.add(new LiderLdapEntry(selectedUserAgent.getAgentDn(), null, null));
 						//liderLdapTaskEntries.add(new LiderLdapEntry(dn, null, null));
 						
 						
@@ -466,9 +555,9 @@ public class LiderManagementEditor extends EditorPart {
 						Object firstElement = selection.getFirstElement();
 						if (firstElement instanceof UserAgent) {
 							
-							liderLdapTaskEntries=new ArrayList<>();
+							selectedEntries=new ArrayList<>();
 							
-							liderLdapTaskEntries.add(new LiderLdapEntry(((UserAgent)firstElement).getAgentDn(), null, null));
+							selectedEntries.add(new LiderLdapEntry(((UserAgent)firstElement).getAgentDn(), null, null));
 						}
 					}
 				});
@@ -537,11 +626,11 @@ public class LiderManagementEditor extends EditorPart {
 
 	private void fillWithEntries() {
 
-		liderLdapTaskEntries = editorInput.getLiderLdapEntries();
+		selectedEntries = editorInput.getLiderLdapEntries();
 
 		ArrayList<LiderLdapEntry> liderEntries = new ArrayList<>();
 
-		for (LiderLdapEntry le : liderLdapTaskEntries) {
+		for (LiderLdapEntry le : selectedEntries) {
 
 			if(le.getChildren() !=null){
 				liderEntries.add(le.getChildren());
@@ -562,10 +651,18 @@ public class LiderManagementEditor extends EditorPart {
 		for (LiderLdapEntry le : liderEntries) {
 
 			if (le.getEntryType()==LiderLdapEntry.PARDUS_DEVICE) {
-				isHasPardusDevice = true;
+				isPardusDeviceOrHasPardusDevice = true;
 			}
 			if (le.getEntryType()==LiderLdapEntry.PARDUS_DEVICE_GROUP) {
 				isPardusDeviceGroup = true;
+			}
+			if(le.getEntryType()== LiderLdapEntry.PARDUS_ACCOUNT){
+				isPardusAccount=true;
+				selectedUserDn=le.getName();
+			}
+			
+			if(le.getEntryType()== LiderLdapEntry.PARDUS_ORGANIZATIONAL_UNIT){
+				isPardusOu=true;
 			}
 			if (le.isHasGroupOfNames())
 				isHasGroupOfNames = true;
@@ -576,6 +673,13 @@ public class LiderManagementEditor extends EditorPart {
 			isSelectionMulti = true;
 		} else if (liderEntries.size() == 1) {
 			isSelectionSingle = true;
+		}
+		
+		if(isPardusOu){
+			
+			selectedDnUserList= LdapUtils.getInstance().findUsers(selectedEntries.get(0).getName());
+			
+			selectedUserDn= null;
 		}
 
 	}
@@ -985,11 +1089,14 @@ public class LiderManagementEditor extends EditorPart {
 	}
 
 	public static List<LiderLdapEntry> getLiderLdapEntries() {
-		return liderLdapTaskEntries;
+		return selectedEntries;
+	}
+	public static List<LiderLdapEntry> getLiderLdapEntriesForTask() {
+		return selectedEntriesForTask;
 	}
 
 	public void setLiderLdapEntries(List<LiderLdapEntry> liderLdapEntries) {
-		LiderManagementEditor.liderLdapTaskEntries = liderLdapEntries;
+		LiderManagementEditor.selectedEntries = liderLdapEntries;
 	}
 
 	/**
