@@ -20,6 +20,7 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
@@ -29,6 +30,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.ui.IViewSite;
@@ -44,7 +46,6 @@ import org.slf4j.LoggerFactory;
 
 import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
 import tr.org.liderahenk.liderconsole.core.editorinput.DefaultEditorInput;
-import tr.org.liderahenk.liderconsole.core.editors.LiderManagementEditor;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.ldap.listeners.LdapConnectionListener;
 import tr.org.liderahenk.liderconsole.core.ldap.utils.LdapUtils;
@@ -70,6 +71,8 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 	private Combo comboSearchValue;
 
 	private final IEventBroker eventBroker = (IEventBroker) PlatformUI.getWorkbench().getService(IEventBroker.class);
+	
+	private List<String> allAgents;
 
 	/**
 	 * LDAP attributes
@@ -89,6 +92,14 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 	private Composite composite;
 
 	private boolean searchActive = false;
+	private Composite compositeInfo;
+
+	private CLabel lbOnlineAgentslInfo;
+	private Label lblAllAgentInfo;
+	private Image offlineImage = new Image(Display.getDefault(), this.getClass().getClassLoader().getResourceAsStream("icons/32/offline-red-mini.png"));
+	private Image onlineImage = new Image(Display.getDefault(), this.getClass().getClassLoader().getResourceAsStream("icons/32/online-mini.png"));
+	private CLabel lblOfflineAgentInfo;
+	
 
 	@Override
 	protected void setSite(IWorkbenchPartSite site) {
@@ -104,7 +115,7 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 		super.init(site);
 
 		eventBroker.subscribe(LiderConstants.EVENT_TOPICS.SEARCH_GROUP_CREATED, null);
-
+		
 	}
 
 	@Override
@@ -202,6 +213,23 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 		getSite().registerContextMenu(menuManager, treeViewer);
 		// Make the viewer selection available
 		getSite().setSelectionProvider(treeViewer);
+		
+		compositeInfo = new Composite(composite, SWT.NONE);
+		compositeInfo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+		compositeInfo.setLayout(new GridLayout(2, false));
+		
+		lblAllAgentInfo = new Label(compositeInfo, SWT.NONE);
+		lblAllAgentInfo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
+		
+		lbOnlineAgentslInfo = new CLabel(compositeInfo, SWT.NONE);
+		lbOnlineAgentslInfo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+		
+		lblOfflineAgentInfo = new CLabel(compositeInfo, SWT.NONE);
+		lblOfflineAgentInfo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		
+		
+		
+		  // roster degisimlerini dinliyoruz.
 	}
 
 	public void setInput(Object input) {
@@ -210,6 +238,7 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 			treeViewer.expandToLevel(1);
 
 		// treeViewer.refresh();
+		
 	}
 
 	public void setInputForSearchResult(Object input) {
@@ -630,7 +659,6 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 							activePage.closeAllEditors(false);
 							
 //						}
-						
 							
 //						if( liderLdapEntries.size()==1) {
 //							
@@ -643,7 +671,6 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 //						}
 						
 						activePage.openEditor(input,LiderConstants.EDITORS.LIDER_MANAGEMENT_EDITOR, false);
-						
 
 					} catch (PartInitException e) {
 						e.printStackTrace();
@@ -653,4 +680,41 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 		}
 	}
 
+
+
+	public void setlblAllAgentInfo() {
+		lblAllAgentInfo.setText("Toplam İstemci : " + allAgents.size());
+		
+		if(allAgents!=null) {
+			lblOfflineAgentInfo.setText("Offline : "+ (allAgents.size() - onlineAgentCount));
+			lblOfflineAgentInfo.setImage(offlineImage);
+		}
+		
+	}
+	
+	int onlineAgentCount;
+	public void setlbOnlineAgentslInfo(int onlineAgentCount) {
+		
+		this.onlineAgentCount=onlineAgentCount;
+		
+		lbOnlineAgentslInfo.setText("Online : "+ onlineAgentCount);
+		lbOnlineAgentslInfo.setImage(onlineImage);
+		
+		if(allAgents!=null) {
+		lblOfflineAgentInfo.setText("Offline : "+ (allAgents.size() - onlineAgentCount));
+		lblOfflineAgentInfo.setImage(offlineImage);
+		}
+		
+	}
+
+	public List<String> getAllAgents() {
+		return allAgents;
+	}
+
+	public void setAllAgents(List<String> allAgents) {
+		this.allAgents = allAgents;
+	}
+	
+
+	
 }

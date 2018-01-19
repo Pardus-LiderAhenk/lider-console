@@ -19,6 +19,7 @@
 */
 package tr.org.liderahenk.liderconsole.core.ldap.listeners;
 
+import java.util.List;
 import java.util.Map;
 
 import javax.naming.directory.Attribute;
@@ -349,6 +350,11 @@ public class LdapConnectionListener implements IConnectionListener {
 					if(browserView!=null){
 						browserView.setInput(getConnection());
 						browserView.setFocus();
+							List<String> agents=LdapUtils.getInstance().findAgents(LdapUtils.getInstance().findBaseDn(getConnection()));
+						
+							browserView.setAllAgents(agents); // toplam istemci sayısı
+							browserView.setlblAllAgentInfo(); // bilgilendirme 
+						
 						
 						
 					}else
@@ -356,6 +362,7 @@ public class LdapConnectionListener implements IConnectionListener {
 						activePage.showView(LdapBrowserView.getId());
 						LdapBrowserView browserVieww=	(LdapBrowserView) activePage.findView(LdapBrowserView.getId());
 						browserVieww.setInput(getConnection());
+						
 						
 					}
 						

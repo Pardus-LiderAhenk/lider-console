@@ -28,6 +28,7 @@ import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.Set;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -36,6 +37,10 @@ import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 
 import org.jivesoftware.smack.ConnectionConfiguration.SecurityMode;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
 import org.jivesoftware.smack.ConnectionListener;
 import org.jivesoftware.smack.ReconnectionManager;
 import org.jivesoftware.smack.ReconnectionManager.ReconnectionPolicy;
@@ -64,14 +69,11 @@ import org.slf4j.LoggerFactory;
 
 import tr.org.liderahenk.liderconsole.core.config.ConfigProvider;
 import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
-import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.ldap.listeners.LdapConnectionListener;
 import tr.org.liderahenk.liderconsole.core.ldap.listeners.TreePaintListener;
 import tr.org.liderahenk.liderconsole.core.ldap.utils.LdapUtils;
-import tr.org.liderahenk.liderconsole.core.model.Agent;
-import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
-import tr.org.liderahenk.liderconsole.core.widgets.Notifier.NotifierMode;
-import tr.org.liderahenk.liderconsole.core.widgets.NotifierColorsFactory.NotifierTheme;
+import tr.org.liderahenk.liderconsole.core.views.LdapBrowserView;
+import tr.org.liderahenk.liderconsole.core.xmpp.listeners.RosterListenerImpl;
 import tr.org.liderahenk.liderconsole.core.xmpp.listeners.TaskNotificationListener;
 import tr.org.liderahenk.liderconsole.core.xmpp.listeners.TaskStatusNotificationListener;
 
@@ -111,6 +113,7 @@ public class XMPPClient {
 	private XMPPConnectionListener connectionListener;
 	private XMPPPingFailedListener pingFailedListener;
 	private RosterListenerImpl rosterListener;
+	private LdapBrowserView ldapBrowserViewListener;
 	private TaskNotificationListener taskNotificationListener;
 	private TaskStatusNotificationListener taskStatusNotificationListener;
 
@@ -228,6 +231,10 @@ public class XMPPClient {
 		}
 		retryCount = 0;
 		logger.debug("Successfully connected to XMPP server.");
+		
+		
+		
+		
 	}
 
 	/**
@@ -284,7 +291,7 @@ public class XMPPClient {
 		pingFailedListener = new XMPPPingFailedListener();
 		PingManager.getInstanceFor(connection).registerPingFailedListener(pingFailedListener);
 		// Hook roster listener
-		rosterListener = new RosterListenerImpl();
+		rosterListener = new RosterListenerImpl(connection);
 		roster = Roster.getInstanceFor(connection);
 		roster.setSubscriptionMode(SubscriptionMode.accept_all);
 		// Wait for roster!
@@ -298,6 +305,16 @@ public class XMPPClient {
 		taskStatusNotificationListener = new TaskStatusNotificationListener();
 		connection.addAsyncStanzaListener(taskStatusNotificationListener, taskStatusNotificationListener);
 		logger.debug("Successfully added listeners for connection: {}", connection.toString());
+		
+		
+	}
+	
+	public void addRosterListener(RosterListener rosterListener ){
+		
+		if(roster !=null)
+		roster.addRosterListener(rosterListener);
+		
+
 	}
 
 	/**
@@ -314,6 +331,7 @@ public class XMPPClient {
 				Map<String, String> uidMap = LdapUtils.getInstance().getUidMap(LdapConnectionListener.getConnection(),
 						LdapConnectionListener.getMonitor());
 				
+			int onlineCount=0;
 
 				if (entries != null && !entries.isEmpty()) {
 					for (RosterEntry entry : entries) {
@@ -334,6 +352,9 @@ public class XMPPClient {
 									if (dn != null && !dn.isEmpty()) {
 										if (presence.getType() == Type.available) {
 											TreePaintListener.getInstance().put(dn, true);
+											
+											onlineCount++;
+											
 											
 										
 										} else if (presence.getType() == Type.unavailable) {
@@ -365,11 +386,40 @@ public class XMPPClient {
 					
 					
 					TreePaintListener.getInstance().redraw();
+					
+					notifyLdapBrowserView(onlineCount);
 				}
 			}
 		});
 
 		thread.start();
+	}
+	
+	
+	/**
+	 * notify ldap browser view for information
+	 */
+	
+	private void notifyLdapBrowserView(final int onlineCount){
+		Display.getDefault().asyncExec(new Runnable() {
+			@Override
+			public void run() {
+		
+		IWorkbench workbench = PlatformUI.getWorkbench();
+		IWorkbenchWindow[] windows = workbench.getWorkbenchWindows();
+		
+		if (windows != null && windows.length > 0) {
+
+			IWorkbenchWindow window = windows[0];
+
+			LdapBrowserView browserView = (LdapBrowserView) window.getActivePage().findView(LiderConstants.VIEWS.LIDER_LDAP_BROWSER_VIEW);
+		
+			
+			browserView.setlbOnlineAgentslInfo(onlineCount);
+		}
+		
+			}
+		});
 	}
 
 	/**
@@ -443,93 +493,92 @@ public class XMPPClient {
 	 * Listens to roster presence changes.
 	 *
 	 */
-	class RosterListenerImpl implements RosterListener {
-
-		final Roster roster = Roster.getInstanceFor(connection);
-
-		@Override
-		public void entriesAdded(Collection<String> entries) {
-			entriesAddedOrUpdated(entries);
-		}
-
-		@Override
-		public void entriesUpdated(Collection<String> entries) {
-			entriesAddedOrUpdated(entries);
-		}
-
-		private void entriesAddedOrUpdated(Collection<String> entries) {
-			
-			Map<String, String> uidMap = LdapUtils.getInstance().getUidMap(LdapConnectionListener.getConnection(),
-					LdapConnectionListener.getMonitor());
-			for (String entry : entries) {
-				Presence presence = roster.getPresence(entry);
-				String jid = entry.substring(0, entry.indexOf('@'));
-				String dn = uidMap.containsKey(jid) ? uidMap.get(jid)
-						: LdapUtils.getInstance().findDnByUid(jid, LdapConnectionListener.getConnection(),
-								LdapConnectionListener.getMonitor());
-				if (dn != null && !dn.isEmpty()) {
-					if (presence.getType() == Type.available) {
-						TreePaintListener.getInstance().put(dn, true);
-					} else if (presence.getType() == Type.unavailable) {
-						TreePaintListener.getInstance().put(dn, false);
-					}
-				}
-
-				logger.warn("Actual roster presence for {} changed to {}", roster.getPresence(jid).getFrom(),
-						roster.getPresence(jid).toString());
-			}
-
-			TreePaintListener.getInstance().redraw();
-		}
-
-		@Override
-		public void entriesDeleted(Collection<String> entries) {
-			Map<String, String> uidMap = LdapUtils.getInstance().getUidMap(LdapConnectionListener.getConnection(),
-					LdapConnectionListener.getMonitor());
-			for (String entry : entries) {
-				String jid = entry.substring(0, entry.indexOf('@'));
-				String dn = uidMap.containsKey(jid) ? uidMap.get(jid)
-						: LdapUtils.getInstance().findDnByUid(jid, LdapConnectionListener.getConnection(),
-								LdapConnectionListener.getMonitor());
-				if (dn != null && !dn.isEmpty()) {
-					TreePaintListener.getInstance().put(dn, false);
-				}
-			}
-
-			TreePaintListener.getInstance().redraw();
-		}
-
-		@Override
-		public void presenceChanged(Presence presence) {
-			
-			 
-			String jid = presence.getFrom().substring(0, presence.getFrom().indexOf('@'));
-			Map<String, String> uidMap = LdapUtils.getInstance().getUidMap(LdapConnectionListener.getConnection(),
-					LdapConnectionListener.getMonitor());
-			String dn = uidMap.containsKey(jid) ? uidMap.get(jid)
-					: LdapUtils.getInstance().findDnByUid(jid, LdapConnectionListener.getConnection(),
-							LdapConnectionListener.getMonitor());
-			if (dn != null && !dn.isEmpty()) {
-				if (presence.getType() == Type.available) {
-					Notifier.notify(null, null, Messages.getString("ROSTER_ONLINE", dn), null, NotifierTheme.INFO_THEME,
-							NotifierMode.ONLY_SYSLOG);
-					TreePaintListener.getInstance().put(dn, true);
-					onlineAgentPresenceMap.put(dn, true);
-					
-				} else if (presence.getType() == Type.unavailable) {
-					Notifier.notify(null, null, Messages.getString("ROSTER_OFFLINE", dn), null,
-							NotifierTheme.INFO_THEME, NotifierMode.ONLY_SYSLOG);
-					TreePaintListener.getInstance().put(dn, false);
-					onlineAgentPresenceMap.put(dn, false);
-				}
-			}
-
-			TreePaintListener.getInstance().redraw();
-
-			logger.warn("Actual roster presence for {} changed to {}", roster.getPresence(jid).getFrom(),
-					roster.getPresence(jid).toString());
-		}
-	}
+//	class RosterListenerImpl implements RosterListener {
+//
+//		final Roster roster = Roster.getInstanceFor(connection);
+//
+//		@Override
+//		public void entriesAdded(Collection<String> entries) {
+//			entriesAddedOrUpdated(entries);
+//		}
+//
+//		@Override
+//		public void entriesUpdated(Collection<String> entries) {
+//			entriesAddedOrUpdated(entries);
+//		}
+//
+//		private void entriesAddedOrUpdated(Collection<String> entries) {
+//			
+//			Map<String, String> uidMap = LdapUtils.getInstance().getUidMap(LdapConnectionListener.getConnection(),
+//					LdapConnectionListener.getMonitor());
+//			for (String entry : entries) {
+//				Presence presence = roster.getPresence(entry);
+//				String jid = entry.substring(0, entry.indexOf('@'));
+//				String dn = uidMap.containsKey(jid) ? uidMap.get(jid)
+//						: LdapUtils.getInstance().findDnByUid(jid, LdapConnectionListener.getConnection(),
+//								LdapConnectionListener.getMonitor());
+//				if (dn != null && !dn.isEmpty()) {
+//					if (presence.getType() == Type.available) {
+//						TreePaintListener.getInstance().put(dn, true);
+//					} else if (presence.getType() == Type.unavailable) {
+//						TreePaintListener.getInstance().put(dn, false);
+//					}
+//				}
+//
+//				logger.warn("Actual roster presence for {} changed to {}", roster.getPresence(jid).getFrom(),
+//						roster.getPresence(jid).toString());
+//			}
+//
+//			TreePaintListener.getInstance().redraw();
+//		}
+//
+//		@Override
+//		public void entriesDeleted(Collection<String> entries) {
+//			Map<String, String> uidMap = LdapUtils.getInstance().getUidMap(LdapConnectionListener.getConnection(),
+//					LdapConnectionListener.getMonitor());
+//			for (String entry : entries) {
+//				String jid = entry.substring(0, entry.indexOf('@'));
+//				String dn = uidMap.containsKey(jid) ? uidMap.get(jid)
+//						: LdapUtils.getInstance().findDnByUid(jid, LdapConnectionListener.getConnection(),
+//								LdapConnectionListener.getMonitor());
+//				if (dn != null && !dn.isEmpty()) {
+//					TreePaintListener.getInstance().put(dn, false);
+//				}
+//			}
+//
+//			TreePaintListener.getInstance().redraw();
+//		}
+//
+//		@Override
+//		public void presenceChanged(Presence presence) {
+//			
+//			String jid = presence.getFrom().substring(0, presence.getFrom().indexOf('@'));
+//			Map<String, String> uidMap = LdapUtils.getInstance().getUidMap(LdapConnectionListener.getConnection(),
+//					LdapConnectionListener.getMonitor());
+//			String dn = uidMap.containsKey(jid) ? uidMap.get(jid)
+//					: LdapUtils.getInstance().findDnByUid(jid, LdapConnectionListener.getConnection(),
+//							LdapConnectionListener.getMonitor());
+//			if (dn != null && !dn.isEmpty()) {
+//				if (presence.getType() == Type.available) {
+//					Notifier.notify(null, null, Messages.getString("ROSTER_ONLINE", dn), null, NotifierTheme.INFO_THEME,
+//							NotifierMode.ONLY_SYSLOG);
+//					TreePaintListener.getInstance().put(dn, true);
+//					onlineAgentPresenceMap.put(dn, true);
+//					
+//				} else if (presence.getType() == Type.unavailable) {
+//					Notifier.notify(null, null, Messages.getString("ROSTER_OFFLINE", dn), null,
+//							NotifierTheme.INFO_THEME, NotifierMode.ONLY_SYSLOG);
+//					TreePaintListener.getInstance().put(dn, false);
+//					onlineAgentPresenceMap.put(dn, false);
+//				}
+//			}
+//
+//			TreePaintListener.getInstance().redraw();
+//
+//			logger.warn("Actual roster presence for {} changed to {}", roster.getPresence(jid).getFrom(),
+//					roster.getPresence(jid).toString());
+//		}
+//	}
 
 	/**
 	 * Disconnect from XMPP server.
@@ -623,11 +672,16 @@ public class XMPPClient {
 	}
 
 	public Hashtable<String, Boolean> getOnlineAgentPresenceMap() {
-		return onlineAgentPresenceMap;
+		return rosterListener.getOnlineAgentPresenceMap();
 	}
 
 	public void setOnlineAgentPresenceMap(Hashtable<String, Boolean> onlineAgentPresenceMap) {
-		this.onlineAgentPresenceMap = onlineAgentPresenceMap;
+		rosterListener.setOnlineAgentPresenceMap(onlineAgentPresenceMap);
 	}
-
+	
+	
+	public  XMPPTCPConnection getConnection(){
+		return connection;
+				
+	}
 }
