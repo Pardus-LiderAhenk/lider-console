@@ -613,7 +613,7 @@ public class LdapUtils {
 
 		return dnList;
 	}
-
+	
 	public List<String> findUsers(String dn) {
 		return findUsers(dn, LdapConnectionListener.getConnection(), LdapConnectionListener.getMonitor());
 	}

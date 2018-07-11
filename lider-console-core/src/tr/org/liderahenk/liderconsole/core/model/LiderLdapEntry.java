@@ -97,7 +97,6 @@ public class LiderLdapEntry extends SearchResult {
 			for (int i = 0; i < attributeList.size(); i++) {
 
 				AttributeWrapper attributeWrapper = attributeList.get(i);
-
 				if (attributeWrapper.getAttValue().equals("pardusAccount")) {
 					// hasPardusAccount=true;
 

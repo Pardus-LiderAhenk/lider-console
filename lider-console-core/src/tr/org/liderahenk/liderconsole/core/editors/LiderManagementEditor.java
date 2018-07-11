@@ -631,7 +631,7 @@ public class LiderManagementEditor extends EditorPart {
 		ArrayList<LiderLdapEntry> liderEntries = new ArrayList<>();
 
 		for (LiderLdapEntry le : selectedEntries) {
-
+			String ss = le.getName();
 			if(le.getChildren() !=null){
 				liderEntries.add(le.getChildren());
 			}
