@@ -58,7 +58,6 @@ import tr.org.liderahenk.liderconsole.core.editorinput.DefaultEditorInput;
 import tr.org.liderahenk.liderconsole.core.editors.LiderManagementEditor;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.ldap.utils.LdapUtils;
-import tr.org.liderahenk.liderconsole.core.model.LdapInfo;
 import tr.org.liderahenk.liderconsole.core.rest.responses.IResponse;
 import tr.org.liderahenk.liderconsole.core.rest.utils.TaskRestUtils;
 import tr.org.liderahenk.liderconsole.core.views.LdapBrowserView;
@@ -239,11 +238,6 @@ public class LdapConnectionListener implements IConnectionListener {
 				UserSettings.setCurrentUserDn(principal);
 				UserSettings.setCurrentUserId(uid);
 				UserSettings.setCurrentUserPassword(passwd);
-				LdapInfo.setServerAddress(LdapConnectionListener.conn.getHost());
-				LdapInfo.setAdminPassword(LdapConnectionListener.conn.getBindPassword());
-				LdapInfo.setAdminDN(UserSettings.USER_DN);
-				LdapInfo.setDN(conn.getConnectionParameter().getExtendedProperty("ldapbrowser.baseDn"));
-				LdapInfo.setVersion(3);
 			} else {
 				String principal = conn.getBindPrincipal();
 				String uid = LdapUtils.getInstance().findAttributeValueByDn(principal,
@@ -252,11 +246,6 @@ public class LdapConnectionListener implements IConnectionListener {
 				UserSettings.setCurrentUserDn(principal);
 				UserSettings.setCurrentUserId(uid);
 				UserSettings.setCurrentUserPassword(passwd);
-				LdapInfo.setServerAddress(LdapConnectionListener.conn.getHost());
-				LdapInfo.setAdminPassword(LdapConnectionListener.conn.getBindPassword());
-				LdapInfo.setAdminDN(UserSettings.USER_DN);
-				LdapInfo.setDN(conn.getConnectionParameter().getExtendedProperty("ldapbrowser.baseDn"));
-				LdapInfo.setVersion(3);
 			}
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
