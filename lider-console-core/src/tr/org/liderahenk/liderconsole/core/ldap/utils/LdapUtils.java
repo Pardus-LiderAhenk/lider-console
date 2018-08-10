@@ -613,7 +613,7 @@ public class LdapUtils {
 
 		return dnList;
 	}
-	
+
 	public List<String> findUsers(String dn) {
 		return findUsers(dn, LdapConnectionListener.getConnection(), LdapConnectionListener.getMonitor());
 	}
@@ -838,9 +838,12 @@ public class LdapUtils {
 				SearchResult item = enumeration.next();
 				Attribute attr = item.getAttributes().get(MEMBER_ATTR);
 				if (attr != null) {
-					Object val = attr.get();
-					if (((String) val).toLowerCase(Locale.ENGLISH).equalsIgnoreCase(dn)) {
-						return true;
+					NamingEnumeration members= attr.getAll();
+					while (members.hasMore()) {
+						Object member= members.next();
+						if (((String) member).toLowerCase(Locale.ENGLISH).equalsIgnoreCase(dn)) {
+							return true;
+						}
 					}
 				}
 			}
