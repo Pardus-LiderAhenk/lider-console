@@ -484,7 +484,7 @@ public class LiderManagementEditor extends EditorPart {
 						
 					}
 					
-					if (!agents.isEmpty()) {
+					if (agents !=null &&  !agents.isEmpty()) {
 						
 						UserAgent selectedUserAgent= agents.get(agents.size()-1); //last record 
 						
@@ -631,7 +631,6 @@ public class LiderManagementEditor extends EditorPart {
 		ArrayList<LiderLdapEntry> liderEntries = new ArrayList<>();
 
 		for (LiderLdapEntry le : selectedEntries) {
-			String ss = le.getName();
 			if(le.getChildren() !=null){
 				liderEntries.add(le.getChildren());
 			}
