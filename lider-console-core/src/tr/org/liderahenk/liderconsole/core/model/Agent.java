@@ -23,6 +23,8 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
 
+import javax.swing.text.html.HTMLDocument.Iterator;
+
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -168,6 +170,16 @@ public class Agent implements Serializable {
 
 	public void setSessions(Set<UserSession> sessions) {
 		this.sessions = sessions;
+	}
+	
+	public String getPropertyValue(String propertyName) {
+		String propertyValue = "";
+		for(AgentProperty p: this.properties) {
+			if(p.getPropertyName() != null && p.getPropertyName().equals(propertyName)) {
+				propertyValue = p.getPropertyValue();
+			}
+		}
+		return propertyValue;
 	}
 
 }
