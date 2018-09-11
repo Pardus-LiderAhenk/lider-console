@@ -23,8 +23,6 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
 
-import javax.swing.text.html.HTMLDocument.Iterator;
-
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)

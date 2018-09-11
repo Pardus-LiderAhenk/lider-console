@@ -267,7 +267,8 @@ public class AgentInfoEditor extends EditorPart {
 			Agent agent = (Agent) element;
 			return agent.getDn().matches(searchString) || agent.getHostname().matches(searchString)
 					|| agent.getJid().matches(searchString) || agent.getIpAddresses().matches(searchString)
-					|| agent.getMacAddresses().matches(searchString) || agent.getPropertyValue("os.distributionName").matches(searchString);
+					|| agent.getMacAddresses().matches(searchString) 
+					|| (agent.getPropertyValue("os.distributionName") + agent.getPropertyValue("os.distributionVersion")).matches(searchString);
 		}
 	}
 
@@ -279,7 +280,7 @@ public class AgentInfoEditor extends EditorPart {
 
 		// DN
 		TableViewerColumn dnColumn = SWTResourceManager.createTableViewerColumn(tableViewer, Messages.getString("DN"),
-				170);
+				160);
 		dnColumn.getColumn().setAlignment(SWT.LEFT);
 		dnColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
@@ -293,7 +294,7 @@ public class AgentInfoEditor extends EditorPart {
 
 		// JID
 		TableViewerColumn jidColumn = SWTResourceManager.createTableViewerColumn(tableViewer, Messages.getString("JID"),
-				110);
+				70);
 		jidColumn.getColumn().setAlignment(SWT.LEFT);
 		jidColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
@@ -321,7 +322,7 @@ public class AgentInfoEditor extends EditorPart {
 
 		// IP addresses
 		TableViewerColumn ipColumn = SWTResourceManager.createTableViewerColumn(tableViewer,
-				Messages.getString("IP_ADDRESS"), 130);
+				Messages.getString("IP_ADDRESS"), 100);
 		ipColumn.getColumn().setAlignment(SWT.LEFT);
 		ipColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
@@ -336,7 +337,7 @@ public class AgentInfoEditor extends EditorPart {
 		
 		// MAC addresses
 		TableViewerColumn macColumn = SWTResourceManager.createTableViewerColumn(tableViewer,
-				Messages.getString("MAC_ADDRESS"), 150);
+				Messages.getString("MAC_ADDRESS"), 130);
 		macColumn.getColumn().setAlignment(SWT.LEFT);
 		macColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
@@ -351,14 +352,75 @@ public class AgentInfoEditor extends EditorPart {
 
 		//OS Name
 		TableViewerColumn osNameColumn = SWTResourceManager.createTableViewerColumn(tableViewer,
-				Messages.getString("OS"), 140);
+				Messages.getString("OS"), 120);
 		osNameColumn.getColumn().setAlignment(SWT.LEFT);
 		osNameColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
 				if (element instanceof Agent) {
 					String osName = ((Agent) element).getPropertyValue("os.distributionName");
+					osName += " " + ((Agent) element).getPropertyValue("os.distributionVersion");
 					return osName != null ? osName.trim() : "-";
+				}
+				return Messages.getString("UNTITLED");
+			}
+		});
+		
+		//Brand
+		TableViewerColumn brandColumn = SWTResourceManager.createTableViewerColumn(tableViewer,
+				Messages.getString("BRAND"), 60);
+		brandColumn.getColumn().setAlignment(SWT.LEFT);
+		brandColumn.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof Agent) {
+					String brand = ((Agent) element).getPropertyValue("hardware.baseboard.manufacturer");
+					return brand != null ? brand.trim() : "-";
+				}
+				return Messages.getString("UNTITLED");
+			}
+		});
+		
+		//Model
+		TableViewerColumn modelColumn = SWTResourceManager.createTableViewerColumn(tableViewer,
+				Messages.getString("MODEL"), 60);
+		modelColumn.getColumn().setAlignment(SWT.LEFT);
+		modelColumn.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof Agent) {
+					String model = ((Agent) element).getPropertyValue("hardware.model.version");
+					return model != null ? model.trim() : "-";
+				}
+				return Messages.getString("UNTITLED");
+			}
+		});
+		
+		//Memory
+		TableViewerColumn memoryColumn = SWTResourceManager.createTableViewerColumn(tableViewer,
+				Messages.getString("MEMORY"), 60);
+		memoryColumn.getColumn().setAlignment(SWT.LEFT);
+		memoryColumn.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof Agent) {
+					String memory = ((Agent) element).getPropertyValue("hardware.memory.total");
+					return memory != null ? memory.trim() : "-";
+				}
+				return Messages.getString("UNTITLED");
+			}
+		});
+		
+		//Disk
+		TableViewerColumn diskColummn = SWTResourceManager.createTableViewerColumn(tableViewer,
+				Messages.getString("DISK"), 60);
+		diskColummn.getColumn().setAlignment(SWT.LEFT);
+		diskColummn.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof Agent) {
+					String disk = ((Agent) element).getPropertyValue("hardware.disk.total");
+					return disk != null ? disk.trim() : "-";
 				}
 				return Messages.getString("UNTITLED");
 			}
@@ -366,7 +428,7 @@ public class AgentInfoEditor extends EditorPart {
 		
 		// Create date
 		TableViewerColumn createDateColumn = SWTResourceManager.createTableViewerColumn(tableViewer,
-				Messages.getString("CREATE_DATE"), 120);
+				Messages.getString("CREATE_DATE"), 150);
 		createDateColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
@@ -381,7 +443,7 @@ public class AgentInfoEditor extends EditorPart {
 
 		// Modify date
 		TableViewerColumn modifyDateColumn = SWTResourceManager.createTableViewerColumn(tableViewer,
-				Messages.getString("MODIFY_DATE"), 100);
+				Messages.getString("MODIFY_DATE"), 80);
 		modifyDateColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
