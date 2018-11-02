@@ -169,5 +169,15 @@ public class Agent implements Serializable {
 	public void setSessions(Set<UserSession> sessions) {
 		this.sessions = sessions;
 	}
+	
+	public String getPropertyValue(String propertyName) {
+		String propertyValue = "";
+		for(AgentProperty p: this.properties) {
+			if(p.getPropertyName() != null && p.getPropertyName().equals(propertyName)) {
+				propertyValue = p.getPropertyValue();
+			}
+		}
+		return propertyValue;
+	}
 
 }
