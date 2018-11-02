@@ -351,14 +351,12 @@ public class XMPPClient {
 													LdapConnectionListener.getMonitor());
 									if (dn != null && !dn.isEmpty()) {
 										if (presence.getType() == Type.available) {
-											TreePaintListener.getInstance().put(dn, true);
+											TreePaintListener.getInstance().put(uid, true);
 											
 											onlineCount++;
-											
-											
 										
 										} else if (presence.getType() == Type.unavailable) {
-											TreePaintListener.getInstance().put(dn, false);
+											TreePaintListener.getInstance().put(uid, false);
 										}
 									}
 								} catch (Exception e) {

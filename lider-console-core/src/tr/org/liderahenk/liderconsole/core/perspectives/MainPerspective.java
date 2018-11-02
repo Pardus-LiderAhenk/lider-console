@@ -27,8 +27,8 @@ import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPerspectiveFactory;
 
 import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
-import tr.org.liderahenk.liderconsole.core.editors.LiderMainEditor;
 import tr.org.liderahenk.liderconsole.core.views.LdapBrowserView;
+import tr.org.liderahenk.liderconsole.core.views.LiderTaskLoggerView;
 
 public class MainPerspective implements IPerspectiveFactory {
 
@@ -59,6 +59,7 @@ public class MainPerspective implements IPerspectiveFactory {
 		IFolderLayout connectionFolder = layout.createFolder("connectionFolder", 4, 0.75F, "browserFolder");
 		// connectionFolder.addView(LiderLoginView.getId());
 		 connectionFolder.addView(ConnectionView.getId());
+		 
 
 		// IFolderLayout outlineFolder = layout.createFolder("outlineFolder", 2,
 		// 0.75F, editorArea);
@@ -69,10 +70,11 @@ public class MainPerspective implements IPerspectiveFactory {
 		// progessFolder.addView("org.eclipse.ui.views.ProgressView");
 
 		IFolderLayout logFolder = layout.createFolder("logFolder", 2, 0.75F, editorArea);
+		logFolder.addView(LiderTaskLoggerView.getId());
 		logFolder.addView(ModificationLogsView.getId());
 		logFolder.addView(SearchLogsView.getId());
-		logFolder.addView("org.eclipse.pde.runtime.LogView");
-		logFolder.addPlaceholder("*");
+//		logFolder.addView("org.eclipse.pde.runtime.LogView");
+//		logFolder.addPlaceholder("*");
 
 //		boolean isIDE = CommonUIUtils.isIDEEnvironment();
 //		if (!isIDE) {

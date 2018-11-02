@@ -64,7 +64,7 @@ public class Notifier {
 
 	private static final int FONT_SIZE = 10;
 	private static final int MAX_DURATION_FOR_OPENING = 500;
-	private static final int DISPLAY_TIME = 4500;
+	private static final int DISPLAY_TIME = 2000;
 
 	private static final int FADE_TIMER = 50;
 	private static final int FADE_OUT_STEP = 8;
@@ -205,6 +205,14 @@ public class Notifier {
 				if (mode == NotifierMode.SYSLOG_AND_POPUP || mode == NotifierMode.ONLY_SYSLOG) {
 					writeToSysLog(title, text, description, theme);
 				}
+				
+				
+				if (mode == NotifierMode.ONLY_POPUP) {
+				final Shell shell = createNotificationWindow(image, title, text,
+						NotifierColorsFactory.getColorsForTheme(theme));
+				makeShellAppears(shell);
+				}
+				
 //				if (mode == NotifierMode.SYSLOG_AND_POPUP || mode == NotifierMode.ONLY_POPUP) {
 //					final Shell shell = createNotificationWindow(image, title, text,
 //							NotifierColorsFactory.getColorsForTheme(theme));
@@ -481,8 +489,9 @@ public class Notifier {
 					shell.getDisplay().timerExec(stepForPosition, this);
 				} else {
 					shell.setAlpha(255);
-					Display.getDefault().timerExec(DISPLAY_TIME, fadeOut(shell, false));
+					Display.getDefault().timerExec(DISPLAY_TIME, fadeOut(shell, true));
 				}
+				
 			}
 		});
 
@@ -495,17 +504,24 @@ public class Notifier {
 	 *            if true, the fading is much faster
 	 * @return a runnable
 	 */
+	
+	static int alpha=255;
+	
 	private static Runnable fadeOut(final Shell shell, final boolean fast) {
 		return new Runnable() {
 
 			@Override
 			public void run() {
 				if (shell == null || shell.isDisposed()) {
+					System.out.println("disposed");
 					return;
 				}
 
-				int currentAlpha = shell.getAlpha();
-				currentAlpha -= FADE_OUT_STEP * (fast ? 8 : 1);
+				int currentAlpha = alpha;
+				
+				currentAlpha = currentAlpha -  FADE_OUT_STEP * (fast ? 8 : 1);
+				
+				System.out.println("Current Alpha "+currentAlpha);
 
 				if (currentAlpha <= 0) {
 					shell.setAlpha(0);
@@ -513,7 +529,8 @@ public class Notifier {
 					return;
 				}
 
-				shell.setAlpha(currentAlpha);
+				
+				alpha=currentAlpha;
 
 				Display.getDefault().timerExec(FADE_TIMER, this);
 
@@ -540,6 +557,7 @@ public class Notifier {
 
 				if (event.x >= xUpperLeftCorner && event.x <= xUpperLeftCorner + 8 && event.y >= yUpperLeftCorner
 						&& event.y <= yUpperLeftCorner + 8) {
+					
 					Display.getDefault().timerExec(0, fadeOut(shell, true));
 				}
 

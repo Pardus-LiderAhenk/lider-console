@@ -72,6 +72,9 @@ public class TaskRestUtils {
 
 		// Send POST request to server
 		IResponse response = RestClient.post(task, url.toString());
+		
+		if(response==null) throw new Exception();
+		
 		if (showNotification) {
 			if (response != null && response.getStatus() == RestResponseStatus.OK) {
 				// Notifier.success(null, Messages.getString("TASK_EXECUTED"));

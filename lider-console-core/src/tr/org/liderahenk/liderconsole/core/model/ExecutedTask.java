@@ -57,6 +57,8 @@ public class ExecutedTask implements Serializable {
 	private Boolean scheduled;
 
 	private Date lastExecutionDate;
+	
+	private Long executions;
 
 	public Long getId() {
 		return id;
@@ -144,6 +146,14 @@ public class ExecutedTask implements Serializable {
 
 	public void setLastExecutionDate(Date lastExecutionDate) {
 		this.lastExecutionDate = lastExecutionDate;
+	}
+
+	public Long getExecutions() {
+		return executions;
+	}
+
+	public void setExecutions(Long executions) {
+		this.executions = executions;
 	}
 
 }

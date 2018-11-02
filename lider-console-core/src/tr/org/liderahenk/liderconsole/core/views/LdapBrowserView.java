@@ -8,8 +8,13 @@ import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 
 import org.apache.directory.studio.connection.core.Connection;
+import org.apache.directory.studio.connection.core.io.ConnectionWrapper;
 import org.apache.directory.studio.ldapbrowser.common.BrowserCommonActivator;
+import org.eclipse.core.commands.Command;
 import org.eclipse.e4.core.services.events.IEventBroker;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IMenuListener;
+import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
@@ -40,22 +45,32 @@ import org.eclipse.ui.IWorkbenchPartSite;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.commands.ICommandService;
 import org.eclipse.ui.part.ViewPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
 import tr.org.liderahenk.liderconsole.core.editorinput.DefaultEditorInput;
+import tr.org.liderahenk.liderconsole.core.editors.LiderManagementEditor;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.ldap.listeners.LdapConnectionListener;
 import tr.org.liderahenk.liderconsole.core.ldap.utils.LdapUtils;
 import tr.org.liderahenk.liderconsole.core.ldapProviders.LdapTreeContentProvider;
 import tr.org.liderahenk.liderconsole.core.ldapProviders.LdapTreeLabelProvider;
+import tr.org.liderahenk.liderconsole.core.ldapProviders.SearchResultContentProvider;
+import tr.org.liderahenk.liderconsole.core.ldapProviders.SearchResultLabelProvider;
+import tr.org.liderahenk.liderconsole.core.menu.actions.DeleteAction;
+import tr.org.liderahenk.liderconsole.core.menu.actions.EntryInfoAction;
+import tr.org.liderahenk.liderconsole.core.menu.actions.MoveAction;
+import tr.org.liderahenk.liderconsole.core.menu.actions.RenameAction;
 import tr.org.liderahenk.liderconsole.core.model.LiderLdapEntry;
 import tr.org.liderahenk.liderconsole.core.model.SearchFilterEnum;
 import tr.org.liderahenk.liderconsole.core.utils.LiderCoreUtils;
 import tr.org.liderahenk.liderconsole.core.utils.SWTResourceManager;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
+import tr.org.liderahenk.liderconsole.core.widgets.Notifier.NotifierMode;
+import tr.org.liderahenk.liderconsole.core.widgets.NotifierColorsFactory.NotifierTheme;
 
 public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 	public LdapBrowserView() {
@@ -71,7 +86,7 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 	private Combo comboSearchValue;
 
 	private final IEventBroker eventBroker = (IEventBroker) PlatformUI.getWorkbench().getService(IEventBroker.class);
-	
+
 	private List<String> allAgents;
 
 	/**
@@ -96,10 +111,13 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 
 	private CLabel lbOnlineAgentslInfo;
 	private Label lblAllAgentInfo;
-	private Image offlineImage = new Image(Display.getDefault(), this.getClass().getClassLoader().getResourceAsStream("icons/32/offline-red-mini.png"));
-	private Image onlineImage = new Image(Display.getDefault(), this.getClass().getClassLoader().getResourceAsStream("icons/32/online-mini.png"));
+	private Image offlineImage = new Image(Display.getDefault(),
+			this.getClass().getClassLoader().getResourceAsStream("icons/32/offline-red-mini.png"));
+	private Image onlineImage = new Image(Display.getDefault(),
+			this.getClass().getClassLoader().getResourceAsStream("icons/32/online-mini.png"));
 	private CLabel lblOfflineAgentInfo;
-	
+
+	private ICommandService commandService;
 
 	@Override
 	protected void setSite(IWorkbenchPartSite site) {
@@ -115,7 +133,9 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 		super.init(site);
 
 		eventBroker.subscribe(LiderConstants.EVENT_TOPICS.SEARCH_GROUP_CREATED, null);
-		
+
+		commandService = (ICommandService) PlatformUI.getWorkbench().getService(ICommandService.class);
+
 	}
 
 	@Override
@@ -170,10 +190,9 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 		treeViewer.addSelectionChangedListener(new ISelectionChangedListener() {
 
 			public void selectionChanged(SelectionChangedEvent event) {
-				
+
 				selectEntry(event);
 			}
-
 
 		});
 
@@ -198,7 +217,6 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 
 			}
 
-		
 		});
 
 		Connection connection = LdapConnectionListener.getConnection();
@@ -207,29 +225,114 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 
 		MenuManager menuManager = new MenuManager();
 		Menu menu = menuManager.createContextMenu(treeViewer.getTree());
+
 		// Set the menu on the SWT widget
 		treeViewer.getTree().setMenu(menu);
 		// Register the menu
+
 		getSite().registerContextMenu(menuManager, treeViewer);
 		// Make the viewer selection available
+
 		getSite().setSelectionProvider(treeViewer);
-		
+
+		menuManager.addMenuListener(new IMenuListener() {
+			@Override
+			public void menuAboutToShow(IMenuManager manager) {
+				if (treeViewer.getSelection().isEmpty()) {
+					return;
+				}
+
+				if (treeViewer.getSelection() instanceof IStructuredSelection) {
+					IStructuredSelection selection = (IStructuredSelection) treeViewer.getSelection();
+					Object object = selection.getFirstElement();
+
+					if (object instanceof LiderLdapEntry) {
+						LiderLdapEntry entry = (LiderLdapEntry) object;
+
+						RenameAction renameAction = null;
+						MoveAction moveAction = null;
+						DeleteAction deleteAction= null;
+
+						EntryInfoAction entryInfoAction = new EntryInfoAction(entry);
+						Command renameCommand = commandService
+								.getCommand("tr.org.liderahenk.liderconsole.commands.RenameAgentName");
+						Command moveCommand = commandService
+								.getCommand("tr.org.liderahenk.liderconsole.commands.MoveAgent");
+						
+						Command deleteCommand = commandService
+								.getCommand("tr.org.liderahenk.liderconsole.commands.DeleteAgent");
+
+						if (renameCommand.isDefined())
+							renameAction = new RenameAction(entry, renameCommand);
+
+						if (moveCommand.isDefined())
+							moveAction = new MoveAction(entry, moveCommand);
+						
+						if (deleteCommand.isDefined())
+							deleteAction = new DeleteAction(entry, deleteCommand);
+						
+						
+
+						manager.add(entryInfoAction);
+
+						if (entry.getEntryType() == LiderLdapEntry.PARDUS_DEVICE) {
+							if (renameAction != null)
+								manager.add(renameAction);
+
+							if (moveAction != null)
+								manager.add(moveAction);
+							
+//							if (deleteAction != null)
+//								manager.add(deleteAction);
+							
+
+						} else if (entry.getEntryType() == LiderLdapEntry.PARDUS_ACCOUNT) {
+
+							if (renameAction != null)
+								manager.add(renameAction);
+
+							if (moveAction != null)
+								manager.add(moveAction);
+
+							if (deleteAction != null)
+								manager.add(deleteAction);
+							
+							
+						} else if (entry.getEntryType() == LiderLdapEntry.PARDUS_ORGANIZATIONAL_UNIT) {
+						} else {
+
+						}
+
+					}
+
+					else if (object instanceof String) {
+
+						RefreshAction refreshAction = new RefreshAction();
+						manager.add(refreshAction);
+					}
+				}
+			}
+		});
+
+		menuManager.setRemoveAllWhenShown(true);
+
+		treeViewer.getControl().setMenu(menu);
+
 		compositeInfo = new Composite(composite, SWT.NONE);
 		compositeInfo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 		compositeInfo.setLayout(new GridLayout(2, false));
-		
+
 		lblAllAgentInfo = new Label(compositeInfo, SWT.NONE);
 		lblAllAgentInfo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
-		
+
 		lbOnlineAgentslInfo = new CLabel(compositeInfo, SWT.NONE);
 		lbOnlineAgentslInfo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
-		
+
 		lblOfflineAgentInfo = new CLabel(compositeInfo, SWT.NONE);
 		lblOfflineAgentInfo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		
-		
-		
-		  // roster degisimlerini dinliyoruz.
+
+		// roster degisimlerini dinliyoruz.
+
 	}
 
 	public void setInput(Object input) {
@@ -238,7 +341,7 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 			treeViewer.expandToLevel(1);
 
 		// treeViewer.refresh();
-		
+
 	}
 
 	public void setInputForSearchResult(Object input) {
@@ -372,7 +475,7 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 		return treeViewer;
 	}
 
-	private void searchEntry() {
+	public void searchEntry() {
 		int selectionIndex = comboAttribute.getSelectionIndex();
 		String itemAttribute = null;
 		if (selectionIndex != -1)
@@ -387,7 +490,7 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 		if ("".equals(itemSearchValue))
 			return;
 
-		itemSearchValue = itemSearchValue.toUpperCase();
+		// itemSearchValue = itemSearchValue.toUpperCase();
 
 		StringBuffer filter = new StringBuffer();
 
@@ -423,6 +526,8 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 
 		if (entries == null) {
 			Notifier.warning("UYARI", "Aradığınız Kayıt Bulunamadı");
+			Notifier.notify(null, "UYARI", Messages.getString("entry_not_found"), "", NotifierTheme.WARNING_THEME,
+					NotifierMode.ONLY_POPUP);
 		} else {
 			List<LiderLdapEntry> entryList = LiderCoreUtils.convertSearchResult2LiderLdapEntry(entries);
 
@@ -482,129 +587,12 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 	 *
 	 */
 
-	public class SearchResultContentProvider implements ITreeContentProvider {
-
-		private LiderLdapEntry mainEntry;
-
-		public SearchResultContentProvider() {
-		}
-
-		@Override
-		public void dispose() {
-
-		}
-
-		@Override
-		public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-		}
-
-		@Override
-		public Object[] getElements(Object inputElement) {
-			if (inputElement instanceof LiderLdapEntry) {
-
-				mainEntry = (LiderLdapEntry) inputElement;
-				return new String[] { ((LiderLdapEntry) inputElement).getName() };
-			}
-
-			return new Object[] {};
-		}
-
-		@Override
-		public Object[] getChildren(Object parentElement) {
-
-			if (parentElement instanceof String) {
-				return new LiderLdapEntry[] { mainEntry.getChildren() };
-			}
-
-			else if (parentElement instanceof LiderLdapEntry) {
-				return new LiderLdapEntry[] { ((LiderLdapEntry) parentElement).getChildren() };
-			}
-			return new Object[] { "Merhaba" };
-		}
-
-		@Override
-		public Object getParent(Object element) {
-			return null;
-		}
-
-		@Override
-		public boolean hasChildren(Object element) {
-			if (element instanceof LiderLdapEntry) {
-				if (((LiderLdapEntry) element).getChildren() != null)
-					return true;
-
-			} else if (element instanceof String)
-				return true;
-			return false;
-		}
-
-	}
-
-	public class SearchResultLabelProvider implements ILabelProvider {
-
-		@Override
-		public void addListener(ILabelProviderListener listener) {
-
-		}
-
-		@Override
-		public void dispose() {
-		}
-
-		@Override
-		public boolean isLabelProperty(Object element, String property) {
-			return false;
-		}
-
-		@Override
-		public void removeListener(ILabelProviderListener listener) {
-		}
-
-		@Override
-		public Image getImage(Object obj) {
-			if (obj instanceof String) {
-
-				if (((String) obj).startsWith("dc")) {
-					return BrowserCommonActivator.getDefault().getImage("resources/icons/entry_dc.gif");
-				}
-			}
-			if (obj instanceof LiderLdapEntry) {
-
-				LiderLdapEntry res = (LiderLdapEntry) obj;
-
-				if (res.getName().startsWith("cn")) {
-					return BrowserCommonActivator.getDefault().getImage("resources/icons/entry_person.gif");
-
-				} else if (res.getName().startsWith("ou")) {
-					return BrowserCommonActivator.getDefault().getImage("resources/icons/entry_org.gif");
-				}
-			}
-			return PlatformUI.getWorkbench().getSharedImages().getImage("IMG_OBJ_FOLDER");
-		}
-
-		@Override
-		public String getText(Object element) {
-			if (element instanceof LiderLdapEntry) {
-
-				return ((LiderLdapEntry) element).getShortName();
-			}
-			return element.toString();
-		}
-
-	}
-	
-	
-	
-
-
 	private void selectEntry(SelectionChangedEvent event) {
-		
+
 		IStructuredSelection selection = (IStructuredSelection) event.getSelection();
-		
-		
+
 		if (selection.size() > 0) {
-			
-			
+
 			final List<LiderLdapEntry> liderLdapEntries = new ArrayList<>();
 			final List<LiderLdapEntry> liderSearchResultLdapEntries = new ArrayList<>();
 
@@ -620,11 +608,10 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 					}
 				}
 			}
-
 			if (liderSearchResultLdapEntries.size() > 0) {
 				openLiderManagementEditor(liderSearchResultLdapEntries);
-				LdapBrowserView browserView = (LdapBrowserView) PlatformUI.getWorkbench()
-						.getActiveWorkbenchWindow().getActivePage().findView(LdapBrowserView.getId());
+				LdapBrowserView browserView = (LdapBrowserView) PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+						.getActivePage().findView(LdapBrowserView.getId());
 				browserView.setInputForSearchResult(liderSearchResultLdapEntries.get(0));
 			}
 
@@ -635,11 +622,9 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 
 		}
 	}
-	
-	
+
 	public void openLiderManagementEditor(final List<LiderLdapEntry> liderLdapEntries) {
-		
-		
+
 		final IWorkbench workbench = PlatformUI.getWorkbench();
 		IWorkbenchWindow[] windows = workbench.getWorkbenchWindows();
 		if (windows != null && windows.length > 0) {
@@ -653,24 +638,27 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 						DefaultEditorInput input = new DefaultEditorInput("Lider_Management");
 						input.setLiderLdapEntries(liderLdapEntries);
 
-//						LiderManagementEditor editor = (LiderManagementEditor) activePage.findEditor(input);
-//
-//						if (editor != null) {
-							activePage.closeAllEditors(false);
-							
-//						}
-							
-//						if( liderLdapEntries.size()==1) {
-//							
-//							LiderLdapEntry entry= liderLdapEntries.get(0);
-//							
-//							if(entry.getEntryType()== LiderLdapEntry.PARDUS_DEVICE)
-//							
-//							activePage.openEditor(input, "tr.org.liderahenk.liderconsole.core.editors.LiderPardusDeviceEditor", false);
-//							
-//						}
-						
-						activePage.openEditor(input,LiderConstants.EDITORS.LIDER_MANAGEMENT_EDITOR, false);
+						 LiderManagementEditor editor = (LiderManagementEditor)	 activePage.findEditor(input);
+						//
+						if (editor != null) {
+							activePage.closeEditor(editor, true);
+						//activePage.closeAllEditors(false);
+
+						 }
+
+						// if( liderLdapEntries.size()==1) {
+						//
+						// LiderLdapEntry entry= liderLdapEntries.get(0);
+						//
+						// if(entry.getEntryType()== LiderLdapEntry.PARDUS_DEVICE)
+						//
+						// activePage.openEditor(input,
+						// "tr.org.liderahenk.liderconsole.core.editors.LiderPardusDeviceEditor",
+						// false);
+						//
+						// }
+
+						activePage.openEditor(input, LiderConstants.EDITORS.LIDER_MANAGEMENT_EDITOR, false);
 
 					} catch (PartInitException e) {
 						e.printStackTrace();
@@ -680,31 +668,30 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 		}
 	}
 
-
-
 	public void setlblAllAgentInfo() {
 		lblAllAgentInfo.setText("Toplam İstemci : " + allAgents.size());
-		
-		if(allAgents!=null) {
-			lblOfflineAgentInfo.setText("Offline : "+ (allAgents.size() - onlineAgentCount));
+
+		if (allAgents != null) {
+			lblOfflineAgentInfo.setText("Offline : " + (allAgents.size() - onlineAgentCount));
 			lblOfflineAgentInfo.setImage(offlineImage);
 		}
-		
+
 	}
-	
+
 	int onlineAgentCount;
+
 	public void setlbOnlineAgentslInfo(int onlineAgentCount) {
-		
-		this.onlineAgentCount=onlineAgentCount;
-		
-		lbOnlineAgentslInfo.setText("Online : "+ onlineAgentCount);
+
+		this.onlineAgentCount = onlineAgentCount;
+
+		lbOnlineAgentslInfo.setText("Online : " + onlineAgentCount);
 		lbOnlineAgentslInfo.setImage(onlineImage);
-		
-		if(allAgents!=null) {
-		lblOfflineAgentInfo.setText("Offline : "+ (allAgents.size() - onlineAgentCount));
-		lblOfflineAgentInfo.setImage(offlineImage);
+
+		if (allAgents != null) {
+			lblOfflineAgentInfo.setText("Offline : " + (allAgents.size() - onlineAgentCount));
+			lblOfflineAgentInfo.setImage(offlineImage);
 		}
-		
+
 	}
 
 	public List<String> getAllAgents() {
@@ -714,7 +701,23 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 	public void setAllAgents(List<String> allAgents) {
 		this.allAgents = allAgents;
 	}
-	
 
-	
+	// Pop Up menu actions
+
+	public class RefreshAction extends Action {
+
+		public RefreshAction() {
+			super(Messages.getString("refresh"));
+		}
+
+		public void run() {
+
+			ConnectionWrapper connection = LdapConnectionListener.getConnection().getConnectionWrapper();
+
+			if (connection.isConnected()) {
+				treeViewer.refresh();
+			}
+		}
+	}
+
 }
