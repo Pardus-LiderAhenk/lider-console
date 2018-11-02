@@ -67,6 +67,8 @@ import tr.org.liderahenk.liderconsole.core.utils.PdfExporter;
 import tr.org.liderahenk.liderconsole.core.utils.SWTResourceManager;
 import tr.org.liderahenk.liderconsole.core.widgets.LiderConfirmBox;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
+import tr.org.liderahenk.liderconsole.core.widgets.Notifier.NotifierMode;
+import tr.org.liderahenk.liderconsole.core.widgets.NotifierColorsFactory.NotifierTheme;
 
 /**
  * Default task dialog implementation that can be used by plugins in order to
@@ -127,7 +129,7 @@ public abstract class DefaultTaskDialog extends Dialog {
 		this.hideActivationDate = false;
 		init();
 	}
-
+	
 	public DefaultTaskDialog(Shell parentShell, String dn) {
 		super(parentShell);
 		this.dnSet.add(dn);
@@ -340,11 +342,12 @@ public abstract class DefaultTaskDialog extends Dialog {
 		// Task-related inputs
 		createTaskDialogArea(container);
 		// Activation date inputs
-		//if (!hideActivationDate) {
+		if (!hideActivationDate) {
 		
 		horizantalSeperator = new Label(container, SWT.SEPARATOR | SWT.HORIZONTAL);
 		horizantalSeperator.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1));
 		createTaskActivationDateArea(container);
+		}
 		
 		// Progress bar
 		progressBar = new ProgressBar(container, SWT.SMOOTH | SWT.INDETERMINATE);
@@ -639,6 +642,7 @@ public abstract class DefaultTaskDialog extends Dialog {
 		} catch (ValidationException e) {
 			if (e.getMessage() != null && !"".equals(e.getMessage())) {
 				Notifier.warning(null, e.getMessage());
+				Notifier.notify(null, "Title", e.getMessage(), "", NotifierTheme.WARNING_THEME, NotifierMode.ONLY_POPUP);
 			} else {
 				Notifier.error(null, Messages.getString("ERROR_ON_VALIDATE"));
 			}

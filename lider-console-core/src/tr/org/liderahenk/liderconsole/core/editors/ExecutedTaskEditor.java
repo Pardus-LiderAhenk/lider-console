@@ -71,6 +71,8 @@ import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
  *
  */
 public class ExecutedTaskEditor extends EditorPart {
+	public ExecutedTaskEditor() {
+	}
 
 	private static final Logger logger = LoggerFactory.getLogger(ExecutedTaskEditor.class);
 

@@ -1,5 +1,6 @@
 package tr.org.liderahenk.liderconsole.core.editors;
 
+import org.eclipse.core.commands.Command;
 import org.eclipse.swt.widgets.Button;
 
 public class PluginTaskWrapper {
@@ -20,13 +21,14 @@ public class PluginTaskWrapper {
 	Button taskButton;
 
 	String imagePath;
+	
+	Command command;
 
 	public PluginTaskWrapper() {
-		// TODO Auto-generated constructor stub
 	}
 
 	public PluginTaskWrapper(String label, String pluginName, String pluginVersion, String taskCommandId,
-			String selectionType, String description, String imagePath) {
+			String selectionType, String description, String imagePath, Command command) {
 		super();
 		this.label = label;
 		this.pluginName = pluginName;
@@ -35,6 +37,7 @@ public class PluginTaskWrapper {
 		this.selectionType = selectionType;
 		this.description = description;
 		this.imagePath = imagePath;
+		this.command=command;
 	}
 
 	public String getLabel() {
@@ -105,6 +108,14 @@ public class PluginTaskWrapper {
 
 	public void setImagePath(String imagePath) {
 		this.imagePath = imagePath;
+	}
+
+	public Command getCommand() {
+		return command;
+	}
+
+	public void setCommand(Command command) {
+		this.command = command;
 	}
 
 

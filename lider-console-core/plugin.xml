@@ -295,6 +295,11 @@
                icon="icons/16/report.png">
 		</menu>
 	  </menuContribution>
+	  
+	  
+	  
+	  
+	  
       <menuContribution
             locationURI="menu:tr.org.liderahenk.liderconsole.menus.Reporting?after=additions">
 		<command
@@ -310,14 +315,15 @@
 	          tooltip="%command.report.view">
         </command>
 	  </menuContribution>
-	  
+	 
+	 
+	 <!--
       <menuContribution
             locationURI="popup:org.apache.directory.studio.ldapbrowser.ui.views.browser.BrowserView?after=additions">
          <menu
                id="tr.org.liderahenk.liderconsole.menus.ApplyPolicy"
                label="%menu.label.apply.policy">
          </menu>
-         <!-- Plugins may contribute to this menu: -->
          <menu
                id="tr.org.liderahenk.liderconsole.menus.ApplyTask"
                label="%menu.label.apply.task">
@@ -352,7 +358,6 @@
                id="tr.org.liderahenk.liderconsole.menus.ApplyPolicy"
                label="%menu.label.apply.policy">
          </menu>
-         <!-- Plugins may contribute to this menu: -->
          <menu
                id="tr.org.liderahenk.liderconsole.menus.ApplyTask"
                label="%menu.label.apply.task">
@@ -367,7 +372,6 @@
                id="tr.org.liderahenk.liderconsole.menus.ApplyPolicy"
                label="%menu.label.apply.policy">
          </menu>
-         <!-- Plugins may contribute to this menu: -->
          <menu
                id="tr.org.liderahenk.liderconsole.menus.ApplyTask"
                label="%menu.label.apply.task">
@@ -454,6 +458,160 @@
                </visibleWhen>
             </command>
 	  </menuContribution>
+	  
+	  -->
+	  
+	  
+   <menuContribution
+         locationURI="toolbar:org.eclipse.ui.main.toolbar">
+      <toolbar
+            id="tr.org.liderahenk.liderconsole.core.toolbar"
+            label="Lider">
+            
+         <command
+	          commandId="tr.org.liderahenk.liderconsole.core.commands.PolicyDefinition"
+	          id="tr.org.liderahenk.liderconsole.core.commands.PolicyDefinition"
+	          icon="icons/16/liderahenk.png"
+	          tooltip="%command.policy.definition">
+	          <visibleWhen>
+               <with
+                     variable="tr.org.liderahenk.liderconsole.core.sourceproviders.main.available">
+                  <equals
+                        value="true">
+                  </equals>
+               </with>
+            </visibleWhen>
+        </command> 
+            
+         <command
+               commandId="tr.org.liderahenk.liderconsole.core.commands.AgentInfo"
+               icon="icons/16/script-code.png"
+               label="Agent Info"
+               style="push">
+            <visibleWhen>
+               <with
+                     variable="tr.org.liderahenk.liderconsole.core.sourceproviders.main.available">
+                  <equals
+                        value="true">
+                  </equals>
+               </with>
+            </visibleWhen>
+         </command>
+         
+         
+         <command
+	          commandId="tr.org.liderahenk.liderconsole.core.commands.MailConfiguration"
+	          id="tr.org.liderahenk.liderconsole.core.commands.MailConfiguration"
+	          icon="icons/16/chart-flow.png"
+	          label="Mail Configuraiton"
+	          tooltip="%command.mailconfiguration">
+	          
+	          <visibleWhen>
+               <with
+                     variable="tr.org.liderahenk.liderconsole.core.sourceproviders.main.available">
+                  <equals
+                        value="true">
+                  </equals>
+               </with>
+            </visibleWhen>
+        </command>
+        
+        
+        		<command
+	          commandId="tr.org.liderahenk.liderconsole.core.commands.ExecutedTask"
+	          id="tr.org.liderahenk.liderconsole.core.commands.ExecutedTask"
+	          icon="icons/16/task-done.png"
+	          tooltip="%command.executed.task">
+	          <visibleWhen>
+               <with
+                     variable="tr.org.liderahenk.liderconsole.core.sourceproviders.main.available">
+                  <equals
+                        value="true">
+                  </equals>
+               </with>
+            </visibleWhen>
+        </command>
+        
+		<command
+	          commandId="tr.org.liderahenk.liderconsole.core.commands.AppliedPolicy"
+	          id="tr.org.liderahenk.liderconsole.core.commands.AppliedPolicy"
+	          icon="icons/16/task-done.png"
+	          tooltip="%command.applied.policy">
+	          <visibleWhen>
+               <with
+                     variable="tr.org.liderahenk.liderconsole.core.sourceproviders.main.available">
+                  <equals
+                        value="true">
+                  </equals>
+               </with>
+            </visibleWhen>
+        </command>
+        
+		<command
+	          commandId="tr.org.liderahenk.liderconsole.commands.LdapSearch"
+	          id="tr.org.liderahenk.liderconsole.commands.LdapSearch"
+	          icon="icons/16/ldap.png"
+	          tooltip="%command.ldap.search">
+	           <visibleWhen>
+               <with
+                     variable="tr.org.liderahenk.liderconsole.core.sourceproviders.main.available">
+                  <equals
+                        value="true">
+                  </equals>
+               </with>
+            </visibleWhen>
+        </command>
+        
+		<command
+	          commandId="tr.org.liderahenk.liderconsole.commands.InstalledPlugins"
+	          id="tr.org.liderahenk.liderconsole.commands.InstalledPlugins"
+	          icon="icons/16/server.png"
+	          tooltip="%command.installed.plugins">
+	          <visibleWhen>
+               <with
+                     variable="tr.org.liderahenk.liderconsole.core.sourceproviders.main.available">
+                  <equals
+                        value="true">
+                  </equals>
+               </with>
+            </visibleWhen>
+        </command>
+        
+        <command
+	          commandId="tr.org.liderahenk.liderconsole.core.commands.ReportTemplate"
+	          id="tr.org.liderahenk.liderconsole.core.commands.ReportTemplate"
+	          icon="icons/16/report.png"
+	          tooltip="%command.report.template">
+	           <visibleWhen>
+               <with
+                     variable="tr.org.liderahenk.liderconsole.core.sourceproviders.main.available">
+                  <equals
+                        value="true">
+                  </equals>
+               </with>
+            </visibleWhen>
+        </command>
+		<command
+	          commandId="tr.org.liderahenk.liderconsole.core.commands.ReportView"
+	          id="tr.org.liderahenk.liderconsole.core.commands.ReportView"
+	          icon="icons/16/report.png"
+	          tooltip="%command.report.view">
+	           <visibleWhen>
+               <with
+                     variable="tr.org.liderahenk.liderconsole.core.sourceproviders.main.available">
+                  <equals
+                        value="true">
+                  </equals>
+               </with>
+            </visibleWhen>
+        </command>
+		
+         
+         
+      </toolbar>
+   </menuContribution>
+   
+
   	</extension>
   	
  	<!-- EDITORS -->
@@ -606,6 +764,16 @@
             name="%view.ldap.browser"
             restorable="true">
       </view>
+      
+      <view
+            allowMultiple="false"
+            category="tr.org.liderahenk.liderconsole.core.category"
+            class="tr.org.liderahenk.liderconsole.core.views.LiderTaskLoggerView"
+            icon="icons/16/ldap.png"
+            id="tr.org.liderahenk.liderconsole.core.views.LiderTaskLoggerView"
+            name="%view.task.logger"
+            restorable="true">
+      </view>
    </extension>
    
    <!-- SERVICES -->
@@ -644,7 +812,7 @@
 	  </sourceProvider>
    </extension>
    
-	<!-- VALUE EDITORS -->
+	<!-- VALUE EDITORS 	-->
 	<extension
          point="org.apache.directory.studio.valueeditors">
 	     <valueEditor
@@ -654,6 +822,8 @@
 	       <attribute attributeType="liderPrivilege"/>
 	    </valueEditor>
    	</extension>
+   	
+   
    	
    	<!-- PREFERENCE PAGES -->
 	<extension
