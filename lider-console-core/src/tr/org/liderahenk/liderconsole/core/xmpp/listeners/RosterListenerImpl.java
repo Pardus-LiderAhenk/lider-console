@@ -66,9 +66,12 @@ public class RosterListenerImpl implements RosterListener {
 							LdapConnectionListener.getMonitor());
 			if (dn != null && !dn.isEmpty()) {
 				if (presence.getType() == Type.available) {
-					TreePaintListener.getInstance().put(dn, true);
+					System.out.println("entriesAddedOrUpdated");
+					TreePaintListener.getInstance().put(jid, true);
+					
 				} else if (presence.getType() == Type.unavailable) {
-					TreePaintListener.getInstance().put(dn, false);
+					System.out.println("entriesAddedOrUpdated");
+					TreePaintListener.getInstance().put(jid, false);
 				}
 			}
 
@@ -90,7 +93,8 @@ public class RosterListenerImpl implements RosterListener {
 					: LdapUtils.getInstance().findDnByUid(jid, LdapConnectionListener.getConnection(),
 							LdapConnectionListener.getMonitor());
 			if (dn != null && !dn.isEmpty()) {
-				TreePaintListener.getInstance().put(dn, false);
+				System.out.println("entriesDeleted");
+				TreePaintListener.getInstance().put(jid, false);
 			}
 		}
 
@@ -109,15 +113,15 @@ public class RosterListenerImpl implements RosterListener {
 						LdapConnectionListener.getMonitor());
 		if (dn != null && !dn.isEmpty()) {
 			if (presence.getType() == Type.available) {
-				Notifier.notify(null, null, Messages.getString("ROSTER_ONLINE", dn), null, NotifierTheme.INFO_THEME,
-						NotifierMode.ONLY_SYSLOG);
-				TreePaintListener.getInstance().put(dn, true);
+				Notifier.notify(null, null, Messages.getString("ROSTER_ONLINE", dn), null, NotifierTheme.INFO_THEME,	NotifierMode.ONLY_SYSLOG);
+				System.out.println("presenceChanged");
+				TreePaintListener.getInstance().put(jid, true);
 				onlineAgentPresenceMap.put(dn, true);
 
 			} else if (presence.getType() == Type.unavailable) {
-				Notifier.notify(null, null, Messages.getString("ROSTER_OFFLINE", dn), null, NotifierTheme.INFO_THEME,
-						NotifierMode.ONLY_SYSLOG);
-				TreePaintListener.getInstance().put(dn, false);
+				Notifier.notify(null, null, Messages.getString("ROSTER_OFFLINE", dn), null, NotifierTheme.INFO_THEME, 	NotifierMode.ONLY_SYSLOG);
+				System.out.println("presenceChanged");
+				TreePaintListener.getInstance().put(jid, false);
 				onlineAgentPresenceMap.put(dn, false);
 			}
 		}

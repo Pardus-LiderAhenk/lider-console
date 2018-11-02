@@ -64,7 +64,7 @@ public class TaskNotificationListener implements StanzaListener, StanzaFilter {
 		if (stanza instanceof Message) {
 			Message msg = (Message) stanza;
 			// All messages from agents are type normal
-			if (Message.Type.normal.equals(msg.getType()) && messagePattern.matcher(msg.getBody()).matches()) {
+			if ( (Message.Type.normal.equals(msg.getType()) || Message.Type.chat.equals(msg.getType())) && messagePattern.matcher(msg.getBody()).matches()) {
 				return true;
 			}
 		}
