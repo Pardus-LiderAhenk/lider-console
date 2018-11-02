@@ -61,7 +61,10 @@ import tr.org.liderahenk.liderconsole.core.ldap.utils.LdapUtils;
 import tr.org.liderahenk.liderconsole.core.rest.responses.IResponse;
 import tr.org.liderahenk.liderconsole.core.rest.utils.TaskRestUtils;
 import tr.org.liderahenk.liderconsole.core.views.LdapBrowserView;
+import tr.org.liderahenk.liderconsole.core.views.LiderTaskLoggerView;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
+import tr.org.liderahenk.liderconsole.core.widgets.Notifier.NotifierMode;
+import tr.org.liderahenk.liderconsole.core.widgets.NotifierColorsFactory.NotifierTheme;
 import tr.org.liderahenk.liderconsole.core.xmpp.XMPPClient;
 
 /**
@@ -173,6 +176,7 @@ public class LdapConnectionListener implements IConnectionListener {
 		}
 		
 		closeAllEditors();
+		
 	}
 
 	/**
@@ -193,10 +197,15 @@ public class LdapConnectionListener implements IConnectionListener {
 						
 						
 						LdapBrowserView browserView =(LdapBrowserView) activePage.findView(LdapBrowserView.getId());
+						
 						if(browserView!=null)
 						browserView.clearView();
 						
+						LiderTaskLoggerView  liderTaskLoggerView= (LiderTaskLoggerView)activePage.findView(LiderTaskLoggerView.getId());
 						
+						if(liderTaskLoggerView!=null)
+							liderTaskLoggerView.clearView();
+							
 						DefaultEditorInput input= new DefaultEditorInput(Messages.getString("Lider_Management"));
 						LiderManagementEditor editor= (LiderManagementEditor) activePage.findEditor(input);
  	  					 
@@ -281,10 +290,12 @@ public class LdapConnectionListener implements IConnectionListener {
 					IResponse response = null;
 
 					try {
-						response = TaskRestUtils.execute("LIDER-CORE", "1.0.0", "GET-SYSTEM-CONFIG", false);
+						response = TaskRestUtils.execute("LIDER-CORE", "1.0.0", "GET-SYSTEM-CONFIG", true);
 					} catch (Exception e) {
 						logger.error(e.getMessage(), e);
 						Notifier.error(null, Messages.getString("CHECK_LIDER_STATUS_AND_REST_SERVICE"));
+						Notifier.notify(null, "HATA", Messages.getString("CHECK_LIDER_STATUS_AND_REST_SERVICE"), "", NotifierTheme.ERROR_THEME, NotifierMode.ONLY_POPUP);
+						
 						return;
 					}
 					
@@ -299,18 +310,29 @@ public class LdapConnectionListener implements IConnectionListener {
 										config.get("xmppServiceName").toString(), config.get("xmppHost").toString(),
 										new Integer(config.get("xmppPort").toString()));
 								Notifier.success(null, Messages.getString("LIDER_CONNECTION_OPENED"));
+								Notifier.notify(null, "", Messages.getString("LIDER_CONNECTION_OPENED"), "", NotifierTheme.SUCCESS_THEME, NotifierMode.ONLY_POPUP);
 							} catch (Exception e) {
 								logger.error(e.getMessage(), e);
-								Notifier.error(null, Messages.getString("XMPP_CONNECTION_ERROR") + "\n"
-										+ Messages.getString("CHECK_XMPP_SERVER"));
+								Notifier.error(null, Messages.getString("XMPP_CONNECTION_ERROR") + "\n"	+ Messages.getString("CHECK_XMPP_SERVER"));
+								Notifier.notify(null, "HATA", Messages.getString("XMPP_CONNECTION_ERROR") + "\n"	+ Messages.getString("CHECK_XMPP_SERVER"), "", NotifierTheme.ERROR_THEME, NotifierMode.ONLY_POPUP);
+								
 								return;
 							}
 						} else {
 							Notifier.error(null, Messages.getString("XMPP_CONNECTION_ERROR"));
+							Notifier.notify(null, "HATA", Messages.getString("XMPP_CONNECTION_ERROR"), "", NotifierTheme.ERROR_THEME, NotifierMode.ONLY_POPUP);
 						}
 					}
+					
+					
+					
+					
+					
+					
+					
 				} else {
 					Notifier.error(null, Messages.getString("LIDER_SERVICE_ADDRESS_ERROR", configDn));
+					Notifier.notify(null, "HATA", Messages.getString("LIDER_SERVICE_ADDRESS_ERROR"), "", NotifierTheme.ERROR_THEME, NotifierMode.ONLY_POPUP);
 				}
 
 			
@@ -319,12 +341,14 @@ public class LdapConnectionListener implements IConnectionListener {
 				
 			} else {
 				Notifier.error(null, Messages.getString("LIDER_CONFIG_DN_ERROR", configDn));
+				Notifier.notify(null, "HATA", Messages.getString("LIDER_CONFIG_DN_ERROR"), "", NotifierTheme.ERROR_THEME, NotifierMode.ONLY_POPUP);
 			}
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		}
 
 		eventBroker.send("check_lider_status", null);
+		eventBroker.send("ldap_connection_opened", null);
 
 		// Close previous connection if it was opened.
 		if (connWillBeClosed != null && connWillBeClosed.getConnectionWrapper().isConnected()) {
@@ -366,6 +390,8 @@ public class LdapConnectionListener implements IConnectionListener {
 						
 					}
 						
+					
+					
 //						activePage.hideView(activePage.findView(LdapBrowserView.getId()));
 //						
 //						activePage.showView(LdapBrowserView.getId());

@@ -91,6 +91,7 @@ public class TreePaintListener implements Listener {
 	 * @return
 	 */
 	public void put(String dn, Boolean presence) {
+		System.out.println("dn= "+ dn+ "  presence ="+ presence);
 		presenceMap.put(dn, presence);
 	}
 
@@ -186,27 +187,42 @@ public class TreePaintListener implements Listener {
 			if (data instanceof IBookmark) {
 				data = ((IBookmark) data).getEntry();
 			}
-			if (data instanceof IEntry) {
-				IEntry entry = (IEntry) data;
-				String dn = entry.getDn().getName();
-
-				if (presenceMap.containsKey(dn)) {
-					Image miniIcon;
-					if (presenceMap.get(dn) && xmppConnected) {
-						miniIcon = onlineImage;
-					} else {
-						miniIcon = offlineImage;
-					}
-					event.gc.drawImage(miniIcon, event.x, event.y + 8);
-				}
-			}
+//			if (data instanceof IEntry) {
+//				IEntry entry = (IEntry) data;
+//				String dn = entry.getDn().getName();
+//
+//				if (presenceMap.containsKey(dn)) {
+//					Image miniIcon;
+//					if (presenceMap.get(dn) && xmppConnected) {
+//						miniIcon = onlineImage;
+//					} else {
+//						miniIcon = offlineImage;
+//					}
+//					event.gc.drawImage(miniIcon, event.x, event.y + 8);
+//				}
+//			}
 			if (data instanceof LiderLdapEntry) {
 				LiderLdapEntry entry = (LiderLdapEntry) data;
 				String dn = entry.getName();
-				
-				if (presenceMap.containsKey(dn)) {
+				String jid=entry.getUid();
+				if(jid ==null) {
+					
+					
+					if (presenceMap!=null && presenceMap.containsKey(dn)) {
+						Image miniIcon;
+						if (presenceMap.get(dn) && xmppConnected) {
+							miniIcon = onlineImage;
+						} else {
+							miniIcon = offlineImage;
+						}
+						event.gc.drawImage(miniIcon, event.x, event.y + 8);
+					}
+					
+					
+				}
+				else if (presenceMap!=null && presenceMap.containsKey(jid)) {
 					Image miniIcon;
-					if (presenceMap.get(dn) && xmppConnected) {
+					if (presenceMap.get(jid) && xmppConnected) {
 						miniIcon = onlineImage;
 					} else {
 						miniIcon = offlineImage;

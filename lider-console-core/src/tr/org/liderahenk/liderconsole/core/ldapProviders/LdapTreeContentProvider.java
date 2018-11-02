@@ -29,7 +29,6 @@ public class LdapTreeContentProvider implements ITreeContentProvider {
 	public LdapTreeContentProvider(ILdapBrowserView widget) {
 
 		this.viewer = widget.getTreeViewer();
-
 	}
 
 	@Override
@@ -64,7 +63,7 @@ public class LdapTreeContentProvider implements ITreeContentProvider {
 			// String filter = "(objectClass=*)";
 		//	String filter = "(objectClass=inetOrgPerson)";
 			
-			String filter ="(|(objectClass=person)(objectClass=organizationalUnit)(objectClass=pardusDevice))";
+			String filter ="(|(objectClass=person)(objectClass=organizationalUnit)(objectClass=pardusDevice)(objectClass=sudoRole)(objectClass=groupOfNames))";
 			List<SearchResult> entries = LdapUtils.getInstance().searchAndReturnList((String) selectedEntry, filter,
 					null, SearchControls.ONELEVEL_SCOPE, 0, LdapConnectionListener.getConnection(),
 					LdapConnectionListener.getMonitor());

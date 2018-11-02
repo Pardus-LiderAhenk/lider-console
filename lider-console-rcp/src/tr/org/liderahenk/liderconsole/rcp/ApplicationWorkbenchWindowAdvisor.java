@@ -20,6 +20,7 @@
 package tr.org.liderahenk.liderconsole.rcp;
 
 import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.jface.action.ICoolBarManager;
 import org.eclipse.jface.preference.PreferenceManager;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.graphics.Point;
@@ -74,11 +75,12 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
 		IWorkbenchWindowConfigurer configurer = getWindowConfigurer();
 		//configurer.setInitialSize(new Point(500, 500));
 		configurer.setShowCoolBar(true);
-		configurer.setShowStatusLine(true);
-		configurer.setTitle("LİDER AHENK MERKEZİ YÖNETİM SİSTEMİ");
-		configurer.setShowPerspectiveBar(true);
-		configurer.setShowProgressIndicator(true);
-		configurer.setShowMenuBar(true);
+		configurer.setShowStatusLine(false);
+		configurer.setShowPerspectiveBar(false);
+		configurer.setShowProgressIndicator(false);
+		configurer.setShowMenuBar(false);
+		
+		// ICoolBarManager barManager= configurer.getActionBarConfigurer().getCoolBarManager();
 		hookTitleUpdateListeners(configurer);
 	}
 
@@ -300,8 +302,9 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
 		Shell shell = getWindowConfigurer().getWindow().getShell();
         shell.setLocation(100, 400);
 		super.postWindowCreate();
-	//	hideUnusedActions();
-	//	removeUnusedPreferences();
+		System.out.println("Post Window Create ");
+		hideUnusedActions();
+		removeUnusedPreferences();
 	}
 
 	/**
