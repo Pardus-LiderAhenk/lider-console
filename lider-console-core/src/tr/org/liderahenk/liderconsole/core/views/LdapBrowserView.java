@@ -60,6 +60,8 @@ import tr.org.liderahenk.liderconsole.core.ldapProviders.LdapTreeContentProvider
 import tr.org.liderahenk.liderconsole.core.ldapProviders.LdapTreeLabelProvider;
 import tr.org.liderahenk.liderconsole.core.ldapProviders.SearchResultContentProvider;
 import tr.org.liderahenk.liderconsole.core.ldapProviders.SearchResultLabelProvider;
+import tr.org.liderahenk.liderconsole.core.menu.actions.AddLiderUserAction;
+import tr.org.liderahenk.liderconsole.core.menu.actions.AddOuAction;
 import tr.org.liderahenk.liderconsole.core.menu.actions.DeleteAction;
 import tr.org.liderahenk.liderconsole.core.menu.actions.EntryInfoAction;
 import tr.org.liderahenk.liderconsole.core.menu.actions.MoveAction;
@@ -249,18 +251,21 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 					if (object instanceof LiderLdapEntry) {
 						LiderLdapEntry entry = (LiderLdapEntry) object;
 
+						EntryInfoAction entryInfoAction = new EntryInfoAction(entry);
 						RenameAction renameAction = null;
 						MoveAction moveAction = null;
 						DeleteAction deleteAction= null;
-
-						EntryInfoAction entryInfoAction = new EntryInfoAction(entry);
-						Command renameCommand = commandService
-								.getCommand("tr.org.liderahenk.liderconsole.commands.RenameAgentName");
-						Command moveCommand = commandService
-								.getCommand("tr.org.liderahenk.liderconsole.commands.MoveAgent");
+						AddOuAction addOuAction=null;
+						AddLiderUserAction addLiderUserAction=null;
 						
-						Command deleteCommand = commandService
-								.getCommand("tr.org.liderahenk.liderconsole.commands.DeleteAgent");
+						
+						
+						Command renameCommand = commandService.getCommand("tr.org.liderahenk.liderconsole.commands.RenameAgentName");
+						Command moveCommand = commandService.getCommand("tr.org.liderahenk.liderconsole.commands.MoveAgent");
+						Command deleteCommand = commandService.getCommand("tr.org.liderahenk.liderconsole.commands.DeleteAgent");
+						Command addOuCommand = commandService.getCommand("tr.org.liderahenk.liderconsole.commands.AddOu");
+						Command addUserCommand = commandService.getCommand("tr.org.liderahenk.liderconsole.commands.AddUser");
+						
 
 						if (renameCommand.isDefined())
 							renameAction = new RenameAction(entry, renameCommand);
@@ -271,9 +276,18 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 						if (deleteCommand.isDefined())
 							deleteAction = new DeleteAction(entry, deleteCommand);
 						
+						if (addOuCommand.isDefined())
+							addOuAction = new AddOuAction(entry, addOuCommand);
+						
+						if (addUserCommand.isDefined())
+							addLiderUserAction = new AddLiderUserAction(entry, addUserCommand);
+						
 						
 
 						manager.add(entryInfoAction);
+						
+						if(addOuAction!=null)
+						manager.add(addOuAction);
 
 						if (entry.getEntryType() == LiderLdapEntry.PARDUS_DEVICE) {
 							if (renameAction != null)
@@ -297,8 +311,14 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 							if (deleteAction != null)
 								manager.add(deleteAction);
 							
+							if (addLiderUserAction != null)
+								manager.add(addLiderUserAction);
+							
 							
 						} else if (entry.getEntryType() == LiderLdapEntry.PARDUS_ORGANIZATIONAL_UNIT) {
+							if (addLiderUserAction != null)
+								manager.add(addLiderUserAction);
+							
 						} else {
 
 						}

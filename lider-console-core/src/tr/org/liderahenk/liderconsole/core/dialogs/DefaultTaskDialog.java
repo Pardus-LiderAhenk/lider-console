@@ -242,7 +242,7 @@ public abstract class DefaultTaskDialog extends Dialog {
 	 * @return plugin name
 	 */
 	public abstract String getPluginName();
-	
+
 	/**
 	 * 
 	 * @return plugin name
