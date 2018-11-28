@@ -64,6 +64,7 @@ public class LiderConstants {
 		public static final String LIDER_MAINPAGE_EDITOR = "tr.org.liderahenk.liderconsole.core.editors.LiderMainEditor";
 		public static final String LIDER_MAILCONFIGURATION_EDITOR = "tr.org.liderahenk.liderconsole.core.editors.MailConfigurationEditor";
 		public static final String LIDER_SERVICEREPORTONLINEUSER_EDITOR = "tr.org.liderahenk.liderconsole.core.editors.ServiceReportOnlineAhenkEditor";
+		public static final String REGISTRATION_RULES_EDITOR = "tr.org.liderahenk.liderconsole.core.editors.RegistrationRulesEditor";
 	}
 
 	public static final class EXTENSION_POINTS {
@@ -114,6 +115,7 @@ public class LiderConstants {
 		public static final String REST_TASK_BASE_URL = "rest.task.base.url";
 		public static final String REST_SEARCH_GROUP_BASE_URL = "rest.search.group.base.url";
 		public static final String REST_ALLOW_SELF_SIGNED_CERT = "rest.allow.self.signed.cert";
+		public static final String REST_REGISTRATION_RULE_BASE_URL = "rest.registration.rules.base.url";
 		public static final String GUI_INITIAL_PERSPECTIVE_ID = "gui.initial.perspective.id";
 		public static final String XMPP_MAX_RETRY_CONN = "xmpp.max.retry.connection.count";
 		public static final String XMPP_REPLAY_TIMEOUT = "xmpp.packet.replay.timeout";
@@ -132,6 +134,7 @@ public class LiderConstants {
 		public static final String EXECUTED_TASKS_MAX_SIZE = "executed.tasks.max.size";
 		public static final String APPLIED_POLICIES_MAX_SIZE = "applied.policies.max.size";
 		public static final String DATE_FORMAT = "date.format";
+		
 	}
 
 	/**

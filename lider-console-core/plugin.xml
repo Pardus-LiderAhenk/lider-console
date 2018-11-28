@@ -95,6 +95,11 @@
             id="tr.org.liderahenk.liderconsole.core.commands.MailConfiguration"
             name="%command.mailconfiguration">
       </command>
+      <command
+            categoryId="tr.org.liderahenk.liderconsole.commands.category"
+            id="tr.org.liderahenk.liderconsole.core.commands.RegistrationRules"
+            name="%command.registration.rules">
+      </command>
      
    </extension>
    
@@ -141,7 +146,10 @@
             class="tr.org.liderahenk.liderconsole.core.handlers.MailConfigurationHandler"
             commandId="tr.org.liderahenk.liderconsole.core.commands.MailConfiguration">
       </handler>
-	 
+	  <handler
+            class="tr.org.liderahenk.liderconsole.core.handlers.RegistrationRulesHandler"
+            commandId="tr.org.liderahenk.liderconsole.core.commands.RegistrationRules">
+      </handler>
 	  <handler
             class="tr.org.liderahenk.liderconsole.core.handlers.PolicyExecutionSelectHandler"
             commandId="tr.org.liderahenk.liderconsole.core.commands.PolicyExecutionSelect">
@@ -288,6 +296,12 @@
 	          id="tr.org.liderahenk.liderconsole.commands.InstalledPlugins"
 	          icon="icons/16/server.png"
 	          tooltip="%command.installed.plugins">
+        </command>
+		<command
+	          commandId="tr.org.liderahenk.liderconsole.core.commands.RegistrationRules"
+	          id="tr.org.liderahenk.liderconsole.core.commands.RegistrationRules"
+	          icon="icons/16/chart-flow.png"
+	          tooltip="%command.registration.rules">
         </command>
 		<menu
                id="tr.org.liderahenk.liderconsole.menus.Reporting"
@@ -498,6 +512,20 @@
             </visibleWhen>
          </command>
          
+         <command
+               commandId="tr.org.liderahenk.liderconsole.core.commands.RegistrationRules"
+               icon="icons/16/script-code.png"
+               label="Registration Rules"
+               style="push">
+            <visibleWhen>
+               <with
+                     variable="tr.org.liderahenk.liderconsole.core.sourceproviders.main.available">
+                  <equals
+                        value="true">
+                  </equals>
+               </with>
+            </visibleWhen>
+         </command>
          
          <command
 	          commandId="tr.org.liderahenk.liderconsole.core.commands.MailConfiguration"
@@ -697,7 +725,12 @@
 		    id="tr.org.liderahenk.liderconsole.core.editors.ExecutedPolicyEditor"
 		    name="%editor.executed.policy">
 	    </editor> 
-	    
+	    <editor
+		    class="tr.org.liderahenk.liderconsole.core.editors.RegistrationRulesEditor"
+		    icon="icons/16/chart-flow.png"
+		    id="tr.org.liderahenk.liderconsole.core.editors.RegistrationRulesEditor"
+		    name="%editor.registration.rules">
+	    </editor> 
 	</extension>
 
 	<!-- LISTENERS -->	
