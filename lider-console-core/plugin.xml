@@ -97,8 +97,8 @@
       </command>
       <command
             categoryId="tr.org.liderahenk.liderconsole.commands.category"
-            id="tr.org.liderahenk.liderconsole.core.commands.RegistrationRules"
-            name="%command.registration.rules">
+            id="tr.org.liderahenk.liderconsole.core.commands.RegistrationTemplate"
+            name="%command.registration.template">
       </command>
      
    </extension>
@@ -147,8 +147,8 @@
             commandId="tr.org.liderahenk.liderconsole.core.commands.MailConfiguration">
       </handler>
 	  <handler
-            class="tr.org.liderahenk.liderconsole.core.handlers.RegistrationRulesHandler"
-            commandId="tr.org.liderahenk.liderconsole.core.commands.RegistrationRules">
+            class="tr.org.liderahenk.liderconsole.core.handlers.RegistrationTemplateHandler"
+            commandId="tr.org.liderahenk.liderconsole.core.commands.RegistrationTemplate">
       </handler>
 	  <handler
             class="tr.org.liderahenk.liderconsole.core.handlers.PolicyExecutionSelectHandler"
@@ -298,10 +298,10 @@
 	          tooltip="%command.installed.plugins">
         </command>
 		<command
-	          commandId="tr.org.liderahenk.liderconsole.core.commands.RegistrationRules"
-	          id="tr.org.liderahenk.liderconsole.core.commands.RegistrationRules"
+	          commandId="tr.org.liderahenk.liderconsole.core.commands.RegistrationTemplate"
+	          id="tr.org.liderahenk.liderconsole.core.commands.RegistrationTemplate"
 	          icon="icons/16/chart-flow.png"
-	          tooltip="%command.registration.rules">
+	          tooltip="%command.registration.template">
         </command>
 		<menu
                id="tr.org.liderahenk.liderconsole.menus.Reporting"
@@ -513,9 +513,9 @@
          </command>
          
          <command
-               commandId="tr.org.liderahenk.liderconsole.core.commands.RegistrationRules"
+               commandId="tr.org.liderahenk.liderconsole.core.commands.RegistrationTemplate"
                icon="icons/16/script-code.png"
-               label="Registration Rules"
+               label="Registration Templates"
                style="push">
             <visibleWhen>
                <with
@@ -726,10 +726,10 @@
 		    name="%editor.executed.policy">
 	    </editor> 
 	    <editor
-		    class="tr.org.liderahenk.liderconsole.core.editors.RegistrationRulesEditor"
+		    class="tr.org.liderahenk.liderconsole.core.editors.RegistrationTemplateEditor"
 		    icon="icons/16/chart-flow.png"
-		    id="tr.org.liderahenk.liderconsole.core.editors.RegistrationRulesEditor"
-		    name="%editor.registration.rules">
+		    id="tr.org.liderahenk.liderconsole.core.editors.RegistrationTemplateEditor"
+		    name="%editor.registration.template">
 	    </editor> 
 	</extension>
 

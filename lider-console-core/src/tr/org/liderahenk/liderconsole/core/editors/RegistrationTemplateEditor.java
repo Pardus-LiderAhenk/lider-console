@@ -20,7 +20,6 @@
 package tr.org.liderahenk.liderconsole.core.editors;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -43,6 +42,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IEditorInput;
@@ -53,37 +53,35 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
+import tr.org.liderahenk.liderconsole.core.dialogs.RegistrationTemplateInfoDialog;
 import tr.org.liderahenk.liderconsole.core.editorinput.DefaultEditorInput;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.model.RegistrationTemplate;
-import tr.org.liderahenk.liderconsole.core.rest.requests.RegistrationTemplateRequest;
-import tr.org.liderahenk.liderconsole.core.rest.utils.RegistrationRulesRestUtils;
+import tr.org.liderahenk.liderconsole.core.rest.utils.RegistrationTemplateRestUtils;
 import tr.org.liderahenk.liderconsole.core.utils.IExportableTableViewer;
 import tr.org.liderahenk.liderconsole.core.utils.SWTResourceManager;
-import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
 
 /**
  * 
  * @author <a href="mailto:hasan.kara@pardus.org.tr">Hasan Kara</a>
  *
  */
-public class RegistrationRulesEditor extends EditorPart {
+public class RegistrationTemplateEditor extends EditorPart {
 	
-	public RegistrationRulesEditor() {
+	public RegistrationTemplateEditor() {
 	}
 
-	private static final Logger logger = LoggerFactory.getLogger(RegistrationRulesEditor.class);
+	private static final Logger logger = LoggerFactory.getLogger(RegistrationTemplateEditor.class);
 
 	private TableViewer tableViewer;
 	private TableFilter tableFilter;
 	private Text txtSearch;
 	private Composite buttonComposite;
-	private Button btnAddRule;
-	private Button btnRefreshRules;
-	private Button btnEditRule;
-	private Button btnDeleteRule;
+	private Button btnAddTemplate;
+	private Button btnRefreshTemplates;
+	private Button btnDeleteTemplate;
 	
-	private RegistrationTemplate selectedRule;
+	private RegistrationTemplate selectedTemplate;
 
 	@Override
 	public void doSave(IProgressMonitor monitor) {
@@ -129,12 +127,12 @@ public class RegistrationRulesEditor extends EditorPart {
 		buttonComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
 		buttonComposite.setLayout(new GridLayout(5, false));
 
-		btnAddRule = new Button(buttonComposite, SWT.NONE);
-		btnAddRule.setText(Messages.getString("ADD_RULE"));
-		btnAddRule.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
-		btnAddRule.setImage(
+		btnAddTemplate = new Button(buttonComposite, SWT.NONE);
+		btnAddTemplate.setText(Messages.getString("ADD_TEMPLATE"));
+		btnAddTemplate.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
+		btnAddTemplate.setImage(
 				SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE, "icons/16/add.png"));
-		btnAddRule.addSelectionListener(new SelectionListener() {
+		btnAddTemplate.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 //				if (null == getSelectedRule()) {
@@ -142,6 +140,8 @@ public class RegistrationRulesEditor extends EditorPart {
 //					return;
 //				}
 				
+				/*
+				 * Registration template save
 				RegistrationTemplateRequest registrationTemplate= new RegistrationTemplateRequest();
 				registrationTemplate.setAuthGroup("TT_ANKARA");
 				registrationTemplate.setParentDn("ou=aaa,cn=bb");
@@ -150,32 +150,21 @@ public class RegistrationRulesEditor extends EditorPart {
 				
 				try {
 				
-					RegistrationTemplate result=RegistrationRulesRestUtils.add(registrationTemplate);
+					RegistrationTemplate result=RegistrationTemplateRestUtils.add(registrationTemplate);
 					System.out.println(result);
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
 				
+				*/
 //				AgentDetailDialog dialog = new AgentDetailDialog(Display.getDefault().getActiveShell(),
 //						getSelectedAgent());
 //				dialog.create();
 //				dialog.open();
-			}
-
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-			}
-		});
-
-		btnEditRule = new Button(buttonComposite, SWT.NONE);
-		btnEditRule.setText(Messages.getString("EDIT_RULE"));
-		btnEditRule.setImage(
-				SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE, "icons/16/edit.png"));
-		btnEditRule.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
-		btnEditRule.addSelectionListener(new SelectionListener() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				refresh();
+				
+				RegistrationTemplateInfoDialog dialog = new RegistrationTemplateInfoDialog(Display.getDefault().getActiveShell(), getSelf());
+				dialog.create();
+				dialog.open();
 			}
 
 			@Override
@@ -183,12 +172,12 @@ public class RegistrationRulesEditor extends EditorPart {
 			}
 		});
 		
-		btnDeleteRule = new Button(buttonComposite, SWT.NONE);
-		btnDeleteRule.setText(Messages.getString("DELETE_RULE"));
-		btnDeleteRule.setImage(
+		btnDeleteTemplate = new Button(buttonComposite, SWT.NONE);
+		btnDeleteTemplate.setText(Messages.getString("DELETE_TEMPLATE"));
+		btnDeleteTemplate.setImage(
 				SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE, "icons/16/delete.png"));
-		btnDeleteRule.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
-		btnDeleteRule.addSelectionListener(new SelectionListener() {
+		btnDeleteTemplate.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
+		btnDeleteTemplate.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				
@@ -199,12 +188,12 @@ public class RegistrationRulesEditor extends EditorPart {
 			}
 		});
 		
-		btnRefreshRules = new Button(buttonComposite, SWT.NONE);
-		btnRefreshRules.setText(Messages.getString("REFRESH"));
-		btnRefreshRules.setImage(
+		btnRefreshTemplates = new Button(buttonComposite, SWT.NONE);
+		btnRefreshTemplates.setText(Messages.getString("REFRESH"));
+		btnRefreshTemplates.setImage(
 				SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE, "icons/16/refresh.png"));
-		btnRefreshRules.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
-		btnRefreshRules.addSelectionListener(new SelectionListener() {
+		btnRefreshTemplates.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
+		btnRefreshTemplates.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				refresh();
@@ -233,12 +222,12 @@ public class RegistrationRulesEditor extends EditorPart {
 
 			@Override
 			public String getSheetName() {
-				return Messages.getString("REGISTRATION_RULES");
+				return Messages.getString("REGISTRATION_TEMPLATE");
 			}
 
 			@Override
 			public String getReportName() {
-				return Messages.getString("REGISTRATION_RULES");
+				return Messages.getString("REGISTRATION_TEMPLATE");
 			}
 		});
 		createTableColumns();
@@ -251,16 +240,18 @@ public class RegistrationRulesEditor extends EditorPart {
 				IStructuredSelection selection = (IStructuredSelection) tableViewer.getSelection();
 				Object firstElement = selection.getFirstElement();
 				if (firstElement instanceof RegistrationTemplate) {
-					setSelectedRule((RegistrationTemplate) firstElement);
+					setSelectedTemplate((RegistrationTemplate) firstElement);
 				}
-				btnAddRule.setEnabled(true);
+				btnAddTemplate.setEnabled(true);
 			}
 		});
 		tableViewer.addDoubleClickListener(new IDoubleClickListener() {
 			@Override
 			public void doubleClick(DoubleClickEvent event) {
-//				AgentDetailDialog dialog = new AgentDetailDialog(parent.getShell(), getSelectedAgent());
-//				dialog.open();
+				RegistrationTemplateInfoDialog dialog = new RegistrationTemplateInfoDialog(Display.getDefault().getActiveShell(),
+						getSelectedTemplate(), getSelf());
+				dialog.create();
+				dialog.open();
 			}
 		});
 
@@ -316,10 +307,10 @@ public class RegistrationRulesEditor extends EditorPart {
 			if (searchString == null || searchString.length() == 0) {
 				return true;
 			}
-			RegistrationTemplate rule = (RegistrationTemplate) element;
-			return rule.getUnitId().matches(searchString) 
-					|| rule.getAuthGroup().matches(searchString)
-					|| rule.getParentDn().matches(searchString);
+			RegistrationTemplate template = (RegistrationTemplate) element;
+			return template.getUnitId().matches(searchString) 
+					|| template.getAuthGroup().matches(searchString)
+					|| template.getParentDn().matches(searchString);
 		}
 	}
 
@@ -330,7 +321,7 @@ public class RegistrationRulesEditor extends EditorPart {
 	private void createTableColumns() {
 
 		// DN
-		TableViewerColumn unitNameColumn = SWTResourceManager.createTableViewerColumn(tableViewer, Messages.getString("REGISTRATION_RULES_UNIT_NAME"),
+		TableViewerColumn unitNameColumn = SWTResourceManager.createTableViewerColumn(tableViewer, Messages.getString("REGISTRATION_TEMPLATE_UNIT_NAME"),
 				200);
 		unitNameColumn.getColumn().setAlignment(SWT.LEFT);
 		unitNameColumn.setLabelProvider(new ColumnLabelProvider() {
@@ -344,7 +335,7 @@ public class RegistrationRulesEditor extends EditorPart {
 		});
 
 		// JID
-		TableViewerColumn groupNameColumn = SWTResourceManager.createTableViewerColumn(tableViewer, Messages.getString("REGISTRATION_RULES_GROUP_NAME"),
+		TableViewerColumn groupNameColumn = SWTResourceManager.createTableViewerColumn(tableViewer, Messages.getString("REGISTRATION_TEMPLATE_GROUP_NAME"),
 				200);
 		groupNameColumn.getColumn().setAlignment(SWT.LEFT);
 		groupNameColumn.setLabelProvider(new ColumnLabelProvider() {
@@ -359,7 +350,7 @@ public class RegistrationRulesEditor extends EditorPart {
 
 		// Hostname
 		TableViewerColumn ouColumn = SWTResourceManager.createTableViewerColumn(tableViewer,
-				Messages.getString("REGISTRATION_RULES_OU"), 240);
+				Messages.getString("REGISTRATION_TEMPLATE_OU"), 240);
 		ouColumn.getColumn().setAlignment(SWT.LEFT);
 		ouColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
@@ -388,13 +379,17 @@ public class RegistrationRulesEditor extends EditorPart {
 
 	}
 
+	public RegistrationTemplateEditor getSelf() {
+		return this;
+	}
+	
 	/**
 	 * Get agents and populate the table with them.
 	 */
 	private void populateTable() {
 		
 		try {
-			List<RegistrationTemplate> templates=	RegistrationRulesRestUtils.list();
+			List<RegistrationTemplate> templates=	RegistrationTemplateRestUtils.list();
 			tableViewer.setInput(templates != null ? templates : new ArrayList<RegistrationTemplate>());
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -423,12 +418,12 @@ public class RegistrationRulesEditor extends EditorPart {
 	public void setFocus() {
 	}
 
-	public RegistrationTemplate getSelectedRule() {
-		return selectedRule;
+	public RegistrationTemplate getSelectedTemplate() {
+		return selectedTemplate;
 	}
 
-	public void setSelectedRule(RegistrationTemplate selectedRule) {
-		this.selectedRule = selectedRule;
+	public void setSelectedTemplate(RegistrationTemplate selectedTemplate) {
+		this.selectedTemplate = selectedTemplate;
 	}
 
 }

@@ -64,7 +64,7 @@ public class LiderConstants {
 		public static final String LIDER_MAINPAGE_EDITOR = "tr.org.liderahenk.liderconsole.core.editors.LiderMainEditor";
 		public static final String LIDER_MAILCONFIGURATION_EDITOR = "tr.org.liderahenk.liderconsole.core.editors.MailConfigurationEditor";
 		public static final String LIDER_SERVICEREPORTONLINEUSER_EDITOR = "tr.org.liderahenk.liderconsole.core.editors.ServiceReportOnlineAhenkEditor";
-		public static final String REGISTRATION_RULES_EDITOR = "tr.org.liderahenk.liderconsole.core.editors.RegistrationRulesEditor";
+		public static final String REGISTRATION_TEMPLATE_EDITOR = "tr.org.liderahenk.liderconsole.core.editors.RegistrationTemplateEditor";
 	}
 
 	public static final class EXTENSION_POINTS {

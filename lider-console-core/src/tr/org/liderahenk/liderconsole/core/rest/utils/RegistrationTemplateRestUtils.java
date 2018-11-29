@@ -10,24 +10,22 @@ import org.slf4j.LoggerFactory;
 import tr.org.liderahenk.liderconsole.core.config.ConfigProvider;
 import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
-import tr.org.liderahenk.liderconsole.core.model.RegistrationRule;
 import tr.org.liderahenk.liderconsole.core.model.RegistrationTemplate;
 import tr.org.liderahenk.liderconsole.core.rest.RestClient;
 import tr.org.liderahenk.liderconsole.core.rest.enums.RestResponseStatus;
-import tr.org.liderahenk.liderconsole.core.rest.requests.RegistrationRuleRequest;
 import tr.org.liderahenk.liderconsole.core.rest.requests.RegistrationTemplateRequest;
 import tr.org.liderahenk.liderconsole.core.rest.responses.IResponse;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
 
 /**
- * Utility class for sending registration rules related requests to Lider server.
+ * Utility class for sending registration templates related requests to Lider server.
  * 
  * @author <a href="mailto:hasan.kara@pardus.org.tr">Hasan Kara</a>
  *
  */
-public class RegistrationRulesRestUtils {
+public class RegistrationTemplateRestUtils {
 
-	private static final Logger logger = LoggerFactory.getLogger(RegistrationRulesRestUtils.class);
+	private static final Logger logger = LoggerFactory.getLogger(RegistrationTemplateRestUtils.class);
 	
 	public static RegistrationTemplate add(RegistrationTemplateRequest registrationTemplateRequest) throws Exception {
 
@@ -53,20 +51,20 @@ public class RegistrationRulesRestUtils {
 		return result;
 	}
 	
-	public static RegistrationRule update(RegistrationRuleRequest registrationRuleRequest) throws Exception {
+	public static RegistrationTemplate update(RegistrationTemplateRequest registrationTemplateRequest) throws Exception {
 
 		// Build URL
 		StringBuilder url = getBaseUrl();
 		url.append("/update");
-		logger.debug("Sending request: {} to URL: {}", new Object[] { registrationRuleRequest, url.toString() });
+		logger.debug("Sending request: {} to URL: {}", new Object[] { registrationTemplateRequest, url.toString() });
 
-		IResponse response = RestClient.post(registrationRuleRequest, url.toString());
-		RegistrationRule result = null;
+		IResponse response = RestClient.post(registrationTemplateRequest, url.toString());
+		RegistrationTemplate result = null;
 
 		if (response != null && response.getStatus() == RestResponseStatus.OK
 				&& response.getResultMap().get("rule") != null) {
 			ObjectMapper mapper = new ObjectMapper();
-			result = mapper.readValue(mapper.writeValueAsString(response.getResultMap().get("rule")), RegistrationRule.class);
+			result = mapper.readValue(mapper.writeValueAsString(response.getResultMap().get("rule")), RegistrationTemplate.class);
 			Notifier.success(null, Messages.getString("RECORD_SAVED"));
 		} else {
 			Notifier.error(null, Messages.getString("ERROR_ON_SAVE"));
@@ -75,15 +73,15 @@ public class RegistrationRulesRestUtils {
 		return result;
 	}
 	
-	public static boolean delete(Long ruleID) throws Exception {
+	public static boolean delete(Long templateID) throws Exception {
 
-		if (ruleID == null) {
+		if (templateID == null) {
 			throw new IllegalArgumentException("ID was null.");
 		}
 
 		// Build URL
 		StringBuilder url = getBaseUrl();
-		url.append("/").append(ruleID).append("/delete");
+		url.append("/").append(templateID).append("/delete");
 		logger.debug("Sending request to URL: {}", url.toString());
 
 		IResponse response = RestClient.get(url.toString());
@@ -107,14 +105,14 @@ public class RegistrationRulesRestUtils {
 
 		// Send GET request to server
 		IResponse response = RestClient.get(url.toString());
-		List<RegistrationTemplate> registrationRules = null;
+		List<RegistrationTemplate> registrationTemplates = null;
 
 		if (response != null && response.getStatus() == RestResponseStatus.OK
 				&& response.getResultMap().get("registrationTemplateList") != null) {
 			ObjectMapper mapper = new ObjectMapper();
 			List<RegistrationTemplate> ll= (List<RegistrationTemplate>) response.getResultMap().get("registrationTemplateList");
 			
-			registrationRules = mapper.readValue(mapper.writeValueAsString(ll),
+			registrationTemplates = mapper.readValue(mapper.writeValueAsString(ll),
 					new TypeReference<List<RegistrationTemplate>>() {
 					});
 			Notifier.success(null, Messages.getString("RECORD_LISTED"));
@@ -122,33 +120,33 @@ public class RegistrationRulesRestUtils {
 			Notifier.error(null, Messages.getString("ERROR_ON_LIST"));
 		}
 
-		return registrationRules;
+		return registrationTemplates;
 	}
 	
 	
-	public static RegistrationRule get(Long ruleID) throws Exception {
-		if (ruleID == null) {
+	public static RegistrationTemplate get(Long templateID) throws Exception {
+		if (templateID == null) {
 			throw new IllegalArgumentException("ID was null.");
 		}
 
 		// Build URL
 		StringBuilder url = getBaseUrl();
-		url.append("/").append(ruleID).append("/get");
+		url.append("/").append(templateID).append("/get");
 		logger.debug("Sending request to URL: {}", url.toString());
 
 		IResponse response = RestClient.get(url.toString());
-		RegistrationRule registrationRule = null;
+		RegistrationTemplate registrationTemplate = null;
 
 		if (response != null && response.getStatus() == RestResponseStatus.OK
 				&& response.getResultMap().get("rule") != null) {
 			ObjectMapper mapper = new ObjectMapper();
-			registrationRule = mapper.readValue(mapper.writeValueAsString(response.getResultMap().get("rule")), RegistrationRule.class);
+			registrationTemplate = mapper.readValue(mapper.writeValueAsString(response.getResultMap().get("rule")), RegistrationTemplate.class);
 			Notifier.success(null, Messages.getString("RECORD_LISTED"));
 		} else {
 			Notifier.error(null, Messages.getString("ERROR_ON_LIST"));
 		}
 
-		return registrationRule;
+		return registrationTemplate;
 	}
 	
 	/**

@@ -37,15 +37,15 @@ import tr.org.liderahenk.liderconsole.core.i18n.Messages;
  * @author <a href="mailto:hasan.kara@pardus.org.tr">Hasan Kara</a>
  *
  */
-public class RegistrationRulesHandler extends AbstractHandler {
+public class RegistrationTemplateHandler extends AbstractHandler {
 
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindowChecked(event);
 		IWorkbenchPage page = window.getActivePage();
 		try {
-			page.openEditor(new DefaultEditorInput(Messages.getString("REGISTRATION_RULES")),
-					LiderConstants.EDITORS.REGISTRATION_RULES_EDITOR);
+			page.openEditor(new DefaultEditorInput(Messages.getString("REGISTRATION_TEMPLATE")),
+					LiderConstants.EDITORS.REGISTRATION_TEMPLATE_EDITOR);
 		} catch (PartInitException e) {
 			e.printStackTrace();
 		}
