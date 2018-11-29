@@ -19,6 +19,10 @@
 */
 package tr.org.liderahenk.liderconsole.core.editors;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.DoubleClickEvent;
@@ -51,7 +55,9 @@ import org.slf4j.LoggerFactory;
 import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
 import tr.org.liderahenk.liderconsole.core.editorinput.DefaultEditorInput;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
-import tr.org.liderahenk.liderconsole.core.model.RegistrationRule;
+import tr.org.liderahenk.liderconsole.core.model.RegistrationTemplate;
+import tr.org.liderahenk.liderconsole.core.rest.requests.RegistrationTemplateRequest;
+import tr.org.liderahenk.liderconsole.core.rest.utils.RegistrationRulesRestUtils;
 import tr.org.liderahenk.liderconsole.core.utils.IExportableTableViewer;
 import tr.org.liderahenk.liderconsole.core.utils.SWTResourceManager;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
@@ -62,6 +68,9 @@ import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
  *
  */
 public class RegistrationRulesEditor extends EditorPart {
+	
+	public RegistrationRulesEditor() {
+	}
 
 	private static final Logger logger = LoggerFactory.getLogger(RegistrationRulesEditor.class);
 
@@ -74,7 +83,7 @@ public class RegistrationRulesEditor extends EditorPart {
 	private Button btnEditRule;
 	private Button btnDeleteRule;
 	
-	private RegistrationRule selectedRule;
+	private RegistrationTemplate selectedRule;
 
 	@Override
 	public void doSave(IProgressMonitor monitor) {
@@ -128,10 +137,25 @@ public class RegistrationRulesEditor extends EditorPart {
 		btnAddRule.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				if (null == getSelectedRule()) {
-					Notifier.warning(null, Messages.getString("PLEASE_SELECT_RECORD"));
-					return;
+//				if (null == getSelectedRule()) {
+//					Notifier.warning(null, Messages.getString("PLEASE_SELECT_RECORD"));
+//					return;
+//				}
+				
+				RegistrationTemplateRequest registrationTemplate= new RegistrationTemplateRequest();
+				registrationTemplate.setAuthGroup("TT_ANKARA");
+				registrationTemplate.setParentDn("ou=aaa,cn=bb");
+				registrationTemplate.setUnitId("106777");
+				registrationTemplate.setCreateDate(new Date());
+				
+				try {
+				
+					RegistrationTemplate result=RegistrationRulesRestUtils.add(registrationTemplate);
+					System.out.println(result);
+				} catch (Exception e1) {
+					e1.printStackTrace();
 				}
+				
 //				AgentDetailDialog dialog = new AgentDetailDialog(Display.getDefault().getActiveShell(),
 //						getSelectedAgent());
 //				dialog.create();
@@ -167,7 +191,7 @@ public class RegistrationRulesEditor extends EditorPart {
 		btnDeleteRule.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				refresh();
+				
 			}
 
 			@Override
@@ -226,8 +250,8 @@ public class RegistrationRulesEditor extends EditorPart {
 			public void selectionChanged(SelectionChangedEvent event) {
 				IStructuredSelection selection = (IStructuredSelection) tableViewer.getSelection();
 				Object firstElement = selection.getFirstElement();
-				if (firstElement instanceof RegistrationRule) {
-					setSelectedRule((RegistrationRule) firstElement);
+				if (firstElement instanceof RegistrationTemplate) {
+					setSelectedRule((RegistrationTemplate) firstElement);
 				}
 				btnAddRule.setEnabled(true);
 			}
@@ -292,9 +316,10 @@ public class RegistrationRulesEditor extends EditorPart {
 			if (searchString == null || searchString.length() == 0) {
 				return true;
 			}
-			RegistrationRule rule = (RegistrationRule) element;
-			return rule.getUnitName().matches(searchString) || rule.getAdminGroupName().matches(searchString)
-					|| rule.getOU().matches(searchString);
+			RegistrationTemplate rule = (RegistrationTemplate) element;
+			return rule.getUnitId().matches(searchString) 
+					|| rule.getAuthGroup().matches(searchString)
+					|| rule.getParentDn().matches(searchString);
 		}
 	}
 
@@ -311,8 +336,8 @@ public class RegistrationRulesEditor extends EditorPart {
 		unitNameColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof RegistrationRule) {
-					return ((RegistrationRule) element).getUnitName();
+				if (element instanceof RegistrationTemplate) {
+					return ((RegistrationTemplate) element).getUnitId();
 				}
 				return Messages.getString("UNTITLED");
 			}
@@ -325,8 +350,8 @@ public class RegistrationRulesEditor extends EditorPart {
 		groupNameColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof RegistrationRule) {
-					return ((RegistrationRule) element).getAdminGroupName();
+				if (element instanceof RegistrationTemplate) {
+					return ((RegistrationTemplate) element).getParentDn();
 				}
 				return Messages.getString("UNTITLED");
 			}
@@ -339,8 +364,8 @@ public class RegistrationRulesEditor extends EditorPart {
 		ouColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof RegistrationRule) {
-					return ((RegistrationRule) element).getOU();
+				if (element instanceof RegistrationTemplate) {
+					return ((RegistrationTemplate) element).getAuthGroup();
 				}
 				return Messages.getString("UNTITLED");
 			}
@@ -352,35 +377,30 @@ public class RegistrationRulesEditor extends EditorPart {
 		createDateColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof RegistrationRule) {
-					return ((RegistrationRule) element).getCreateDate() != null
-							? SWTResourceManager.formatDate(((RegistrationRule) element).getCreateDate())
+				if (element instanceof RegistrationTemplate) {
+					return ((RegistrationTemplate) element).getCreateDate() != null
+							? SWTResourceManager.formatDate(((RegistrationTemplate) element).getCreateDate())
 							: Messages.getString("UNTITLED");
 				}
 				return Messages.getString("UNTITLED");
 			}
 		});
 
-		// Modify date
-		TableViewerColumn modifyDateColumn = SWTResourceManager.createTableViewerColumn(tableViewer,
-				Messages.getString("MODIFY_DATE"), 150);
-		modifyDateColumn.setLabelProvider(new ColumnLabelProvider() {
-			@Override
-			public String getText(Object element) {
-				if (element instanceof RegistrationRule) {
-					return ((RegistrationRule) element).getModifyDate() != null
-							? SWTResourceManager.formatDate(((RegistrationRule) element).getModifyDate())
-							: Messages.getString("UNTITLED");
-				}
-				return Messages.getString("UNTITLED");
-			}
-		});
 	}
 
 	/**
 	 * Get agents and populate the table with them.
 	 */
 	private void populateTable() {
+		
+		try {
+			List<RegistrationTemplate> templates=	RegistrationRulesRestUtils.list();
+			tableViewer.setInput(templates != null ? templates : new ArrayList<RegistrationTemplate>());
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 //		try {
 //			List<RegistrationRule> rules = AgentRestUtils.list(null, null, null);
 //			tableViewer.setInput(rules != null ? rules : new ArrayList<RegistrationRule>());
@@ -403,11 +423,11 @@ public class RegistrationRulesEditor extends EditorPart {
 	public void setFocus() {
 	}
 
-	public RegistrationRule getSelectedRule() {
+	public RegistrationTemplate getSelectedRule() {
 		return selectedRule;
 	}
 
-	public void setSelectedRule(RegistrationRule selectedRule) {
+	public void setSelectedRule(RegistrationTemplate selectedRule) {
 		this.selectedRule = selectedRule;
 	}
 
