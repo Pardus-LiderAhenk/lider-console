@@ -20,6 +20,7 @@
 package tr.org.liderahenk.liderconsole.core.editors;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -57,9 +58,11 @@ import tr.org.liderahenk.liderconsole.core.dialogs.RegistrationTemplateInfoDialo
 import tr.org.liderahenk.liderconsole.core.editorinput.DefaultEditorInput;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.model.RegistrationTemplate;
+import tr.org.liderahenk.liderconsole.core.rest.requests.RegistrationTemplateRequest;
 import tr.org.liderahenk.liderconsole.core.rest.utils.RegistrationTemplateRestUtils;
 import tr.org.liderahenk.liderconsole.core.utils.IExportableTableViewer;
 import tr.org.liderahenk.liderconsole.core.utils.SWTResourceManager;
+import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
 
 /**
  * 
@@ -180,7 +183,21 @@ public class RegistrationTemplateEditor extends EditorPart {
 		btnDeleteTemplate.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				if (null == getSelectedTemplate()) {
+					Notifier.warning(null, Messages.getString("REGISTRATION_TEMPLATE_SELECT_ERROR"));
+					return;
+				}
 				
+				
+				try {
+					Boolean result = RegistrationTemplateRestUtils.delete(selectedTemplate.getId());
+					tableViewer.refresh();
+					System.out.println(result);
+				} catch (Exception e1) {
+					e1.printStackTrace();
+					logger.error(e1.getMessage(), e);
+					Notifier.error(null, Messages.getString("ERROR_ON_SAVE"));
+				}
 			}
 
 			@Override
