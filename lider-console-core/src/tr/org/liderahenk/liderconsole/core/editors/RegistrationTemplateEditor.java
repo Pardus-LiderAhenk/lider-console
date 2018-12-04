@@ -20,7 +20,6 @@
 package tr.org.liderahenk.liderconsole.core.editors;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -58,7 +57,6 @@ import tr.org.liderahenk.liderconsole.core.dialogs.RegistrationTemplateInfoDialo
 import tr.org.liderahenk.liderconsole.core.editorinput.DefaultEditorInput;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.model.RegistrationTemplate;
-import tr.org.liderahenk.liderconsole.core.rest.requests.RegistrationTemplateRequest;
 import tr.org.liderahenk.liderconsole.core.rest.utils.RegistrationTemplateRestUtils;
 import tr.org.liderahenk.liderconsole.core.utils.IExportableTableViewer;
 import tr.org.liderahenk.liderconsole.core.utils.SWTResourceManager;
@@ -138,33 +136,6 @@ public class RegistrationTemplateEditor extends EditorPart {
 		btnAddTemplate.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-//				if (null == getSelectedRule()) {
-//					Notifier.warning(null, Messages.getString("PLEASE_SELECT_RECORD"));
-//					return;
-//				}
-				
-				/*
-				 * Registration template save
-				RegistrationTemplateRequest registrationTemplate= new RegistrationTemplateRequest();
-				registrationTemplate.setAuthGroup("TT_ANKARA");
-				registrationTemplate.setParentDn("ou=aaa,cn=bb");
-				registrationTemplate.setUnitId("106777");
-				registrationTemplate.setCreateDate(new Date());
-				
-				try {
-				
-					RegistrationTemplate result=RegistrationTemplateRestUtils.add(registrationTemplate);
-					System.out.println(result);
-				} catch (Exception e1) {
-					e1.printStackTrace();
-				}
-				
-				*/
-//				AgentDetailDialog dialog = new AgentDetailDialog(Display.getDefault().getActiveShell(),
-//						getSelectedAgent());
-//				dialog.create();
-//				dialog.open();
-				
 				RegistrationTemplateInfoDialog dialog = new RegistrationTemplateInfoDialog(Display.getDefault().getActiveShell(), getSelf());
 				dialog.create();
 				dialog.open();
@@ -188,10 +159,9 @@ public class RegistrationTemplateEditor extends EditorPart {
 					return;
 				}
 				
-				
 				try {
 					Boolean result = RegistrationTemplateRestUtils.delete(selectedTemplate.getId());
-					tableViewer.refresh();
+					getSelf().refresh();
 					System.out.println(result);
 				} catch (Exception e1) {
 					e1.printStackTrace();

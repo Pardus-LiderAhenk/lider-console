@@ -41,7 +41,7 @@ import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
 
 /**
  * 
- * @author <a href="mailto:emre.akkaya@agem.com.tr">Emre Akkaya</a>
+ * @author <a href="mailto:hasan.kara@pardus.org.tr">Hasan Kara</a>
  *
  */
 public class RegistrationTemplateInfoDialog extends DefaultLiderDialog {
@@ -173,6 +173,5 @@ public class RegistrationTemplateInfoDialog extends DefaultLiderDialog {
 			close();
 		}
 	}
-
 
 }
