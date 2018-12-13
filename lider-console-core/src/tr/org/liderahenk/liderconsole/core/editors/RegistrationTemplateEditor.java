@@ -307,7 +307,7 @@ public class RegistrationTemplateEditor extends EditorPart {
 	 */
 	private void createTableColumns() {
 
-		// DN
+		// Unit name
 		TableViewerColumn unitNameColumn = SWTResourceManager.createTableViewerColumn(tableViewer, Messages.getString("REGISTRATION_TEMPLATE_UNIT_NAME"),
 				200);
 		unitNameColumn.getColumn().setAlignment(SWT.LEFT);
@@ -321,7 +321,7 @@ public class RegistrationTemplateEditor extends EditorPart {
 			}
 		});
 
-		// JID
+		// GROUP
 		TableViewerColumn groupNameColumn = SWTResourceManager.createTableViewerColumn(tableViewer, Messages.getString("REGISTRATION_TEMPLATE_GROUP_NAME"),
 				200);
 		groupNameColumn.getColumn().setAlignment(SWT.LEFT);
@@ -329,13 +329,13 @@ public class RegistrationTemplateEditor extends EditorPart {
 			@Override
 			public String getText(Object element) {
 				if (element instanceof RegistrationTemplate) {
-					return ((RegistrationTemplate) element).getParentDn();
+					return ((RegistrationTemplate) element).getAuthGroup();
 				}
 				return Messages.getString("UNTITLED");
 			}
 		});
 
-		// Hostname
+		// Parent DN
 		TableViewerColumn ouColumn = SWTResourceManager.createTableViewerColumn(tableViewer,
 				Messages.getString("REGISTRATION_TEMPLATE_OU"), 240);
 		ouColumn.getColumn().setAlignment(SWT.LEFT);
@@ -343,7 +343,7 @@ public class RegistrationTemplateEditor extends EditorPart {
 			@Override
 			public String getText(Object element) {
 				if (element instanceof RegistrationTemplate) {
-					return ((RegistrationTemplate) element).getAuthGroup();
+					return ((RegistrationTemplate) element).getParentDn();
 				}
 				return Messages.getString("UNTITLED");
 			}
@@ -382,14 +382,6 @@ public class RegistrationTemplateEditor extends EditorPart {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-//		try {
-//			List<RegistrationRule> rules = AgentRestUtils.list(null, null, null);
-//			tableViewer.setInput(rules != null ? rules : new ArrayList<RegistrationRule>());
-//		} catch (Exception e) {
-//			logger.error(e.getMessage(), e);
-//			Notifier.error(null, Messages.getString("ERROR_ON_LIST"));
-//		}
 	}
 
 	/**
