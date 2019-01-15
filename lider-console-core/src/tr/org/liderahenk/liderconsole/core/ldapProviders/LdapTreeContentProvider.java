@@ -63,7 +63,7 @@ public class LdapTreeContentProvider implements ITreeContentProvider {
 			// String filter = "(objectClass=*)";
 		//	String filter = "(objectClass=inetOrgPerson)";
 			
-			String filter ="(|(objectClass=person)(objectClass=organizationalUnit)(objectClass=pardusDevice)(objectClass=sudoRole)(objectClass=groupOfNames))";
+			String filter ="(|(objectClass=person)(ou=Ahenkler)(objectClass=pardusDevice)(objectClass=sudoRole)(objectClass=groupOfNames)(objectClass=pardusLider))";
 			List<SearchResult> entries = LdapUtils.getInstance().searchAndReturnList((String) selectedEntry, filter,
 					null, SearchControls.ONELEVEL_SCOPE, 0, LdapConnectionListener.getConnection(),
 					LdapConnectionListener.getMonitor());

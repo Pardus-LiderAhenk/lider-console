@@ -23,6 +23,8 @@ public class LiderLdapEntry extends SearchResult {
 	public static int PARDUS_ACCOUNT = 2;
 	public static int PARDUS_DEVICE_GROUP = 3;
 	public static int PARDUS_ORGANIZATIONAL_UNIT = 4;
+	public static int PARDUS_GROUPOFNAMES = 5;
+	public static int PARDUS_SUDOROLE = 6;
 
 	private int entryType;
 
@@ -36,8 +38,8 @@ public class LiderLdapEntry extends SearchResult {
 	private String uid;
 
 	private List<AttributeWrapper> attributeList;
+	private List<AttributeWrapper> attributeListWithoutObjectClass;
 
-	private boolean hasGroupOfNames;
 	private boolean isOnline = false;
 	private String sunucuNo;
 
@@ -110,23 +112,31 @@ public class LiderLdapEntry extends SearchResult {
 				// hasPardusLider=true;
 				// }
 
-				if (attributeWrapper.getAttValue().equals("groupOfNames")) {
-					setHasGroupOfNames(true);
+				else if (attributeWrapper.getAttValue().equals("groupOfNames")) {
+					setEntryType(LiderLdapEntry.PARDUS_GROUPOFNAMES);
 				}
+				
+				
 				if (attributeWrapper.getAttName().equals("uid")) {
 					setUid(attributeWrapper.getAttValue());
 				}
 				
 
-				if (attributeWrapper.getAttName().equals("sunucuNo")) {
+				else if (attributeWrapper.getAttName().equals("sunucuNo")) {
 					setSunucuNo(attributeWrapper.getAttValue());
 				}
 				
-				if (attributeWrapper.getAttName().equals("description")) {
+				else if (attributeWrapper.getAttName().equals("description")) {
 					String description = attributeWrapper.getAttValue();
 					if (description.equals("pardusDeviceGroup")) {
 						// hasPardusDeviceGroup=true;
 						setEntryType(LiderLdapEntry.PARDUS_DEVICE_GROUP);
+					}
+				}
+				
+				if (attributeWrapper.getAttName().equals("objectClass")) {
+					if (attributeWrapper.getAttValue().equals("sudoRole")) {
+						setEntryType(LiderLdapEntry.PARDUS_SUDOROLE);
 					}
 				}
 				
@@ -146,6 +156,7 @@ public class LiderLdapEntry extends SearchResult {
 
 		NamingEnumeration<? extends Attribute> all = attributes.getAll();
 		attributeList = new ArrayList<AttributeWrapper>();
+		attributeListWithoutObjectClass = new ArrayList<AttributeWrapper>();
 
 		try {
 			while (all.hasMore()) {
@@ -156,6 +167,10 @@ public class LiderLdapEntry extends SearchResult {
 
 					AttributeWrapper attributeWrapper = new AttributeWrapper(attKey, all2.next().toString());
 					attributeList.add(attributeWrapper);
+					
+					if(!attKey.equals("objectClass")) {
+						attributeListWithoutObjectClass.add(attributeWrapper);
+					}
 
 				}
 			}
@@ -268,13 +283,6 @@ public class LiderLdapEntry extends SearchResult {
 		}
 	}
 
-	public boolean isHasGroupOfNames() {
-		return hasGroupOfNames;
-	}
-
-	public void setHasGroupOfNames(boolean hasGroupOfNames) {
-		this.hasGroupOfNames = hasGroupOfNames;
-	}
 
 	public boolean isOnline() {
 		return isOnline;
@@ -306,5 +314,13 @@ public class LiderLdapEntry extends SearchResult {
 
 	public void setEntryType(int entryType) {
 		this.entryType = entryType;
+	}
+
+	public List<AttributeWrapper> getAttributeListWithoutObjectClass() {
+		return attributeListWithoutObjectClass;
+	}
+
+	public void setAttributeListWithoutObjectClass(List<AttributeWrapper> attributeListWithoutObjectClass) {
+		this.attributeListWithoutObjectClass = attributeListWithoutObjectClass;
 	}
 }

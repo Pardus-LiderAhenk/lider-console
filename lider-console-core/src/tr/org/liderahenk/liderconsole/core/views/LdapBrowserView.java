@@ -64,6 +64,8 @@ import tr.org.liderahenk.liderconsole.core.menu.actions.AddLiderUserAction;
 import tr.org.liderahenk.liderconsole.core.menu.actions.AddOuAction;
 import tr.org.liderahenk.liderconsole.core.menu.actions.DeleteAction;
 import tr.org.liderahenk.liderconsole.core.menu.actions.EntryInfoAction;
+import tr.org.liderahenk.liderconsole.core.menu.actions.LdapActionFactory;
+import tr.org.liderahenk.liderconsole.core.menu.actions.LiderAction;
 import tr.org.liderahenk.liderconsole.core.menu.actions.MoveAction;
 import tr.org.liderahenk.liderconsole.core.menu.actions.RenameAction;
 import tr.org.liderahenk.liderconsole.core.model.LiderLdapEntry;
@@ -250,74 +252,33 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 
 					if (object instanceof LiderLdapEntry) {
 						LiderLdapEntry entry = (LiderLdapEntry) object;
-
-						EntryInfoAction entryInfoAction = new EntryInfoAction(entry);
-						RenameAction renameAction = null;
-						MoveAction moveAction = null;
-						DeleteAction deleteAction= null;
-						AddOuAction addOuAction=null;
-						AddLiderUserAction addLiderUserAction=null;
 						
+						manager.add(LdapActionFactory.getInstance().createEntryInfoAction(entry));
 						
-						
-						Command renameCommand = commandService.getCommand("tr.org.liderahenk.liderconsole.commands.RenameAgentName");
-						Command moveCommand = commandService.getCommand("tr.org.liderahenk.liderconsole.commands.MoveAgent");
-						Command deleteCommand = commandService.getCommand("tr.org.liderahenk.liderconsole.commands.DeleteAgent");
-						Command addOuCommand = commandService.getCommand("tr.org.liderahenk.liderconsole.commands.AddOu");
-						Command addUserCommand = commandService.getCommand("tr.org.liderahenk.liderconsole.commands.AddUser");
-						
-
-						if (renameCommand.isDefined())
-							renameAction = new RenameAction(entry, renameCommand);
-
-						if (moveCommand.isDefined())
-							moveAction = new MoveAction(entry, moveCommand);
-						
-						if (deleteCommand.isDefined())
-							deleteAction = new DeleteAction(entry, deleteCommand);
-						
-						if (addOuCommand.isDefined())
-							addOuAction = new AddOuAction(entry, addOuCommand);
-						
-						if (addUserCommand.isDefined())
-							addLiderUserAction = new AddLiderUserAction(entry, addUserCommand);
-						
-						
-
-						manager.add(entryInfoAction);
-						
-						if(addOuAction!=null)
-						manager.add(addOuAction);
 
 						if (entry.getEntryType() == LiderLdapEntry.PARDUS_DEVICE) {
-							if (renameAction != null)
-								manager.add(renameAction);
-
-							if (moveAction != null)
-								manager.add(moveAction);
 							
-//							if (deleteAction != null)
-//								manager.add(deleteAction);
+							manager.add(LdapActionFactory.getInstance().createAddOuAction(entry));
 							
+							manager.add(LdapActionFactory.getInstance().createRenameAgentAction(entry));
+							
+							manager.add(LdapActionFactory.getInstance().createMoveAgentAction(entry));
+							
+							manager.add(LdapActionFactory.getInstance().createDeleteAgentAction(entry));
+						
 
 						} else if (entry.getEntryType() == LiderLdapEntry.PARDUS_ACCOUNT) {
-
-							if (renameAction != null)
-								manager.add(renameAction);
-
-							if (moveAction != null)
-								manager.add(moveAction);
-
-							if (deleteAction != null)
-								manager.add(deleteAction);
 							
-							if (addLiderUserAction != null)
-								manager.add(addLiderUserAction);
 							
+							manager.add(LdapActionFactory.getInstance().createAddUserAction(entry));
+							manager.add(LdapActionFactory.getInstance().createMoveUserAction(entry));
+							manager.add(LdapActionFactory.getInstance().createDeleteUserAction(entry));
 							
 						} else if (entry.getEntryType() == LiderLdapEntry.PARDUS_ORGANIZATIONAL_UNIT) {
-							if (addLiderUserAction != null)
-								manager.add(addLiderUserAction);
+							manager.add(LdapActionFactory.getInstance().createAddOuAction(entry));
+							manager.add(LdapActionFactory.getInstance().createAddUserAction(entry));
+							manager.add(LdapActionFactory.getInstance().createMoveUserAction(entry));
+							manager.add(LdapActionFactory.getInstance().createDeleteUserAction(entry));
 							
 						} else {
 

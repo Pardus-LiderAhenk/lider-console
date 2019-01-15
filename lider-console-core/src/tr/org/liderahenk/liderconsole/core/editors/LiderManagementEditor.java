@@ -37,7 +37,6 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
@@ -74,7 +73,6 @@ import tr.org.liderahenk.liderconsole.core.ldap.utils.LdapUtils;
 import tr.org.liderahenk.liderconsole.core.model.ExecutedTask;
 import tr.org.liderahenk.liderconsole.core.model.LiderLdapEntry;
 import tr.org.liderahenk.liderconsole.core.model.Policy;
-import tr.org.liderahenk.liderconsole.core.model.UserAgent;
 import tr.org.liderahenk.liderconsole.core.rest.utils.PolicyRestUtils;
 import tr.org.liderahenk.liderconsole.core.rest.utils.TaskRestUtils;
 import tr.org.liderahenk.liderconsole.core.utils.SWTResourceManager;
@@ -86,7 +84,8 @@ import tr.org.liderahenk.liderconsole.core.xmpp.notifications.TaskStatusNotifica
 
 /**
  * Lider task and profiles managed by this class. Triggered when entry selected.
- * 
+ * @author M. Edip YILDIZ
+ * Dec 19, 2017
  */
 public class LiderManagementEditor extends EditorPart {
 
@@ -120,14 +119,6 @@ public class LiderManagementEditor extends EditorPart {
 	private Policy selectedPolicy;
 	private Button btnExecutePolicy;
 
-	boolean isPardusDeviceOrHasPardusDevice = false;
-	boolean isPardusAccount = false;
-	boolean isHasGroupOfNames = false;
-	boolean isPardusDeviceGroup = false;
-	boolean isSelectionSingle = false;
-	boolean isSelectionMulti = false;
-	boolean isPardusOu = false;
-
 	private Composite compositeTask;
 	private Text textSearchTask;
 
@@ -156,6 +147,19 @@ public class LiderManagementEditor extends EditorPart {
 	private Composite compositeGroupTask;
 	private Composite compositePolicy;
 	private Composite compositePolicy_Inner;
+	
+	boolean isPardusDeviceOrHasPardusDevice = false;
+	boolean isPardusAccount = false;
+	boolean isHasGroupOfNames = false;
+	boolean isPardusDeviceGroup = false;
+	boolean isSelectionSingle = false;
+	boolean isSelectionMulti = false;
+	boolean isPardusOu = false;
+	boolean isSudoRole = false;
+
+	private Table tableEntryInfo;
+	
+	
 
 	public LiderManagementEditor() {
 	}
@@ -247,110 +251,178 @@ public class LiderManagementEditor extends EditorPart {
 		compositeInfoButtons.setSize(10, 10);
 		compositeInfoButtons.setLayout(new GridLayout(3, false));
 
-		if (isPardusAccount) {
-			setUserPasswordArea();
-
-		} else {
-
-			setEntryInfoArea(parent);
-		}
-
+		
 		tabFolder = new TabFolder(compositeAction, SWT.NONE);
 		tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, true, 2, 1));
+		
 
 		if (isPardusDeviceOrHasPardusDevice || isPardusDeviceGroup) {
+			
+			setEntryInfoArea(parent);
 
-			tabItemTask = new TabItem(tabFolder, SWT.NONE);
-			tabItemTask.setText(Messages.getString("LiderManagementEditor.tabItemTask.text")); //$NON-NLS-1$
-
-			compositeGroupTask = new Composite(tabFolder, SWT.NONE);
-			tabItemTask.setControl(compositeGroupTask);
-			compositeGroupTask.setLayout(new GridLayout(4, false));
-
-			textSearchTask = new Text(compositeGroupTask, SWT.BORDER);
-			GridData layoutData = new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1);
-			layoutData.widthHint = 80;
-			textSearchTask.setLayoutData(layoutData);
-
-			textSearchTask.setMessage(Messages.getString("search"));
-
-			textSearchTask.addModifyListener(new ModifyListener() {
-				@Override
-				public void modifyText(ModifyEvent e) {
-					tabletaskListFilter.setSearchText(textSearchTask.getText());
-					tableViewerTaskList.refresh();
-				}
-			});
-			new Label(compositeGroupTask, SWT.NONE);
-
-			btnExecuteTask = new Button(compositeGroupTask, SWT.NONE);
-			btnExecuteTask.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-			btnExecuteTask.setAlignment(SWT.RIGHT);
-			btnExecuteTask.setText(Messages.getString("EXECUTE_TASK")); //$NON-NLS-1$
-
-			btnExecuteTask.setImage(SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE,
-					"icons/16/task-play.png"));
-
-			// btnExecuteTask.setFont(font);
-
-			btnExecuteTask.addSelectionListener(new SelectionAdapter() {
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-
-					IStructuredSelection selection = (IStructuredSelection) tableViewerTaskList.getSelection();
-					Object pluginTask = selection.getFirstElement();
-
-					if (pluginTask == null) {
-						Notifier.notify("Hata", "Lütfen Görev Seçiniz", NotifierTheme.ERROR_THEME);
-					}
-
-					if (pluginTask instanceof PluginTaskWrapper) {
-
-						executeTask((PluginTaskWrapper) pluginTask);
-
-					}
-
-				}
-			});
-			new Label(compositeGroupTask, SWT.NONE);
-
-			compositeTask = new Composite(compositeGroupTask, GridData.FILL);
-			compositeTask.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
-			compositeTask.setLayout(new GridLayout(1, true));
-
-			tableViewerTaskList = SWTResourceManager.createTableViewer(compositeTask);
-			tableTaskList = tableViewerTaskList.getTable();
-			tableTaskList.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-
-			createTaskTableColumns();
-			populateTaskTable();
-
-			tabletaskListFilter = new TableTaskListFilter();
-			tableViewerTaskList.addFilter(tabletaskListFilter);
-			tableViewerTaskList.refresh();
-
-			tableViewerTaskList.addDoubleClickListener(new IDoubleClickListener() {
-				@Override
-				public void doubleClick(DoubleClickEvent event) {
-					try {
-
-						IStructuredSelection selection = (IStructuredSelection) tableViewerTaskList.getSelection();
-						if (selection != null && selection.getFirstElement() instanceof PluginTaskWrapper) {
-							PluginTaskWrapper task = (PluginTaskWrapper) selection.getFirstElement();
-
-							executeTask(task);
-
-						}
-
-					} catch (Exception e) {
-						logger.error(e.getMessage(), e);
-						Notifier.error(null, Messages.getString("ERROR_ON_LIST"));
-					}
-				}
-			});
+			setTaskArea();
+			setPolicyArea(parent);
 
 		}
+		else if(isPardusAccount || selectedDnUserList.size()>0)
+		{
+			setUserPasswordArea();
+			
+			setPolicyArea(parent);
+			
+		}
+		
+		//else {
+			
+			tabItem = new TabItem(tabFolder, SWT.NONE);
+			tabItem.setText(Messages.getString("ENTRY_INFO"));
+			
+			TableViewer tableViewerEntryInfo = new TableViewer(tabFolder, SWT.BORDER | SWT.FULL_SELECTION);
+			tableEntryInfo = tableViewerEntryInfo.getTable();
+			tabItem.setControl(tableEntryInfo);
+			
+			tableEntryInfo.setHeaderVisible(true);
+			tableEntryInfo.setLinesVisible(true);
+			tableEntryInfo.getVerticalBar().setEnabled(true);
+			tableEntryInfo.getVerticalBar().setVisible(true);
+			// Set content provider
+			tableViewerEntryInfo.setContentProvider(new ArrayContentProvider());
+			
+			createEntryInfoTableColumns(tableViewerEntryInfo);
+			
+			tableViewerEntryInfo.setInput(selectedEntries.get(0).getAttributeListWithoutObjectClass());
+			tableViewerEntryInfo.refresh();
+			
+	//	}
+			
+		sc.setContent(composite);
+		sc.setExpandHorizontal(true);
+		sc.setExpandVertical(true);
 
+	}
+	
+	
+	
+	private void createEntryInfoTableColumns(TableViewer tableViewer) {
+		
+		TableViewerColumn attribute = SWTResourceManager.createTableViewerColumn(tableViewer,	Messages.getString("attribute_description"), 200);
+		attribute.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof LiderLdapEntry.AttributeWrapper) {
+					return ((LiderLdapEntry.AttributeWrapper)element).getAttName();
+				}
+				return Messages.getString("UNTITLED");
+			}
+		});
+		
+		TableViewerColumn value = SWTResourceManager.createTableViewerColumn(tableViewer,	Messages.getString("value"), 250);
+		value.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof LiderLdapEntry.AttributeWrapper) {
+					return ((LiderLdapEntry.AttributeWrapper)element).getAttValue();
+				}
+				return Messages.getString("UNTITLED");
+			}
+		});
+		
+	}
+
+	
+
+	private void setTaskArea() {
+		tabItemTask = new TabItem(tabFolder, SWT.NONE);
+		tabItemTask.setText(Messages.getString("LiderManagementEditor.tabItemTask.text")); //$NON-NLS-1$
+
+		compositeGroupTask = new Composite(tabFolder, SWT.NONE);
+		tabItemTask.setControl(compositeGroupTask);
+		compositeGroupTask.setLayout(new GridLayout(4, false));
+
+		textSearchTask = new Text(compositeGroupTask, SWT.BORDER);
+		GridData layoutData = new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1);
+		layoutData.widthHint = 80;
+		textSearchTask.setLayoutData(layoutData);
+
+		textSearchTask.setMessage(Messages.getString("search"));
+
+		textSearchTask.addModifyListener(new ModifyListener() {
+			@Override
+			public void modifyText(ModifyEvent e) {
+				tabletaskListFilter.setSearchText(textSearchTask.getText());
+				tableViewerTaskList.refresh();
+			}
+		});
+		new Label(compositeGroupTask, SWT.NONE);
+
+		btnExecuteTask = new Button(compositeGroupTask, SWT.NONE);
+		btnExecuteTask.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		btnExecuteTask.setAlignment(SWT.RIGHT);
+		btnExecuteTask.setText(Messages.getString("EXECUTE_TASK")); //$NON-NLS-1$
+
+		btnExecuteTask.setImage(SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE,
+				"icons/16/task-play.png"));
+
+		// btnExecuteTask.setFont(font);
+
+		btnExecuteTask.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+
+				IStructuredSelection selection = (IStructuredSelection) tableViewerTaskList.getSelection();
+				Object pluginTask = selection.getFirstElement();
+
+				if (pluginTask == null) {
+					Notifier.notify("Hata", "Lütfen Görev Seçiniz", NotifierTheme.ERROR_THEME);
+				}
+
+				if (pluginTask instanceof PluginTaskWrapper) {
+
+					executeTask((PluginTaskWrapper) pluginTask);
+
+				}
+
+			}
+		});
+		new Label(compositeGroupTask, SWT.NONE);
+
+		compositeTask = new Composite(compositeGroupTask, GridData.FILL);
+		compositeTask.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
+		compositeTask.setLayout(new GridLayout(1, true));
+
+		tableViewerTaskList = SWTResourceManager.createTableViewer(compositeTask);
+		tableTaskList = tableViewerTaskList.getTable();
+		tableTaskList.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+
+		createTaskTableColumns();
+		populateTaskTable();
+
+		tabletaskListFilter = new TableTaskListFilter();
+		tableViewerTaskList.addFilter(tabletaskListFilter);
+		tableViewerTaskList.refresh();
+
+		tableViewerTaskList.addDoubleClickListener(new IDoubleClickListener() {
+			@Override
+			public void doubleClick(DoubleClickEvent event) {
+				try {
+
+					IStructuredSelection selection = (IStructuredSelection) tableViewerTaskList.getSelection();
+					if (selection != null && selection.getFirstElement() instanceof PluginTaskWrapper) {
+						PluginTaskWrapper task = (PluginTaskWrapper) selection.getFirstElement();
+
+						executeTask(task);
+
+					}
+
+				} catch (Exception e) {
+					logger.error(e.getMessage(), e);
+					Notifier.error(null, Messages.getString("ERROR_ON_LIST"));
+				}
+			}
+		});
+	}
+
+	private void setPolicyArea(final Composite parent) {
 		tabItemPolicy = new TabItem(tabFolder, SWT.NONE);
 		tabItemPolicy.setText(Messages.getString("LiderManagementEditor.tabItemPolicy.text")); //$NON-NLS-1$
 
@@ -551,125 +623,6 @@ public class LiderManagementEditor extends EditorPart {
 		// isPardusDeviceGroup) {
 
 		selectedEntriesForTask = selectedEntries;
-		new Label(compositeAction, SWT.NONE);
-		new Label(compositeAction, SWT.NONE);
-
-		// createTaskArea(compositeAction, null);
-
-		// groupTaskLog = new Group(compositeAction, SWT.NONE);
-		// groupTaskLog.setLayout(new GridLayout(1, false));
-		// GridData gd_groupTaskLog = new GridData(SWT.FILL, SWT.CENTER, false, false,
-		// 2, 1);
-		// gd_groupTaskLog.minimumHeight = 200;
-		// groupTaskLog.setLayoutData(gd_groupTaskLog);
-		// groupTaskLog.setText(Messages.getString("GÃ¶rev GÃ¼ncesi"));
-		//
-		// tableViewerTaskLog = SWTResourceManager.createTableViewer(groupTaskLog);
-		// createTableTaskLogColumns();
-		// tableTaskLog = tableViewerTaskLog.getTable();
-		// tableTaskLog.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1,
-		// 1));
-		//
-		//
-		// getLastTasks();
-
-		// }
-		// task area for online users agents,, user must be login this agent
-		// else {
-		// getting agent for user. if user online for agent
-		// try {
-		//
-		// if (isSelectionSingle) {
-		//
-		// LiderLdapEntry selectedEntry = selectedEntries.get(0);
-		//
-		// List<UserAgent> agents = null;
-		//
-		// if(selectedEntry.getSunucuNo()!=null && selectedEntry.getEntryType() ==
-		// LiderLdapEntry.PARDUS_ACCOUNT ){
-		//
-		// String sunucuNo= selectedEntry.getSunucuNo();
-		//
-		// String baseDn =
-		// LdapConnectionListener.getConnection().getConnectionParameter().getExtendedProperty("ldapbrowser.baseDn");
-		//
-		// String filter="(&(objectClass=pardusDevice)(&(sunucuNo="+sunucuNo+")))";
-		//
-		// StudioNamingEnumeration enumeration=LdapUtils.getInstance().search(baseDn,
-		// filter, new String[] {}, SearchControls.SUBTREE_SCOPE,10,
-		// LdapConnectionListener.getConnection(),
-		// LdapConnectionListener.getMonitor());
-		//
-		// agents = new ArrayList<UserAgent>();
-		//
-		// try {
-		// if (enumeration != null) {
-		// while (enumeration.hasMore()) {
-		// SearchResult item = enumeration.next();
-		// String dn = item.getName();
-		// UserAgent agent= new UserAgent();
-		// agent.setAgentDn(dn);
-		//
-		//
-		// boolean
-		// isOnline=XMPPClient.getInstance().getOnlineAgentPresenceMap().containsKey(dn);
-		//
-		// agent.setIsOnline(isOnline);
-		//
-		//
-		// agents.add(agent);
-		//
-		// }
-		// }
-		// } catch (NamingException e) {
-		// logger.error(e.getMessage(), e);
-		// }
-		//
-		//
-		//
-		// }
-		// else{
-		//
-		// //if (!agents.isEmpty()) {
-		// agents = UserRestUtils.getOnlineUserAgent(selectedEntry.getUid());
-		// }
-		// if (agents !=null && !agents.isEmpty()) {
-		//
-		// UserAgent selectedUserAgent= agents.get(agents.size()-1); //last record
-		//
-		// // set lider ldap entries for plugin task dialogs.. task dialog handlers get
-		// lider ldap entries..
-		//
-		// selectedEntriesForTask=new ArrayList<>();
-		//
-		// selectedEntriesForTask.add(new LiderLdapEntry(selectedUserAgent.getAgentDn(),
-		// null, null));
-		// //liderLdapTaskEntries.add(new LiderLdapEntry(dn, null, null));
-		//
-		//
-		//// List<UserAgent> onlineAgentList= new ArrayList<>();
-		//// for (UserAgent userAgent : agents) {
-		//// if(userAgent.getIsOnline()){
-		//// onlineAgentList.add(userAgent);
-		//// }
-		//// }
-		//
-		// selectedUserDn = selectedEntry.getName();
-		// createTaskArea(sashForm, agents);
-		// }
-		// }
-		//
-		// } catch (Exception e1) {
-		// e1.printStackTrace();
-		// }
-
-		// sashForm.setWeights(new int[] { 1 });
-		// }
-
-		sc.setContent(composite);
-		sc.setExpandHorizontal(true);
-		sc.setExpandVertical(true);
-
 	}
 
 	private void getLastTasks() {
@@ -786,44 +739,6 @@ public class LiderManagementEditor extends EditorPart {
 		});
 	}
 
-	private void createTaskArea(Composite sashForm, List<UserAgent> onlineAgents) {
-
-		if (onlineAgents != null && onlineAgents.size() > 0) {
-
-			tableViewerUserAgents = new TableViewer(groupTask, SWT.BORDER | SWT.FULL_SELECTION);
-			tableUserAgents = tableViewerUserAgents.getTable();
-			tableViewerUserAgents.getTable().setToolTipText("SeÃ§ili kullanÄ±cÄ±nÄ±n login olduÄu ahenk listesi");
-			GridData gd_tableUserAgents = new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1);
-			gd_tableUserAgents.heightHint = 61;
-			tableUserAgents.setLayoutData(gd_tableUserAgents);
-			tableViewerUserAgents.setContentProvider(new ArrayContentProvider());
-			tableUserAgents.setHeaderVisible(true);
-			tableUserAgents.setLinesVisible(true);
-			createUserAgentsTableColumns();
-
-			tableViewerUserAgents.setInput(onlineAgents != null ? onlineAgents : new ArrayList<UserAgent>());
-
-			tableViewerUserAgents.addSelectionChangedListener(new ISelectionChangedListener() {
-				@Override
-				public void selectionChanged(SelectionChangedEvent event) {
-					IStructuredSelection selection = (IStructuredSelection) tableViewerUserAgents.getSelection();
-					Object firstElement = selection.getFirstElement();
-					if (firstElement instanceof UserAgent) {
-
-						selectedEntries = new ArrayList<>();
-
-						selectedEntries.add(new LiderLdapEntry(((UserAgent) firstElement).getAgentDn(), null, null));
-					}
-				}
-			});
-
-			tableViewerUserAgents.getTable().select(onlineAgents.size() - 1);
-
-		}
-
-		setButtonsToButtonTaskComponent();
-	}
-
 	private void fillWithEntries() {
 
 		selectedEntries = editorInput.getLiderLdapEntries();
@@ -862,8 +777,11 @@ public class LiderManagementEditor extends EditorPart {
 			if (le.getEntryType() == LiderLdapEntry.PARDUS_ORGANIZATIONAL_UNIT) {
 				isPardusOu = true;
 			}
-			if (le.isHasGroupOfNames())
+			if (le.getEntryType() == LiderLdapEntry.PARDUS_GROUPOFNAMES)
 				isHasGroupOfNames = true;
+			
+			if (le.getEntryType() == LiderLdapEntry.PARDUS_SUDOROLE)
+				isSudoRole = true;
 
 		}
 
@@ -877,95 +795,13 @@ public class LiderManagementEditor extends EditorPart {
 
 			selectedDnUserList = LdapUtils.getInstance().findUsers(selectedEntries.get(0).getName());
 
-			selectedUserDn = null;
+			//selectedUserDn = null;
+			selectedUserDn = selectedEntries.get(0).getName();
 		}
+		
 
 	}
 
-	/**
-	 * Create table columns related to policy database columns.
-	 * 
-	 */
-	private void createUserAgentsTableColumns() {
-
-		TableViewerColumn state = SWTResourceManager.createTableViewerColumn(tableViewerUserAgents,
-				Messages.getString("status"), 80);
-
-		state.getColumn().setAlignment(SWT.LEFT);
-		state.setLabelProvider(new ColumnLabelProvider() {
-			@Override
-			public String getText(Object element) {
-				if (element instanceof UserAgent) {
-					return ((UserAgent) element).getIsOnline() ? "Online" : "Offline";
-				}
-				return Messages.getString("UNTITLED");
-			}
-
-			@Override
-			public Image getImage(Object element) {
-				if (element instanceof UserAgent) {
-					if (((UserAgent) element).getIsOnline()) {
-						return onlineUserAgentImage;
-					} else
-						return offlineUserAgentImage;
-				}
-				return null;
-			}
-		});
-
-		// SELECTED DN NAME List<UserAgent>
-		TableViewerColumn dn = SWTResourceManager.createTableViewerColumn(tableViewerUserAgents,
-				Messages.getString("user_agent"), 430);
-
-		dn.getColumn().setAlignment(SWT.LEFT);
-		dn.setLabelProvider(new ColumnLabelProvider() {
-			@Override
-			public String getText(Object element) {
-				if (element instanceof UserAgent) {
-					return ((UserAgent) element).getAgentDn();
-				}
-				return Messages.getString("UNTITLED");
-			}
-		});
-		// SELECTED DN NAME List<UserAgent>
-		// TableViewerColumn loginDate =
-		// SWTResourceManager.createTableViewerColumn(tableViewerUserAgents,
-		// Messages.getString("login_date"), 150);
-		//
-		// loginDate.getColumn().setAlignment(SWT.LEFT);
-		// loginDate.setLabelProvider(new ColumnLabelProvider() {
-		// @Override
-		// public String getText(Object element) {
-		// if (element instanceof UserAgent) {
-		// return new SimpleDateFormat("dd-MM-yy h:mm").format(((UserAgent)
-		// element).getUserLoginDate());
-		// }
-		// return Messages.getString("UNTITLED");
-		// }
-		// });
-		//
-		//
-		// TableViewerColumn ip =
-		// SWTResourceManager.createTableViewerColumn(tableViewerUserAgents,
-		// Messages.getString("IP_ADDRESS"), 100);
-		//
-		// ip.getColumn().setAlignment(SWT.LEFT);
-		// ip.setLabelProvider(new ColumnLabelProvider() {
-		// @Override
-		// public String getText(Object element) {
-		// if (element instanceof UserAgent) {
-		//
-		// if(((UserAgent) element).getUserIp() ==null)
-		// return ((UserAgent) element).getIp() ;
-		// else if(((UserAgent) element).getUserIp() !=null)
-		// return ((UserAgent) element).getIp() +" - "+ ((UserAgent)
-		// element).getUserIp() ;
-		// }
-		// return Messages.getString("UNTITLED");
-		// }
-		// });
-
-	}
 
 	public LiderManagementEditor getSelf() {
 		return this;
@@ -974,22 +810,6 @@ public class LiderManagementEditor extends EditorPart {
 	public void refreshPolicyArea() {
 		populatePolicyTable();
 		tableViewerPolicyList.refresh();
-	}
-
-	/**
-	 * Create add, edit, delete button for the table.
-	 * 
-	 * @param composite
-	 */
-	private void createPolicyButtonsArea(final Composite parent) {
-		new Label(compositePolicy, SWT.NONE);
-		new Label(compositePolicy, SWT.NONE);
-		new Label(compositePolicy, SWT.NONE);
-		final Composite composite = new Composite(parent, GridData.FILL);
-		GridData gd_composite = new GridData(SWT.FILL, SWT.FILL, true, true);
-		gd_composite.horizontalSpan = 10;
-		composite.setLayoutData(gd_composite);
-		composite.setLayout(new GridLayout(1, false));
 	}
 
 	public class TablePolicyFilter extends ViewerFilter {
@@ -1008,117 +828,6 @@ public class LiderManagementEditor extends EditorPart {
 			Policy policy = (Policy) element;
 			return policy.getLabel().matches(searchString) || policy.getDescription().matches(searchString);
 		}
-	}
-
-	private void setButtonsToButtonTaskComponent() {
-
-		IExtensionRegistry registry = Platform.getExtensionRegistry();
-		IExtensionPoint extensionPoint = registry.getExtensionPoint(LiderConstants.EXTENSION_POINTS.TASK_MENU);
-		IConfigurationElement[] config = extensionPoint.getConfigurationElements();
-
-		// Command service will be used to trigger handler class related to
-		// specified 'profileCommandId'
-		final ICommandService commandService = (ICommandService) PlatformUI.getWorkbench()
-				.getService(ICommandService.class);
-
-		if (config != null) {
-			// Iterate over each extension point provided by plugins
-
-			pluginTaskList = new ArrayList<>();
-
-			for (IConfigurationElement e : config) {
-
-				try {
-
-					// Read extension point attributes
-					final String label = e.getAttribute("label");
-
-					final String pluginName = e.getAttribute("pluginName");
-
-					final String pluginVersion = e.getAttribute("pluginVersion");
-
-					final String taskCommandId = e.getAttribute("taskCommandId");
-
-					final String selectionType = e.getAttribute("selectionType");
-
-					final String description = e.getAttribute("description");
-
-					final String imagePath = e.getAttribute("imagePath");
-
-					final Command command = commandService.getCommand(taskCommandId);
-
-					PluginTaskWrapper pluginTaskWrapper = new PluginTaskWrapper(label, pluginName, pluginVersion,
-							taskCommandId, selectionType, description, imagePath, command);
-
-					pluginTaskList.add(pluginTaskWrapper);
-
-				} catch (Exception e1) {
-					logger.error(e1.getMessage(), e1);
-				}
-			}
-
-			// sort task
-			pluginTaskList.sort(new Comparator<PluginTaskWrapper>() {
-
-				@Override
-				public int compare(PluginTaskWrapper o1, PluginTaskWrapper o2) {
-
-					return o1.getLabel().compareTo(o2.getLabel());
-				}
-			});
-
-			for (PluginTaskWrapper pluginTaskWrapper : pluginTaskList) {
-
-				if ((pluginTaskWrapper.getSelectionType() != null && isSelectionMulti
-						&& pluginTaskWrapper.getSelectionType().equals("multi")) || isSelectionSingle) {
-
-					// addButtonToTaskArea(commandService, pluginTaskWrapper);
-
-				}
-			}
-
-		}
-
-	}
-
-	private void addButtonToTaskArea(final ICommandService commandService, final PluginTaskWrapper pluginTaskWrapper) {
-		Button btnTask = new Button(compositeTask, SWT.NONE);
-		btnTask.setFont(font);
-		btnTask.setToolTipText(pluginTaskWrapper.getDescription());
-		// btnTask.setBackground(SWTResourceManager.getColor(RGB_DEFAULT));
-
-		if (pluginTaskWrapper.getImagePath() != null)
-			btnTask.setImage(SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE,
-					"icons/16/" + pluginTaskWrapper.getImagePath())); // btnTask.setForeground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-
-		GridData gd_btnNewButton = new GridData(SWT.FILL, SWT.FILL, true, true);
-		// gd_btnNewButton.minimumWidth = 230;
-		// gd_btnNewButton.minimumHeight = 100;
-		btnTask.setLayoutData(gd_btnNewButton);
-		btnTask.setText(pluginTaskWrapper.getLabel());
-
-		pluginTaskWrapper.setTaskButton(btnTask);
-
-		btnTask.addSelectionListener(new SelectionListener() {
-
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-
-				Command command = commandService.getCommand(pluginTaskWrapper.getTaskCommandId());
-
-				try {
-					command.executeWithChecks(new ExecutionEvent());
-				} catch (Exception e1) {
-					logger.error(e1.getMessage(), e1);
-				}
-			}
-
-			@Override
-			public void widgetDefaultSelected(SelectionEvent e) {
-				// TODO Auto-generated method stub
-
-			}
-		});
 	}
 
 	@Override
@@ -1168,21 +877,6 @@ public class LiderManagementEditor extends EditorPart {
 				return Messages.getString("UNTITLED");
 			}
 		});
-
-		// // Description
-		// TableViewerColumn descColumn =
-		// SWTResourceManager.createTableViewerColumn(tableViewerPolicyList,
-		// Messages.getString("DESCRIPTION"), 400);
-		// descColumn.getColumn().setAlignment(SWT.LEFT);
-		// descColumn.setLabelProvider(new ColumnLabelProvider() {
-		// @Override
-		// public String getText(Object element) {
-		// if (element instanceof Policy) {
-		// return ((Policy) element).getDescription();
-		// }
-		// return Messages.getString("UNTITLED");
-		// }
-		// });
 
 		// Create date
 		TableViewerColumn createDateColumn = SWTResourceManager.createTableViewerColumn(tableViewerPolicyList,
@@ -1310,21 +1004,6 @@ public class LiderManagementEditor extends EditorPart {
 	}
 
 	private void createTaskTableColumns() {
-		// // Plugin Name
-		// TableViewerColumn pluginNameColumn =
-		// SWTResourceManager.createTableViewerColumn(tableViewerTaskList,
-		// Messages.getString("PLUGIN"), 170);
-		// pluginNameColumn.getColumn().setAlignment(SWT.LEFT);
-		// pluginNameColumn.setLabelProvider(new ColumnLabelProvider() {
-		// @Override
-		// public String getText(Object element) {
-		// if (element instanceof PluginTaskWrapper) {
-		// return ((PluginTaskWrapper) element).getPluginName().toUpperCase() + " ("
-		// + ((PluginTaskWrapper) element).getPluginVersion() + ")";
-		// }
-		// return Messages.getString("UNTITLED");
-		// }
-		// });
 		// Task Name
 		TableViewerColumn taskNameColumn = SWTResourceManager.createTableViewerColumn(tableViewerTaskList,
 				Messages.getString("TASK_LIST"), 250);
@@ -1393,180 +1072,6 @@ public class LiderManagementEditor extends EditorPart {
 
 	}
 
-	private void createTableTaskLogColumns() {
-
-		// // Plugin
-		// TableViewerColumn pluginColumn =
-		// SWTResourceManager.createTableViewerColumn(tableViewerTaskLog,
-		// Messages.getString("PLUGIN"), 200);
-		// pluginColumn.getColumn().setAlignment(SWT.LEFT);
-		// pluginColumn.setLabelProvider(new ColumnLabelProvider() {
-		// @Override
-		// public String getText(Object element) {
-		// if (element instanceof ExecutedTask) {
-		// return Messages.getString(((ExecutedTask) element).getPluginName()) + " - "
-		// + ((ExecutedTask) element).getPluginVersion();
-		// }
-		// return Messages.getString("UNTITLED");
-		// }
-		// });
-
-		// Task
-		TableViewerColumn taskColumn = SWTResourceManager.createTableViewerColumn(tableViewerTaskLog,
-				Messages.getString("TASKS"), 150);
-		taskColumn.getColumn().setAlignment(SWT.LEFT);
-		taskColumn.setLabelProvider(new ColumnLabelProvider() {
-			@Override
-			public String getText(Object element) {
-				if (element instanceof ExecutedTask) {
-					return Messages.getString(((ExecutedTask) element).getCommandClsId());
-				}
-				return Messages.getString("UNTITLED");
-			}
-		});
-
-		// Create date
-		TableViewerColumn createDateColumn = SWTResourceManager.createTableViewerColumn(tableViewerTaskLog,
-				Messages.getString("CREATE_DATE"), 140);
-		createDateColumn.setLabelProvider(new ColumnLabelProvider() {
-			@Override
-			public String getText(Object element) {
-				if (element instanceof ExecutedTask) {
-					return ((ExecutedTask) element).getCreateDate() != null
-							? SWTResourceManager.formatDate(((ExecutedTask) element).getCreateDate())
-							: Messages.getString("UNTITLED");
-				}
-				return Messages.getString("UNTITLED");
-			}
-		});
-
-		// Executions status
-		TableViewerColumn executionsColumn = SWTResourceManager.createTableViewerColumn(tableViewerTaskLog,
-				Messages.getString("EXECUTIONS"), 40);
-		executionsColumn.getColumn().setAlignment(SWT.RIGHT);
-		executionsColumn.setLabelProvider(new ColumnLabelProvider() {
-			@Override
-			public String getText(Object element) {
-				if (element instanceof ExecutedTask) {
-					return ((ExecutedTask) element).getExecutions() != null
-							? ((ExecutedTask) element).getExecutions().toString()
-							: Messages.getString("UNTITLED");
-				}
-				return Messages.getString("UNTITLED");
-			}
-
-		});
-		// Success status
-		TableViewerColumn successColumn = SWTResourceManager.createTableViewerColumn(tableViewerTaskLog,
-				Messages.getString("SUCCESS_STATUS"), 40);
-		successColumn.getColumn().setAlignment(SWT.RIGHT);
-		successColumn.setLabelProvider(new ColumnLabelProvider() {
-			@Override
-			public String getText(Object element) {
-				if (element instanceof ExecutedTask) {
-					return ((ExecutedTask) element).getSuccessResults() != null
-							? ((ExecutedTask) element).getSuccessResults().toString()
-							: Messages.getString("UNTITLED");
-				}
-				return Messages.getString("UNTITLED");
-			}
-
-			@Override
-			public Color getBackground(Object element) {
-				return element instanceof ExecutedTask && ((ExecutedTask) element).getSuccessResults() != null
-						&& ((ExecutedTask) element).getSuccessResults().intValue() > 0
-								? SWTResourceManager.getSuccessColor()
-								: null;
-			}
-		});
-
-		// // Warning status
-		// TableViewerColumn warningColumn =
-		// SWTResourceManager.createTableViewerColumn(tableViewerTaskLog,
-		// Messages.getString("WARNING_STATUS"), 30);
-		// warningColumn.getColumn().setAlignment(SWT.RIGHT);
-		// warningColumn.setLabelProvider(new ColumnLabelProvider() {
-		// @Override
-		// public String getText(Object element) {
-		// if (element instanceof ExecutedTask) {
-		// return ((ExecutedTask) element).getWarningResults() != null
-		// ? ((ExecutedTask) element).getWarningResults().toString()
-		// : Messages.getString("UNTITLED");
-		// }
-		// return Messages.getString("UNTITLED");
-		// }
-		//
-		// @Override
-		// public Color getBackground(Object element) {
-		// return element instanceof ExecutedTask && ((ExecutedTask)
-		// element).getWarningResults() != null
-		// && ((ExecutedTask) element).getWarningResults().intValue() > 0
-		// ? SWTResourceManager.getWarningColor()
-		// : null;
-		// }
-		// });
-
-		// Error status
-		TableViewerColumn errorColumn = SWTResourceManager.createTableViewerColumn(tableViewerTaskLog,
-				Messages.getString("ERROR_STATUS"), 40);
-		errorColumn.getColumn().setAlignment(SWT.RIGHT);
-		errorColumn.setLabelProvider(new ColumnLabelProvider() {
-			@Override
-			public String getText(Object element) {
-				if (element instanceof ExecutedTask) {
-					return ((ExecutedTask) element).getErrorResults() != null
-							? ((ExecutedTask) element).getErrorResults().toString()
-							: Messages.getString("UNTITLED");
-				}
-				return Messages.getString("UNTITLED");
-			}
-
-			@Override
-			public Color getBackground(Object element) {
-				return element instanceof ExecutedTask && ((ExecutedTask) element).getErrorResults() != null
-						&& ((ExecutedTask) element).getErrorResults().intValue() > 0
-								? SWTResourceManager.getErrorColor()
-								: null;
-			}
-		});
-
-		// // Scheduled status
-		// TableViewerColumn scheduledColumn =
-		// SWTResourceManager.createTableViewerColumn(tableViewerTaskLog,
-		// Messages.getString("SCHEDULED_STATUS"), 40);
-		// scheduledColumn.getColumn().setAlignment(SWT.LEFT);
-		// scheduledColumn.setLabelProvider(new ColumnLabelProvider() {
-		// @Override
-		// public String getText(Object element) {
-		// if (element instanceof ExecutedTask) {
-		// return ((ExecutedTask) element).getScheduled() != null
-		// && ((ExecutedTask) element).getScheduled().booleanValue() ?
-		// Messages.getString("YES")
-		// : Messages.getString("NO");
-		// }
-		// return Messages.getString("UNTITLED");
-		// }
-		// });
-		//
-		// // Cancel status
-		// TableViewerColumn cancelledColumn =
-		// SWTResourceManager.createTableViewerColumn(tableViewerTaskLog,
-		// Messages.getString("CANCEL_STATUS"), 40);
-		// cancelledColumn.getColumn().setAlignment(SWT.LEFT);
-		// cancelledColumn.setLabelProvider(new ColumnLabelProvider() {
-		// @Override
-		// public String getText(Object element) {
-		// if (element instanceof ExecutedTask) {
-		// return ((ExecutedTask) element).getCancelled() != null
-		// && ((ExecutedTask) element).getCancelled().booleanValue() ?
-		// Messages.getString("YES")
-		// : Messages.getString("NO");
-		// }
-		// return Messages.getString("UNTITLED");
-		// }
-		// });
-	}
-
 	private EventHandler eventHandler = new EventHandler() {
 		@Override
 		public void handleEvent(final Event event) {
@@ -1618,6 +1123,7 @@ public class LiderManagementEditor extends EditorPart {
 			job.schedule();
 		}
 	};
+	private TabItem tabItem;
 
 	/**
 	 * 

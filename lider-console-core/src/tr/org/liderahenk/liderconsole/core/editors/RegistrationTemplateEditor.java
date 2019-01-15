@@ -191,8 +191,14 @@ public class RegistrationTemplateEditor extends EditorPart {
 				
 				try {
 					Boolean result = RegistrationTemplateRestUtils.delete(selectedTemplate.getId());
-					tableViewer.refresh();
+					
+					if (result) {
+						refresh();
+					}
+					
+					
 					System.out.println(result);
+					
 				} catch (Exception e1) {
 					e1.printStackTrace();
 					logger.error(e1.getMessage(), e);
