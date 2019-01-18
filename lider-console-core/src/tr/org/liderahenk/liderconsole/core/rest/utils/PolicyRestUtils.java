@@ -35,6 +35,7 @@ import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.ldap.enums.DNType;
 import tr.org.liderahenk.liderconsole.core.model.AppliedPolicy;
+import tr.org.liderahenk.liderconsole.core.model.AssignedPolicy;
 import tr.org.liderahenk.liderconsole.core.model.Command;
 import tr.org.liderahenk.liderconsole.core.model.Policy;
 import tr.org.liderahenk.liderconsole.core.rest.RestClient;
@@ -185,6 +186,7 @@ public class PolicyRestUtils {
 
 		return policies;
 	}
+
 
 	/**
 	 * Send GET request to server in order to retrieve desired policy.
@@ -351,6 +353,60 @@ public class PolicyRestUtils {
 		return commands;
 	}
 
+	/**
+	 * Send GET request to server in order to retrieve applied policies.
+	 * 
+	 * @param label
+	 * @param createDateRangeStart
+	 * @param createDateRangeEnd
+	 * @param status
+	 * @param string 
+	 * @return
+	 * @throws Exception
+	 */
+	public static List<AssignedPolicy> listAssignedPolicies(String[] dnList)
+			throws Exception {
+
+		// Build URL
+		StringBuilder url = getBaseUrl();
+		url.append("/list/assignedpolicy?");
+
+		// Append optional parameters
+		List<String> params = new ArrayList<String>();
+		String combinedDNList = "";
+		if(dnList != null && dnList.length > 0) {
+			for (int i = 0; i < dnList.length; i++) {
+				combinedDNList += dnList[i];
+				if(i != dnList.length-1) {
+					combinedDNList += "]]";
+				}
+			}
+			logger.info("dnList= " + combinedDNList);
+			params.add("dnList=" +  URLEncoder.encode(combinedDNList,"UTF-8"));
+		}
+		if (!params.isEmpty()) {
+			url.append(StringUtils.join(params, "&"));
+		}
+		logger.debug("Sending request to URL: {}", url.toString());
+
+		// Send GET request to server
+		IResponse response = RestClient.get(url.toString());
+		List<AssignedPolicy> assignedPolicyList = null;
+
+		if (response != null && response.getStatus() == RestResponseStatus.OK
+				&& response.getResultMap().get("assigned_policies") != null) {
+			ObjectMapper mapper = new ObjectMapper();
+			assignedPolicyList = mapper.readValue(mapper.writeValueAsString(response.getResultMap().get("assigned_policies")),
+					new TypeReference<List<AppliedPolicy>>() {
+					});
+			Notifier.success(null, Messages.getString("RECORD_LISTED"));
+		} else {
+			Notifier.error(null, Messages.getString("ERROR_ON_LIST"));
+		}
+
+		return assignedPolicyList;
+	}
+	
 	/**
 	 * 
 	 * @return base URL for policy actions

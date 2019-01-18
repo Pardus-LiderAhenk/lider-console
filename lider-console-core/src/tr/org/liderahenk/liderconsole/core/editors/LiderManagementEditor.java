@@ -70,6 +70,7 @@ import tr.org.liderahenk.liderconsole.core.dialogs.PolicyExecutionSelectDialog;
 import tr.org.liderahenk.liderconsole.core.editorinput.DefaultEditorInput;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.ldap.utils.LdapUtils;
+import tr.org.liderahenk.liderconsole.core.model.AssignedPolicy;
 import tr.org.liderahenk.liderconsole.core.model.ExecutedTask;
 import tr.org.liderahenk.liderconsole.core.model.LiderLdapEntry;
 import tr.org.liderahenk.liderconsole.core.model.Policy;
@@ -103,20 +104,28 @@ public class LiderManagementEditor extends EditorPart {
 	private DefaultEditorInput editorInput;
 	private Group groupTask;
 	private Group groupPolicy;
+	private Group groupAssignedPolicy;
+
 
 	public static String selectedDn;
 	public static List<String> selectedDnUserList;
 	private Table tablePolicyList;
+	private Table tableAssignedPolicyList;
 
 	private TableViewer tableViewerPolicyList;
 	private TablePolicyFilter tablePolicyFilter;
+	private TableViewer tableViewerAssignedPolicyList;
+	private TablePolicyFilter tableAssignedPolicyFilter;
 
 	private Button btnAddPolicy;
 	private Button btnEditPolicy;
 	private Button btnDeletePolicy;
 	private Button btnRefreshPolicy;
 
+	private Button btnRefreshAssignedPolicy;
+
 	private Policy selectedPolicy;
+	private Policy selectedAssignedPolicy;
 	private Button btnExecutePolicy;
 
 	private Composite compositeTask;
@@ -142,12 +151,15 @@ public class LiderManagementEditor extends EditorPart {
 	private TableTaskListFilter tabletaskListFilter;
 	private TableViewer tableViewerTaskLog;
 	private TabFolder tabFolder;
+	private TabItem tabItemAssignedPolicy;
 	private TabItem tabItemPolicy;
 	private TabItem tabItemTask;
 	private Composite compositeGroupTask;
 	private Composite compositePolicy;
 	private Composite compositePolicy_Inner;
-	
+	private Composite compositeAssignedPolicy;
+	private Composite compositeAssignedPolicy_Inner;
+
 	boolean isPardusDeviceOrHasPardusDevice = false;
 	boolean isPardusAccount = false;
 	boolean isHasGroupOfNames = false;
@@ -158,8 +170,8 @@ public class LiderManagementEditor extends EditorPart {
 	boolean isSudoRole = false;
 
 	private Table tableEntryInfo;
-	
-	
+
+
 
 	public LiderManagementEditor() {
 	}
@@ -190,7 +202,7 @@ public class LiderManagementEditor extends EditorPart {
 				this.getClass().getClassLoader().getResourceAsStream("icons/32/online-mini.png"));
 		offlineUserAgentImage = new Image(Display.getDefault(),
 				this.getClass().getClassLoader().getResourceAsStream("icons/32/offline-red-mini.png"));
-		
+
 	}
 
 	@Override
@@ -251,60 +263,54 @@ public class LiderManagementEditor extends EditorPart {
 		compositeInfoButtons.setSize(10, 10);
 		compositeInfoButtons.setLayout(new GridLayout(3, false));
 
-		
+
 		tabFolder = new TabFolder(compositeAction, SWT.NONE);
 		tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, true, 2, 1));
-		
+
 
 		if (isPardusDeviceOrHasPardusDevice || isPardusDeviceGroup) {
-			
-			setEntryInfoArea(parent);
 
+			setEntryInfoArea(parent);
 			setTaskArea();
 			setPolicyArea(parent);
-
 		}
 		else if(isPardusAccount || selectedDnUserList.size()>0)
 		{
 			setUserPasswordArea();
-			
 			setPolicyArea(parent);
-			
 		}
-		
-		//else {
-			
-			tabItem = new TabItem(tabFolder, SWT.NONE);
-			tabItem.setText(Messages.getString("ENTRY_INFO"));
-			
-			TableViewer tableViewerEntryInfo = new TableViewer(tabFolder, SWT.BORDER | SWT.FULL_SELECTION);
-			tableEntryInfo = tableViewerEntryInfo.getTable();
-			tabItem.setControl(tableEntryInfo);
-			
-			tableEntryInfo.setHeaderVisible(true);
-			tableEntryInfo.setLinesVisible(true);
-			tableEntryInfo.getVerticalBar().setEnabled(true);
-			tableEntryInfo.getVerticalBar().setVisible(true);
-			// Set content provider
-			tableViewerEntryInfo.setContentProvider(new ArrayContentProvider());
-			
-			createEntryInfoTableColumns(tableViewerEntryInfo);
-			
-			tableViewerEntryInfo.setInput(selectedEntries.get(0).getAttributeListWithoutObjectClass());
-			tableViewerEntryInfo.refresh();
-			
-	//	}
-			
+		//add assigned policy tab if only one entry is selected
+		if(selectedEntries.size() == 1) {
+			System.err.println(selectedDn);
+			setAssignedPoliciesArea(parent);
+		}
+
+		tabItem = new TabItem(tabFolder, SWT.NONE);
+		tabItem.setText(Messages.getString("ENTRY_INFO"));
+
+		TableViewer tableViewerEntryInfo = new TableViewer(tabFolder, SWT.BORDER | SWT.FULL_SELECTION);
+		tableEntryInfo = tableViewerEntryInfo.getTable();
+		tabItem.setControl(tableEntryInfo);
+
+		tableEntryInfo.setHeaderVisible(true);
+		tableEntryInfo.setLinesVisible(true);
+		tableEntryInfo.getVerticalBar().setEnabled(true);
+		tableEntryInfo.getVerticalBar().setVisible(true);
+		// Set content provider
+		tableViewerEntryInfo.setContentProvider(new ArrayContentProvider());
+
+		createEntryInfoTableColumns(tableViewerEntryInfo);
+
+		tableViewerEntryInfo.setInput(selectedEntries.get(0).getAttributeListWithoutObjectClass());
+		tableViewerEntryInfo.refresh();
+
 		sc.setContent(composite);
 		sc.setExpandHorizontal(true);
 		sc.setExpandVertical(true);
-
 	}
-	
-	
-	
+
 	private void createEntryInfoTableColumns(TableViewer tableViewer) {
-		
+
 		TableViewerColumn attribute = SWTResourceManager.createTableViewerColumn(tableViewer,	Messages.getString("attribute_description"), 200);
 		attribute.setLabelProvider(new ColumnLabelProvider() {
 			@Override
@@ -315,7 +321,7 @@ public class LiderManagementEditor extends EditorPart {
 				return Messages.getString("UNTITLED");
 			}
 		});
-		
+
 		TableViewerColumn value = SWTResourceManager.createTableViewerColumn(tableViewer,	Messages.getString("value"), 250);
 		value.setLabelProvider(new ColumnLabelProvider() {
 			@Override
@@ -326,10 +332,7 @@ public class LiderManagementEditor extends EditorPart {
 				return Messages.getString("UNTITLED");
 			}
 		});
-		
 	}
-
-	
 
 	private void setTaskArea() {
 		tabItemTask = new TabItem(tabFolder, SWT.NONE);
@@ -363,8 +366,6 @@ public class LiderManagementEditor extends EditorPart {
 		btnExecuteTask.setImage(SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE,
 				"icons/16/task-play.png"));
 
-		// btnExecuteTask.setFont(font);
-
 		btnExecuteTask.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -377,11 +378,8 @@ public class LiderManagementEditor extends EditorPart {
 				}
 
 				if (pluginTask instanceof PluginTaskWrapper) {
-
 					executeTask((PluginTaskWrapper) pluginTask);
-
 				}
-
 			}
 		});
 		new Label(compositeGroupTask, SWT.NONE);
@@ -409,11 +407,8 @@ public class LiderManagementEditor extends EditorPart {
 					IStructuredSelection selection = (IStructuredSelection) tableViewerTaskList.getSelection();
 					if (selection != null && selection.getFirstElement() instanceof PluginTaskWrapper) {
 						PluginTaskWrapper task = (PluginTaskWrapper) selection.getFirstElement();
-
 						executeTask(task);
-
 					}
-
 				} catch (Exception e) {
 					logger.error(e.getMessage(), e);
 					Notifier.error(null, Messages.getString("ERROR_ON_LIST"));
@@ -625,6 +620,83 @@ public class LiderManagementEditor extends EditorPart {
 		selectedEntriesForTask = selectedEntries;
 	}
 
+	private void setAssignedPoliciesArea(final Composite parent) {
+		//start assigned policies
+		tabItemAssignedPolicy = new TabItem(tabFolder, SWT.NONE);
+		tabItemAssignedPolicy.setText(Messages.getString("LiderManagementEditor.tabItemAssignedPolicies.text")); //$NON-NLS-1$
+
+		compositeAssignedPolicy = new Composite(tabFolder, SWT.NONE);
+		tabItemAssignedPolicy.setControl(compositeAssignedPolicy);
+
+		compositeAssignedPolicy.setLayout(new GridLayout(10, false));
+
+		btnRefreshAssignedPolicy = new Button(compositeAssignedPolicy, SWT.NONE);
+		btnRefreshAssignedPolicy.setToolTipText(Messages.getString("LiderManagementEditor.btnRefreshPolicy.toolTipText")); //$NON-NLS-1$
+		btnRefreshAssignedPolicy.setImage(
+				SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE, "icons/16/refresh.png"));
+		//btnRefreshPolicy.setText(Messages.getString("REFRESH"));
+
+		btnRefreshAssignedPolicy.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				//refreshAssignedPolicyArea();
+			}
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
+
+		new Label(compositeAssignedPolicy, SWT.NONE);
+		new Label(compositeAssignedPolicy, SWT.NONE);
+		new Label(compositeAssignedPolicy, SWT.NONE);
+		new Label(compositeAssignedPolicy, SWT.NONE);
+		new Label(compositeAssignedPolicy, SWT.NONE);
+
+		compositeAssignedPolicy_Inner = new Composite(compositeAssignedPolicy, GridData.FILL);
+		compositeAssignedPolicy_Inner.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 8, 1));
+		compositeAssignedPolicy_Inner.setLayout(new GridLayout(1, false));
+
+		tableViewerAssignedPolicyList = SWTResourceManager.createTableViewer(compositeAssignedPolicy_Inner);
+		new Label(compositeAssignedPolicy, SWT.NONE);
+		new Label(compositeAssignedPolicy, SWT.NONE);
+
+		tableAssignedPolicyList = tableViewerAssignedPolicyList.getTable();
+		tableAssignedPolicyList.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+
+		tableAssignedPolicyFilter = new TablePolicyFilter();
+		tableViewerAssignedPolicyList.addFilter(tableAssignedPolicyFilter);
+		tableViewerAssignedPolicyList.refresh();
+
+		createAssignedPolicyTableColumns();
+		populateAssignedPolicyTable();
+
+		// Hook up listeners
+		tableViewerAssignedPolicyList.addSelectionChangedListener(new ISelectionChangedListener() {
+			@Override
+			public void selectionChanged(SelectionChangedEvent event) {
+				IStructuredSelection selection = (IStructuredSelection) tableViewerAssignedPolicyList.getSelection();
+				Object firstElement = selection.getFirstElement();
+				if (firstElement instanceof Policy) {
+					//							setSelectedAssignedPolicy((Policy) firstElement);
+					//							btnEditAssignedPolicy.setEnabled(true);
+					//							btnDeleteAssignedPolicy.setEnabled(true);
+				}
+			}
+		});
+
+		tableViewerAssignedPolicyList.addDoubleClickListener(new IDoubleClickListener() {
+			@Override
+			public void doubleClick(DoubleClickEvent event) {
+				//						PolicyDefinitionDialog dialog = new PolicyDefinitionDialog(parent.getShell(), getSelectedAssignedPolicy(),
+				//								getSelf());
+				//						dialog.open();
+			}
+		});
+		//end assigned policies
+		selectedEntriesForTask = selectedEntries;
+	}
+	
 	private void getLastTasks() {
 		try {
 			List<ExecutedTask> tasks = null;
@@ -720,7 +792,7 @@ public class LiderManagementEditor extends EditorPart {
 
 				Command command = commandService
 						.getCommand("tr.org.liderahenk.liderconsole.commands.AddPasswordPolicyTask"); // password plugin
-																										// command id
+				// command id
 
 				try {
 					command.executeWithChecks(new ExecutionEvent());
@@ -779,7 +851,7 @@ public class LiderManagementEditor extends EditorPart {
 			}
 			if (le.getEntryType() == LiderLdapEntry.PARDUS_GROUPOFNAMES)
 				isHasGroupOfNames = true;
-			
+
 			if (le.getEntryType() == LiderLdapEntry.PARDUS_SUDOROLE)
 				isSudoRole = true;
 
@@ -798,7 +870,7 @@ public class LiderManagementEditor extends EditorPart {
 			//selectedUserDn = null;
 			selectedUserDn = selectedEntries.get(0).getName();
 		}
-		
+
 
 	}
 
@@ -810,6 +882,11 @@ public class LiderManagementEditor extends EditorPart {
 	public void refreshPolicyArea() {
 		populatePolicyTable();
 		tableViewerPolicyList.refresh();
+	}
+
+	public void refreshAssignedPolicyArea() {
+		populateAssignedPolicyTable();
+		tableViewerAssignedPolicyList.refresh();
 	}
 
 	public class TablePolicyFilter extends ViewerFilter {
@@ -887,7 +964,7 @@ public class LiderManagementEditor extends EditorPart {
 				if (element instanceof Policy) {
 					return ((Policy) element).getCreateDate() != null
 							? SWTResourceManager.formatDate(((Policy) element).getCreateDate())
-							: Messages.getString("UNTITLED");
+									: Messages.getString("UNTITLED");
 				}
 				return Messages.getString("UNTITLED");
 			}
@@ -902,7 +979,7 @@ public class LiderManagementEditor extends EditorPart {
 				if (element instanceof Policy) {
 					return ((Policy) element).getModifyDate() != null
 							? SWTResourceManager.formatDate(((Policy) element).getModifyDate())
-							: Messages.getString("UNTITLED");
+									: Messages.getString("UNTITLED");
 				}
 				return Messages.getString("UNTITLED");
 			}
@@ -910,6 +987,78 @@ public class LiderManagementEditor extends EditorPart {
 
 		// Active
 		TableViewerColumn activeColumn = SWTResourceManager.createTableViewerColumn(tableViewerPolicyList,
+				Messages.getString("ACTIVE"), 10);
+		activeColumn.getColumn().setAlignment(SWT.LEFT);
+		activeColumn.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof Policy) {
+					return ((Policy) element).isActive() ? Messages.getString("YES") : Messages.getString("NO");
+				}
+				return Messages.getString("UNTITLED");
+			}
+		});
+	}
+
+	private void populateAssignedPolicyTable() {
+//		try {
+//			String[] dnList = new String[]{"[\"cn=00:09:df:8e:c1:e3,ou=Nilüfer İsmail Kadriye Solakoğulları Ortaokulu,ou=NİLÜFER,ou=16,ou=Ahenkler,dc=liderahenk,dc=org\"]"};
+//			List<AssignedPolicy> assignedPolicies = PolicyRestUtils.listAssignedPolicies(dnList);
+//			tableViewerAssignedPolicyList.setInput(assignedPolicies != null ? assignedPolicies : new ArrayList<Policy>());
+//		} catch (Exception e) {
+//			logger.error(e.getMessage(), e);
+//			Notifier.error(null, Messages.getString("ERROR_ON_LIST"));
+//		}
+	}
+
+	private void createAssignedPolicyTableColumns() {
+
+		// Label
+		TableViewerColumn labelColumn = SWTResourceManager.createTableViewerColumn(tableViewerAssignedPolicyList,
+				Messages.getString("LABEL"), 100);
+		labelColumn.getColumn().setAlignment(SWT.LEFT);
+		labelColumn.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof Policy) {
+					return ((Policy) element).getLabel();
+				}
+				return Messages.getString("UNTITLED");
+			}
+		});
+
+		// Create date
+		TableViewerColumn createDateColumn = SWTResourceManager.createTableViewerColumn(tableViewerAssignedPolicyList,
+				Messages.getString("CREATE_DATE"), 100);
+		createDateColumn.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof Policy) {
+					return ((Policy) element).getCreateDate() != null
+							? SWTResourceManager.formatDate(((Policy) element).getCreateDate())
+									: Messages.getString("UNTITLED");
+				}
+				return Messages.getString("UNTITLED");
+			}
+		});
+
+		// Modify date
+		TableViewerColumn modifyDateColumn = SWTResourceManager.createTableViewerColumn(tableViewerAssignedPolicyList,
+				Messages.getString("MODIFY_DATE"), 130);
+		modifyDateColumn.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof Policy) {
+					return ((Policy) element).getModifyDate() != null
+							? SWTResourceManager.formatDate(((Policy) element).getModifyDate())
+									: Messages.getString("UNTITLED");
+				}
+				return Messages.getString("UNTITLED");
+			}
+		});
+
+		// Active
+		TableViewerColumn activeColumn = SWTResourceManager.createTableViewerColumn(tableViewerAssignedPolicyList,
 				Messages.getString("ACTIVE"), 10);
 		activeColumn.getColumn().setAlignment(SWT.LEFT);
 		activeColumn.setLabelProvider(new ColumnLabelProvider() {
@@ -990,10 +1139,10 @@ public class LiderManagementEditor extends EditorPart {
 						}
 					}
 					tableViewerTaskList
-							.setInput(multiTaskList != null ? multiTaskList : new ArrayList<PluginTaskWrapper>());
+					.setInput(multiTaskList != null ? multiTaskList : new ArrayList<PluginTaskWrapper>());
 				} else
 					tableViewerTaskList
-							.setInput(pluginTaskList != null ? pluginTaskList : new ArrayList<PluginTaskWrapper>());
+					.setInput(pluginTaskList != null ? pluginTaskList : new ArrayList<PluginTaskWrapper>());
 
 			}
 		} catch (Exception e) {
@@ -1049,8 +1198,16 @@ public class LiderManagementEditor extends EditorPart {
 		return selectedPolicy;
 	}
 
+	public Policy getSelectedAssignedPolicy() {
+		return selectedAssignedPolicy;
+	}
+
 	public void setSelectedPolicy(Policy selectedPolicy) {
 		this.selectedPolicy = selectedPolicy;
+	}
+
+	public void setSelectedAssignedPolicy(Policy selectedAssignedPolicy) {
+		this.selectedAssignedPolicy = selectedAssignedPolicy;
 	}
 
 	public class TableTaskListFilter extends ViewerFilter {
@@ -1085,7 +1242,7 @@ public class LiderManagementEditor extends EditorPart {
 						if (eventProperty instanceof TaskStatusNotification) {
 							TaskStatusNotification eventProperty2 = (TaskStatusNotification) eventProperty;
 							System.out.println(" Event TaskStatusNotification " + eventProperty2.getCommandClsId()
-									+ "  -  " + eventProperty2.getCommandExecution());
+							+ "  -  " + eventProperty2.getCommandExecution());
 							getLastTasks();
 						} else if (eventProperty instanceof TaskNotification) {
 
