@@ -48,12 +48,14 @@ public class Policy implements Serializable {
 	private Date modifyDate;
 
 	private String policyVersion;
+	
+	private String responseMessage;
 
 	public Policy() {
 	}
 
 	public Policy(Long id, String label, String description, boolean active, boolean deleted, Set<Profile> profiles,
-			Date createDate, Date modifyDate, String policyVersion) {
+			Date createDate, Date modifyDate, String policyVersion, String responseMessage) {
 		this.id = id;
 		this.label = label;
 		this.description = description;
@@ -135,6 +137,14 @@ public class Policy implements Serializable {
 
 	public void setPolicyVersion(String policyVersion) {
 		this.policyVersion = policyVersion;
+	}
+
+	public String getResponseMessage() {
+		return responseMessage;
+	}
+
+	public void setResponseMessage(String responseMessage) {
+		this.responseMessage = responseMessage;
 	}
 
 }

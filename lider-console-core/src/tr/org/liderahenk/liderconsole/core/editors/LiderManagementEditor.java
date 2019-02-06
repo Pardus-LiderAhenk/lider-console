@@ -70,7 +70,6 @@ import tr.org.liderahenk.liderconsole.core.dialogs.PolicyExecutionSelectDialog;
 import tr.org.liderahenk.liderconsole.core.editorinput.DefaultEditorInput;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.ldap.utils.LdapUtils;
-import tr.org.liderahenk.liderconsole.core.model.AssignedPolicy;
 import tr.org.liderahenk.liderconsole.core.model.ExecutedTask;
 import tr.org.liderahenk.liderconsole.core.model.LiderLdapEntry;
 import tr.org.liderahenk.liderconsole.core.model.Policy;
@@ -123,6 +122,7 @@ public class LiderManagementEditor extends EditorPart {
 	private Button btnRefreshPolicy;
 
 	private Button btnRefreshAssignedPolicy;
+	private Button btnEditAssignedPolicy;
 
 	private Policy selectedPolicy;
 	private Policy selectedAssignedPolicy;
@@ -279,10 +279,14 @@ public class LiderManagementEditor extends EditorPart {
 			setUserPasswordArea();
 			setPolicyArea(parent);
 		}
+		if(isHasGroupOfNames == true) {
+			setPolicyArea(parent);
+		}
 		//add assigned policy tab if only one entry is selected
-		if(selectedEntries.size() == 1) {
-			System.err.println(selectedDn);
-			setAssignedPoliciesArea(parent);
+		if(isSelectionSingle) {
+			if(selectedEntries.get(0).getEntryType() == 1 || selectedEntries.get(0).getEntryType() == 2) {
+				setAssignedPoliciesArea(parent);
+			}
 		}
 
 		tabItem = new TabItem(tabFolder, SWT.NONE);
@@ -449,10 +453,18 @@ public class LiderManagementEditor extends EditorPart {
 				}
 
 				Policy selectedPolicy = getSelectedPolicy();
-				PolicyExecutionSelectDialog dialog = new PolicyExecutionSelectDialog(parent.getShell(), dnSet,
-						selectedPolicy);
+				PolicyExecutionSelectDialog dialog = null;
+				if(isSelectionSingle) {
+					dialog = new PolicyExecutionSelectDialog(parent.getShell(), dnSet,
+							selectedPolicy, getSelf());
+				}
+				else {
+					dialog = new PolicyExecutionSelectDialog(parent.getShell(), dnSet,
+							selectedPolicy);
+				}
 				dialog.create();
 				dialog.open();
+
 			}
 		});
 		btnExecutePolicy.setText(Messages.getString("POLICY_EXECUTE")); //$NON-NLS-1$
@@ -639,7 +651,7 @@ public class LiderManagementEditor extends EditorPart {
 		btnRefreshAssignedPolicy.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				//refreshAssignedPolicyArea();
+				refreshAssignedPolicyArea();
 			}
 
 			@Override
@@ -647,6 +659,28 @@ public class LiderManagementEditor extends EditorPart {
 			}
 		});
 
+		btnEditAssignedPolicy = new Button(compositeAssignedPolicy, SWT.NONE);
+		btnEditAssignedPolicy.setToolTipText(Messages.getString("LiderManagementEditor.btnEditPolicy.toolTipText")); //$NON-NLS-1$
+		btnEditAssignedPolicy.setImage(
+				SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE, "icons/16/edit.png"));
+		btnEditAssignedPolicy.setEnabled(false);
+		
+		btnEditAssignedPolicy.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if (null == getSelectedAssignedPolicy()) {
+					Notifier.warning(null, Messages.getString("PLEASE_SELECT_POLICY"));
+					return;
+				}
+				PolicyDefinitionDialog dialog = new PolicyDefinitionDialog(compositeAssignedPolicy.getShell(),
+						getSelectedAssignedPolicy(), getSelf());
+				dialog.open();
+			}
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
 		new Label(compositeAssignedPolicy, SWT.NONE);
 		new Label(compositeAssignedPolicy, SWT.NONE);
 		new Label(compositeAssignedPolicy, SWT.NONE);
@@ -670,7 +704,7 @@ public class LiderManagementEditor extends EditorPart {
 
 		createAssignedPolicyTableColumns();
 		populateAssignedPolicyTable();
-
+		
 		// Hook up listeners
 		tableViewerAssignedPolicyList.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override
@@ -678,22 +712,21 @@ public class LiderManagementEditor extends EditorPart {
 				IStructuredSelection selection = (IStructuredSelection) tableViewerAssignedPolicyList.getSelection();
 				Object firstElement = selection.getFirstElement();
 				if (firstElement instanceof Policy) {
-					//							setSelectedAssignedPolicy((Policy) firstElement);
-					//							btnEditAssignedPolicy.setEnabled(true);
-					//							btnDeleteAssignedPolicy.setEnabled(true);
+					setSelectedAssignedPolicy((Policy) firstElement);
+					btnEditAssignedPolicy.setEnabled(true);
 				}
 			}
 		});
-
+		
 		tableViewerAssignedPolicyList.addDoubleClickListener(new IDoubleClickListener() {
 			@Override
 			public void doubleClick(DoubleClickEvent event) {
-				//						PolicyDefinitionDialog dialog = new PolicyDefinitionDialog(parent.getShell(), getSelectedAssignedPolicy(),
-				//								getSelf());
-				//						dialog.open();
+				PolicyDefinitionDialog dialog = new PolicyDefinitionDialog(parent.getShell(), getSelectedAssignedPolicy(),
+						getSelf());
+				dialog.open();
 			}
 		});
-		//end assigned policies
+
 		selectedEntriesForTask = selectedEntries;
 	}
 	
@@ -943,7 +976,7 @@ public class LiderManagementEditor extends EditorPart {
 
 		// Label
 		TableViewerColumn labelColumn = SWTResourceManager.createTableViewerColumn(tableViewerPolicyList,
-				Messages.getString("LABEL"), 100);
+				Messages.getString("LABEL"), 300);
 		labelColumn.getColumn().setAlignment(SWT.LEFT);
 		labelColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
@@ -957,7 +990,7 @@ public class LiderManagementEditor extends EditorPart {
 
 		// Create date
 		TableViewerColumn createDateColumn = SWTResourceManager.createTableViewerColumn(tableViewerPolicyList,
-				Messages.getString("CREATE_DATE"), 100);
+				Messages.getString("CREATE_DATE"), 200);
 		createDateColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
@@ -972,7 +1005,7 @@ public class LiderManagementEditor extends EditorPart {
 
 		// Modify date
 		TableViewerColumn modifyDateColumn = SWTResourceManager.createTableViewerColumn(tableViewerPolicyList,
-				Messages.getString("MODIFY_DATE"), 130);
+				Messages.getString("MODIFY_DATE"), 200);
 		modifyDateColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
@@ -987,7 +1020,7 @@ public class LiderManagementEditor extends EditorPart {
 
 		// Active
 		TableViewerColumn activeColumn = SWTResourceManager.createTableViewerColumn(tableViewerPolicyList,
-				Messages.getString("ACTIVE"), 10);
+				Messages.getString("ACTIVE"), 50);
 		activeColumn.getColumn().setAlignment(SWT.LEFT);
 		activeColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
@@ -1001,21 +1034,26 @@ public class LiderManagementEditor extends EditorPart {
 	}
 
 	private void populateAssignedPolicyTable() {
-//		try {
-//			String[] dnList = new String[]{"[\"cn=00:09:df:8e:c1:e3,ou=Nilüfer İsmail Kadriye Solakoğulları Ortaokulu,ou=NİLÜFER,ou=16,ou=Ahenkler,dc=liderahenk,dc=org\"]"};
-//			List<AssignedPolicy> assignedPolicies = PolicyRestUtils.listAssignedPolicies(dnList);
-//			tableViewerAssignedPolicyList.setInput(assignedPolicies != null ? assignedPolicies : new ArrayList<Policy>());
-//		} catch (Exception e) {
-//			logger.error(e.getMessage(), e);
-//			Notifier.error(null, Messages.getString("ERROR_ON_LIST"));
-//		}
+		try {
+			List<Policy> policies = new ArrayList<Policy>();
+			if(selectedEntries.get(0).getEntryType() == 1) {
+				policies = PolicyRestUtils.getLatestAgentPolicy(selectedEntries.get(0).getUid());
+			}
+			else if (selectedEntries.get(0).getEntryType() == 2) {
+				policies = PolicyRestUtils.getLatestUserPolicy(selectedEntries.get(0).getUid(), null);
+			}
+			tableViewerAssignedPolicyList.setInput(policies != null ? policies : new ArrayList<Policy>());
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			Notifier.error(null, Messages.getString("ERROR_ON_LIST"));
+		}
 	}
 
 	private void createAssignedPolicyTableColumns() {
 
 		// Label
 		TableViewerColumn labelColumn = SWTResourceManager.createTableViewerColumn(tableViewerAssignedPolicyList,
-				Messages.getString("LABEL"), 100);
+				Messages.getString("LABEL"), 300);
 		labelColumn.getColumn().setAlignment(SWT.LEFT);
 		labelColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
@@ -1029,7 +1067,7 @@ public class LiderManagementEditor extends EditorPart {
 
 		// Create date
 		TableViewerColumn createDateColumn = SWTResourceManager.createTableViewerColumn(tableViewerAssignedPolicyList,
-				Messages.getString("CREATE_DATE"), 100);
+				Messages.getString("CREATE_DATE"), 200);
 		createDateColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
@@ -1044,7 +1082,7 @@ public class LiderManagementEditor extends EditorPart {
 
 		// Modify date
 		TableViewerColumn modifyDateColumn = SWTResourceManager.createTableViewerColumn(tableViewerAssignedPolicyList,
-				Messages.getString("MODIFY_DATE"), 130);
+				Messages.getString("MODIFY_DATE"), 200);
 		modifyDateColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
@@ -1059,7 +1097,7 @@ public class LiderManagementEditor extends EditorPart {
 
 		// Active
 		TableViewerColumn activeColumn = SWTResourceManager.createTableViewerColumn(tableViewerAssignedPolicyList,
-				Messages.getString("ACTIVE"), 10);
+				Messages.getString("ACTIVE"), 50);
 		activeColumn.getColumn().setAlignment(SWT.LEFT);
 		activeColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override

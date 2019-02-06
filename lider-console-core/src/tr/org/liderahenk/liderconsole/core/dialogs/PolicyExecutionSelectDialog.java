@@ -41,6 +41,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import tr.org.liderahenk.liderconsole.core.editors.LiderManagementEditor;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.ldap.enums.DNType;
 import tr.org.liderahenk.liderconsole.core.ldap.utils.LdapUtils;
@@ -65,6 +66,7 @@ public class PolicyExecutionSelectDialog extends DefaultLiderDialog {
 	private DateTime dtActivationDateTime;
 	private DateTime dtExpirationDate;
 	private Button btnEnableDate;
+	private LiderManagementEditor liderManagementEditor;
 
 	private Set<String> dnSet;
 	private final String[] dnTypeArr = new String[] { "ONLY_USER", "ONLY_AGENT", "ONLY_GROUP", "ALL" };
@@ -91,6 +93,13 @@ public class PolicyExecutionSelectDialog extends DefaultLiderDialog {
 		this.selectedPolicy = policy;
 	}
 
+	public PolicyExecutionSelectDialog(Shell parentShell, Set<String> dnSet, Policy policy, LiderManagementEditor liderManagementEditor) {
+		super(parentShell);
+		this.dnSet = dnSet;
+		this.selectedPolicy = policy;
+		this.liderManagementEditor = liderManagementEditor;
+	}
+	
 	protected void configureShell(Shell shell) {
 		super.configureShell(shell);
 		shell.setText(Messages.getString("policy_dialog"));
@@ -286,6 +295,9 @@ public class PolicyExecutionSelectDialog extends DefaultLiderDialog {
 
 		try {
 			PolicyRestUtils.execute(policy);
+			if(liderManagementEditor != null) {
+				liderManagementEditor.refreshAssignedPolicyArea();
+			}
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			Notifier.error(null, Messages.getString("ERROR_ON_EXECUTE"));

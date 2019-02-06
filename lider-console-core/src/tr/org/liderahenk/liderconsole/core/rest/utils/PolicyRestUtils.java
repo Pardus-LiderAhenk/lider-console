@@ -34,8 +34,8 @@ import tr.org.liderahenk.liderconsole.core.config.ConfigProvider;
 import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.ldap.enums.DNType;
+import tr.org.liderahenk.liderconsole.core.ldap.model.LdapEntry;
 import tr.org.liderahenk.liderconsole.core.model.AppliedPolicy;
-import tr.org.liderahenk.liderconsole.core.model.AssignedPolicy;
 import tr.org.liderahenk.liderconsole.core.model.Command;
 import tr.org.liderahenk.liderconsole.core.model.Policy;
 import tr.org.liderahenk.liderconsole.core.rest.RestClient;
@@ -364,7 +364,7 @@ public class PolicyRestUtils {
 	 * @return
 	 * @throws Exception
 	 */
-	public static List<AssignedPolicy> listAssignedPolicies(String[] dnList)
+	public static Policy listAssignedPolicies(String uid)
 			throws Exception {
 
 		// Build URL
@@ -373,17 +373,8 @@ public class PolicyRestUtils {
 
 		// Append optional parameters
 		List<String> params = new ArrayList<String>();
-		String combinedDNList = "";
-		if(dnList != null && dnList.length > 0) {
-			for (int i = 0; i < dnList.length; i++) {
-				combinedDNList += dnList[i];
-				if(i != dnList.length-1) {
-					combinedDNList += "]]";
-				}
-			}
-			logger.info("dnList= " + combinedDNList);
-			params.add("dnList=" +  URLEncoder.encode(combinedDNList,"UTF-8"));
-		}
+		params.add("uid=" +  URLEncoder.encode(uid,"UTF-8"));
+		
 		if (!params.isEmpty()) {
 			url.append(StringUtils.join(params, "&"));
 		}
@@ -391,20 +382,98 @@ public class PolicyRestUtils {
 
 		// Send GET request to server
 		IResponse response = RestClient.get(url.toString());
-		List<AssignedPolicy> assignedPolicyList = null;
+		Policy policy = null;
 
 		if (response != null && response.getStatus() == RestResponseStatus.OK
-				&& response.getResultMap().get("assigned_policies") != null) {
+				&& response.getResultMap().get("policy") != null) {
 			ObjectMapper mapper = new ObjectMapper();
-			assignedPolicyList = mapper.readValue(mapper.writeValueAsString(response.getResultMap().get("assigned_policies")),
-					new TypeReference<List<AppliedPolicy>>() {
-					});
+			policy = mapper.readValue(mapper.writeValueAsString(response.getResultMap().get("policy")), Policy.class);
 			Notifier.success(null, Messages.getString("RECORD_LISTED"));
 		} else {
 			Notifier.error(null, Messages.getString("ERROR_ON_LIST"));
 		}
 
-		return assignedPolicyList;
+		return policy;
+	}
+	
+	/**
+	 * Send GET request to server in order to get latest agent policy.
+	 * 
+	 * @param uid
+	 * @return
+	 * @throws Exception
+	 */
+	public static List<Policy> getLatestAgentPolicy(String uid)
+			throws Exception {
+
+		// Build URL
+		StringBuilder url = getBaseUrl();
+		url.append("/list/latestagentpolicy?");
+
+		// Append optional parameters
+		List<String> params = new ArrayList<String>();
+		params.add("uid=" +  URLEncoder.encode(uid,"UTF-8"));
+		
+		if (!params.isEmpty()) {
+			url.append(StringUtils.join(params, "&"));
+		}
+		logger.debug("Sending request to URL: {}", url.toString());
+
+		// Send GET request to server
+		IResponse response = RestClient.get(url.toString());
+		List<Policy> listPolicy = null;
+
+		if (response != null && response.getStatus() == RestResponseStatus.OK
+				&& response.getResultMap().get("policy") != null) {
+			ObjectMapper mapper = new ObjectMapper();
+			listPolicy = mapper.readValue(mapper.writeValueAsString(response.getResultMap().get("policy")), new TypeReference<List<Policy>>() {
+			});
+			Notifier.success(null, Messages.getString("RECORD_LISTED"));
+		} else {
+			Notifier.error(null, Messages.getString("ERROR_ON_LIST"));
+		}
+
+		return listPolicy;
+	}
+	
+	/**
+	 * Send GET request to server in order to get latest agent policy.
+	 * 
+	 * @param uid
+	 * @return
+	 * @throws Exception
+	 */
+	public static List<Policy> getLatestUserPolicy(String uid, List<LdapEntry> groupDns)
+			throws Exception {
+
+		// Build URL
+		StringBuilder url = getBaseUrl();
+		url.append("/list/latestuserpolicy?");
+
+		// Append optional parameters
+		List<String> params = new ArrayList<String>();
+		params.add("uid=" +  URLEncoder.encode(uid,"UTF-8"));
+		
+		if (!params.isEmpty()) {
+			url.append(StringUtils.join(params, "&"));
+		}
+		logger.debug("Sending request to URL: {}", url.toString());
+
+		// Send GET request to server
+		IResponse response = RestClient.get(url.toString());
+		List<Policy> listPolicy = null;
+
+		if (response != null && response.getStatus() == RestResponseStatus.OK
+				&& response.getResultMap().get("policy") != null) {
+			ObjectMapper mapper = new ObjectMapper();
+			listPolicy = mapper.readValue(mapper.writeValueAsString(response.getResultMap().get("policy")), new TypeReference<List<Policy>>() {
+			});
+			Notifier.success(null, Messages.getString("RECORD_LISTED"));
+		} else {
+			Notifier.error(null, Messages.getString("ERROR_ON_LIST"));
+		}
+
+		return listPolicy;
 	}
 	
 	/**
