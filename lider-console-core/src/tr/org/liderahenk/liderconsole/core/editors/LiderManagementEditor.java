@@ -65,6 +65,7 @@ import org.slf4j.LoggerFactory;
 import tr.org.liderahenk.liderconsole.core.config.ConfigProvider;
 import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
 import tr.org.liderahenk.liderconsole.core.dialogs.AgentDetailDialog;
+import tr.org.liderahenk.liderconsole.core.dialogs.CommandExecutionResultDialog;
 import tr.org.liderahenk.liderconsole.core.dialogs.PolicyDefinitionDialog;
 import tr.org.liderahenk.liderconsole.core.dialogs.PolicyExecutionSelectDialog;
 import tr.org.liderahenk.liderconsole.core.editorinput.DefaultEditorInput;
@@ -104,7 +105,6 @@ public class LiderManagementEditor extends EditorPart {
 	private Group groupTask;
 	private Group groupPolicy;
 	private Group groupAssignedPolicy;
-
 
 	public static String selectedDn;
 	public static List<String> selectedDnUserList;
@@ -283,9 +283,35 @@ public class LiderManagementEditor extends EditorPart {
 			setPolicyArea(parent);
 		}
 		//add assigned policy tab if only one entry is selected
-		if(isSelectionSingle) {
-			if(selectedEntries.get(0).getEntryType() == 1 || selectedEntries.get(0).getEntryType() == 2) {
-				setAssignedPoliciesArea(parent);
+		
+		if(selectedEntries.size() == 1) {
+			int selectedEntryType = selectedEntries.get(0).getEntryType();
+			if(selectedEntries.get(0).getEntryType() != 6) {
+				setAssignedPolicyArea(parent);
+				tabFolder.addSelectionListener(new SelectionListener() {
+					
+					@Override
+					public void widgetSelected(SelectionEvent arg0) {			
+						//if ahenk is selected assigned policy will be second tab
+						if(selectedEntries.get(0).getEntryType() == 1 || selectedEntries.get(0).getEntryType() == 3) {
+							if(tabFolder.getSelectionIndex() == 2) {
+								populateAssignedPolicyTable();
+							}
+						}
+						else {
+							if(tabFolder.getSelectionIndex() == 1) {
+								populateAssignedPolicyTable();
+							}
+						}
+					}
+					
+					@Override
+					public void widgetDefaultSelected(SelectionEvent arg0) {
+						// TODO Auto-generated method stub
+						Notifier.error(tabFolder.getToolTipText(), " default selected one");
+						
+					}
+				});
 			}
 		}
 
@@ -632,7 +658,7 @@ public class LiderManagementEditor extends EditorPart {
 		selectedEntriesForTask = selectedEntries;
 	}
 
-	private void setAssignedPoliciesArea(final Composite parent) {
+	private void setAssignedPolicyArea(final Composite parent) {
 		//start assigned policies
 		tabItemAssignedPolicy = new TabItem(tabFolder, SWT.NONE);
 		tabItemAssignedPolicy.setText(Messages.getString("LiderManagementEditor.tabItemAssignedPolicies.text")); //$NON-NLS-1$
@@ -703,7 +729,7 @@ public class LiderManagementEditor extends EditorPart {
 		tableViewerAssignedPolicyList.refresh();
 
 		createAssignedPolicyTableColumns();
-		populateAssignedPolicyTable();
+		
 		
 		// Hook up listeners
 		tableViewerAssignedPolicyList.addSelectionChangedListener(new ISelectionChangedListener() {
@@ -721,9 +747,12 @@ public class LiderManagementEditor extends EditorPart {
 		tableViewerAssignedPolicyList.addDoubleClickListener(new IDoubleClickListener() {
 			@Override
 			public void doubleClick(DoubleClickEvent event) {
-				PolicyDefinitionDialog dialog = new PolicyDefinitionDialog(parent.getShell(), getSelectedAssignedPolicy(),
-						getSelf());
-				dialog.open();
+				if(selectedEntries.get(0).getEntryType() == 1 || selectedEntries.get(0).getEntryType() == 2) {
+					CommandExecutionResultDialog dialog = new CommandExecutionResultDialog(parent.getShell(), 
+							getSelectedAssignedPolicy().getId(), selectedEntries.get(0).getUid());
+					dialog.open();
+				}
+
 			}
 		});
 
@@ -897,14 +926,9 @@ public class LiderManagementEditor extends EditorPart {
 		}
 
 		if (isPardusOu) {
-
 			selectedDnUserList = LdapUtils.getInstance().findUsers(selectedEntries.get(0).getName());
-
-			//selectedUserDn = null;
 			selectedUserDn = selectedEntries.get(0).getName();
 		}
-
-
 	}
 
 
@@ -1036,11 +1060,20 @@ public class LiderManagementEditor extends EditorPart {
 	private void populateAssignedPolicyTable() {
 		try {
 			List<Policy> policies = new ArrayList<Policy>();
+			//PARDUS_DEVICE
 			if(selectedEntries.get(0).getEntryType() == 1) {
 				policies = PolicyRestUtils.getLatestAgentPolicy(selectedEntries.get(0).getUid());
 			}
+			//PARDUS_ACCOUNT
 			else if (selectedEntries.get(0).getEntryType() == 2) {
-				policies = PolicyRestUtils.getLatestUserPolicy(selectedEntries.get(0).getUid(), null);
+				policies = PolicyRestUtils.getLatestUserPolicy(selectedEntries.get(0).getUid());
+			}
+			//OU
+			else if (selectedEntries.get(0).getEntryType() == 3
+					|| selectedEntries.get(0).getEntryType() == 4
+					|| selectedEntries.get(0).getEntryType() == 5) {
+				policies = PolicyRestUtils.getLatestGroupPolicy(selectedEntries.get(0).getName());
+				logger.error("ouu");
 			}
 			tableViewerAssignedPolicyList.setInput(policies != null ? policies : new ArrayList<Policy>());
 		} catch (Exception e) {

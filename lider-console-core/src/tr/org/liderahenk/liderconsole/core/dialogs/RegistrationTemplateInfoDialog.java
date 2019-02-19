@@ -110,7 +110,7 @@ public class RegistrationTemplateInfoDialog extends DefaultLiderDialog {
 		}
 		txtAuthGroup.setLayoutData(gridData);
 		
-		// AuthGroup Name
+		// OU
 		Label lblParentDN = new Label(composite, SWT.NONE);
 		lblParentDN.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
 		lblParentDN.setText(Messages.getString("REGISTRATION_TEMPLATE_OU"));

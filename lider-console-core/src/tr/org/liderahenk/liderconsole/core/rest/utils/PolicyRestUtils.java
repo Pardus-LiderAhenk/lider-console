@@ -34,9 +34,9 @@ import tr.org.liderahenk.liderconsole.core.config.ConfigProvider;
 import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.ldap.enums.DNType;
-import tr.org.liderahenk.liderconsole.core.ldap.model.LdapEntry;
 import tr.org.liderahenk.liderconsole.core.model.AppliedPolicy;
 import tr.org.liderahenk.liderconsole.core.model.Command;
+import tr.org.liderahenk.liderconsole.core.model.CommandExecutionResult;
 import tr.org.liderahenk.liderconsole.core.model.Policy;
 import tr.org.liderahenk.liderconsole.core.rest.RestClient;
 import tr.org.liderahenk.liderconsole.core.rest.enums.RestResponseStatus;
@@ -44,6 +44,7 @@ import tr.org.liderahenk.liderconsole.core.rest.requests.PolicyExecutionRequest;
 import tr.org.liderahenk.liderconsole.core.rest.requests.PolicyRequest;
 import tr.org.liderahenk.liderconsole.core.rest.responses.IResponse;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
+import tr.org.liderahenk.liderconsole.core.xmpp.enums.StatusCode;
 
 /**
  * Utility class for sending policy related requests to Lider server.
@@ -353,48 +354,6 @@ public class PolicyRestUtils {
 		return commands;
 	}
 
-	/**
-	 * Send GET request to server in order to retrieve applied policies.
-	 * 
-	 * @param label
-	 * @param createDateRangeStart
-	 * @param createDateRangeEnd
-	 * @param status
-	 * @param string 
-	 * @return
-	 * @throws Exception
-	 */
-	public static Policy listAssignedPolicies(String uid)
-			throws Exception {
-
-		// Build URL
-		StringBuilder url = getBaseUrl();
-		url.append("/list/assignedpolicy?");
-
-		// Append optional parameters
-		List<String> params = new ArrayList<String>();
-		params.add("uid=" +  URLEncoder.encode(uid,"UTF-8"));
-		
-		if (!params.isEmpty()) {
-			url.append(StringUtils.join(params, "&"));
-		}
-		logger.debug("Sending request to URL: {}", url.toString());
-
-		// Send GET request to server
-		IResponse response = RestClient.get(url.toString());
-		Policy policy = null;
-
-		if (response != null && response.getStatus() == RestResponseStatus.OK
-				&& response.getResultMap().get("policy") != null) {
-			ObjectMapper mapper = new ObjectMapper();
-			policy = mapper.readValue(mapper.writeValueAsString(response.getResultMap().get("policy")), Policy.class);
-			Notifier.success(null, Messages.getString("RECORD_LISTED"));
-		} else {
-			Notifier.error(null, Messages.getString("ERROR_ON_LIST"));
-		}
-
-		return policy;
-	}
 	
 	/**
 	 * Send GET request to server in order to get latest agent policy.
@@ -443,12 +402,12 @@ public class PolicyRestUtils {
 	 * @return
 	 * @throws Exception
 	 */
-	public static List<Policy> getLatestUserPolicy(String uid, List<LdapEntry> groupDns)
+	public static List<Policy> getLatestUserPolicy(String uid)
 			throws Exception {
 
 		// Build URL
 		StringBuilder url = getBaseUrl();
-		url.append("/list/latestuserpolicy?");
+		url.append("/list/latestuserpolicybygroupofnames?");
 
 		// Append optional parameters
 		List<String> params = new ArrayList<String>();
@@ -474,6 +433,103 @@ public class PolicyRestUtils {
 		}
 
 		return listPolicy;
+	}
+	
+	/**
+	 * Send GET request to server in order to get latest group(ou, groupOfNames) policy.
+	 * 
+	 * @param uid
+	 * @return
+	 * @throws Exception
+	 */
+	public static List<Policy> getLatestGroupPolicy(String dn)
+			throws Exception {
+
+		// Build URL
+		StringBuilder url = getBaseUrl();
+		url.append("/list/latestgrouppolicy?");
+
+		// Append optional parameters
+		List<String> params = new ArrayList<String>();
+		params.add("dn=" +  URLEncoder.encode(dn,"UTF-8"));
+		
+		if (!params.isEmpty()) {
+			url.append(StringUtils.join(params, "&"));
+		}
+		logger.debug("Sending request to URL: {}", url.toString());
+
+		// Send GET request to server
+		IResponse response = RestClient.get(url.toString());
+		List<Policy> listPolicy = null;
+
+		if (response != null && response.getStatus() == RestResponseStatus.OK
+				&& response.getResultMap().get("policy") != null) {
+			ObjectMapper mapper = new ObjectMapper();
+			listPolicy = mapper.readValue(mapper.writeValueAsString(response.getResultMap().get("policy")), new TypeReference<List<Policy>>() {
+			});
+			Notifier.success(null, Messages.getString("RECORD_LISTED"));
+		} else {
+			Notifier.error(null, Messages.getString("ERROR_ON_LIST"));
+		}
+
+		return listPolicy;
+	}
+	
+	/**
+	 * Send GET request to server in order to get applied policies' executed commands.
+	 * 
+	 * @param uid
+	 * @return
+	 * @throws Exception
+	 */
+	public static List<CommandExecutionResult> getCommandExecutionResult(Long policyID, String uid)
+			throws Exception {
+
+		// Build URL
+		StringBuilder url = getBaseUrl();
+		url.append("/list/getexecutedcommandrequest?");
+
+		// Append optional parameters
+		List<String> params = new ArrayList<String>();
+		params.add("policyID=" +  policyID);
+		params.add("uid=" +  URLEncoder.encode(uid,"UTF-8"));
+		if (!params.isEmpty()) {
+			url.append(StringUtils.join(params, "&"));
+		}
+		logger.debug("Sending request to URL: {}", url.toString());
+
+		// Send GET request to server
+		IResponse response = RestClient.get(url.toString());
+		List<CommandExecutionResult> listCommandExecutionResult = null;
+		List<Object[]> resultSet = null;
+		if (response != null && response.getStatus() == RestResponseStatus.OK
+				&& response.getResultMap().get("commandExecutionResult") != null) {
+			ObjectMapper mapper = new ObjectMapper();
+			resultSet = mapper.readValue(mapper.writeValueAsString(response.getResultMap().get("commandExecutionResult")), new TypeReference<List<Object[]>>() {
+			});
+			CommandExecutionResult commandExecutionResult = null;
+			listCommandExecutionResult = new ArrayList<>();
+			for (Object[] objects : resultSet) {
+				commandExecutionResult = new CommandExecutionResult();
+		        try {
+		        	Long id = Long.valueOf((Integer) objects[0]);
+			        int responseCode = (Integer) objects[1];
+			        String responseMessage = (String) objects[2];
+			        commandExecutionResult.setId(id);
+			        commandExecutionResult.setResponseCode(StatusCode.getType(responseCode));
+			        commandExecutionResult.setResponseMessage(responseMessage);
+			        commandExecutionResult.setCreateDate(new Date((Long) objects[3]));
+			        listCommandExecutionResult.add(commandExecutionResult);
+		        } catch (Exception e) {
+		        	Notifier.error(null, e.getMessage());
+				}
+			}
+			Notifier.success(null, Messages.getString("RECORD_LISTED"));
+		} else {
+			Notifier.error(null, Messages.getString("ERROR_ON_LIST"));
+		}
+
+		return listCommandExecutionResult;
 	}
 	
 	/**
