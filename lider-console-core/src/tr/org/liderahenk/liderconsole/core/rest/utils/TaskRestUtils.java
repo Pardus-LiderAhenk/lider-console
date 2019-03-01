@@ -34,7 +34,10 @@ import tr.org.liderahenk.liderconsole.core.config.ConfigProvider;
 import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.model.Command;
+import tr.org.liderahenk.liderconsole.core.model.CommandExecution;
 import tr.org.liderahenk.liderconsole.core.model.ExecutedTask;
+import tr.org.liderahenk.liderconsole.core.model.Command;
+import tr.org.liderahenk.liderconsole.core.model.Task;
 import tr.org.liderahenk.liderconsole.core.rest.RestClient;
 import tr.org.liderahenk.liderconsole.core.rest.enums.RestResponseStatus;
 import tr.org.liderahenk.liderconsole.core.rest.requests.TaskRequest;
@@ -370,6 +373,43 @@ public class TaskRestUtils {
 		return responseData;
 	}
 
+	/**
+	 * Send GET request to server in order to retrieve commands related to
+	 * tasks.
+	 * 
+	 * @param maxResults
+	 * @return
+	 * @throws Exception
+	 */
+	@SuppressWarnings("unchecked")
+	public static List<Command> getExecutedTasksOfAgent(String uid) throws Exception {
+		// Build URL
+		StringBuilder url = getBaseUrl();
+		url.append("/list/executeddevicetask?");
+
+		// Append optional parameters
+		if (uid != null) {
+			url.append("uid=" + uid);
+		}
+
+		logger.debug("Sending request to URL: {}", url.toString());
+
+		IResponse response = RestClient.get(url.toString(), false);
+		List<Command> resultList = null;
+		if (response != null && response.getStatus() == RestResponseStatus.OK
+				&& response.getResultMap().get("tasks") != null) {
+			ObjectMapper mapper = new ObjectMapper();
+			resultList = mapper.readValue(mapper.writeValueAsString(response.getResultMap().get("tasks")),
+					new TypeReference<List<Command>>() {
+					});
+			
+		} else {
+			Notifier.error(null, Messages.getString("ERROR_ON_LIST"));
+		}
+
+		return resultList;
+	}
+	
 	/**
 	 * 
 	 * @return base URL for task actions

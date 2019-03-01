@@ -39,11 +39,11 @@ Apache Software Foundation http://apache.org/
       startupForegroundColor="FFFFFF" />
    <launcher name="lider-console">
       <linux icon="../lider-console-rcp/icons/liderahenk-48.xpm"/>
-      <solaris/>
       <win useIco="false">
          <bmp/>
       </win>
    </launcher>
+
 
    <vm>
    </vm>
@@ -730,20 +730,44 @@ Public License instead of this License.  But first, please read
 
    <plugins>
       <plugin id="bcprov"/>
+      <plugin id="ch.qos.logback.classic"/>
+      <plugin id="ch.qos.logback.core"/>
+      <plugin id="ch.qos.logback.slf4j" fragment="true"/>
+      <plugin id="com.glavsoft.tightvncjviewer"/>
       <plugin id="com.google.guava"/>
       <plugin id="com.ibm.icu"/>
       <plugin id="com.itextpdf"/>
       <plugin id="javax.annotation"/>
       <plugin id="javax.inject"/>
+      <plugin id="javax.management"/>
       <plugin id="javax.servlet"/>
+      <plugin id="javax.transaction" fragment="true"/>
       <plugin id="javax.xml"/>
       <plugin id="javax.xml.stream"/>
+      <plugin id="lider-console-browser"/>
+      <plugin id="lider-console-conky"/>
+      <plugin id="lider-console-ldap"/>
+      <plugin id="lider-console-local-user"/>
+      <plugin id="lider-console-login-manager"/>
+      <plugin id="lider-console-manage-root"/>
+      <plugin id="lider-console-network-inventory"/>
+      <plugin id="lider-console-network-manager"/>
+      <plugin id="lider-console-package-manager"/>
+      <plugin id="lider-console-remote-access"/>
+      <plugin id="lider-console-resource-usage"/>
+      <plugin id="lider-console-rsyslog"/>
+      <plugin id="lider-console-script"/>
+      <plugin id="lider-console-service"/>
+      <plugin id="lider-console-sudoers"/>
+      <plugin id="lider-console-usb"/>
+      <plugin id="lider-console-user-privilege"/>
       <plugin id="net.sf.ehcache"/>
       <plugin id="org.apache.batik.css"/>
       <plugin id="org.apache.batik.util"/>
       <plugin id="org.apache.batik.util.gui"/>
       <plugin id="org.apache.commons.codec"/>
       <plugin id="org.apache.commons.collections"/>
+      <plugin id="org.apache.commons.commons-pool2"/>
       <plugin id="org.apache.commons.compress"/>
       <plugin id="org.apache.commons.io"/>
       <plugin id="org.apache.commons.jxpath"/>
@@ -780,8 +804,12 @@ Public License instead of this License.  But first, please read
       <plugin id="org.apache.directory.studio.ldapbrowser.ui.nl_tr" fragment="true"/>
       <plugin id="org.apache.directory.studio.ldifeditor"/>
       <plugin id="org.apache.directory.studio.ldifparser"/>
+      <plugin id="org.apache.directory.studio.slf4j-eclipselog" fragment="true"/>
       <plugin id="org.apache.directory.studio.valueeditors"/>
       <plugin id="org.apache.directory.studio.valueeditors.nl_tr" fragment="true"/>
+      <plugin id="org.apache.felix.gogo.command"/>
+      <plugin id="org.apache.felix.gogo.runtime"/>
+      <plugin id="org.apache.felix.scr"/>
       <plugin id="org.apache.httpcomponents.httpclient"/>
       <plugin id="org.apache.httpcomponents.httpcore"/>
       <plugin id="org.apache.log4j"/>
@@ -831,6 +859,7 @@ Public License instead of this License.  But first, please read
       <plugin id="org.eclipse.e4.core.di"/>
       <plugin id="org.eclipse.e4.core.di.annotations"/>
       <plugin id="org.eclipse.e4.core.di.extensions"/>
+      <plugin id="org.eclipse.e4.core.di.extensions.supplier"/>
       <plugin id="org.eclipse.e4.core.services"/>
       <plugin id="org.eclipse.e4.emf.xpath"/>
       <plugin id="org.eclipse.e4.ui.bindings"/>
@@ -946,6 +975,7 @@ Public License instead of this License.  But first, please read
       <plugin id="org.eclipse.equinox.region" fragment="true"/>
       <plugin id="org.eclipse.equinox.registry"/>
       <plugin id="org.eclipse.equinox.security"/>
+      <plugin id="org.eclipse.equinox.security.linux.x86_64" fragment="true"/>
       <plugin id="org.eclipse.equinox.security.macosx" fragment="true"/>
       <plugin id="org.eclipse.equinox.security.ui"/>
       <plugin id="org.eclipse.equinox.security.win32.x86" fragment="true"/>
@@ -962,6 +992,15 @@ Public License instead of this License.  But first, please read
       <plugin id="org.eclipse.jface.text"/>
       <plugin id="org.eclipse.ltk.core.refactoring"/>
       <plugin id="org.eclipse.ltk.ui.refactoring"/>
+      <plugin id="org.eclipse.m2e.archetype.common"/>
+      <plugin id="org.eclipse.m2e.core"/>
+      <plugin id="org.eclipse.m2e.core.ui"/>
+      <plugin id="org.eclipse.m2e.logback.appender" fragment="true"/>
+      <plugin id="org.eclipse.m2e.maven.indexer"/>
+      <plugin id="org.eclipse.m2e.maven.runtime"/>
+      <plugin id="org.eclipse.m2e.maven.runtime.slf4j.simple"/>
+      <plugin id="org.eclipse.m2e.model.edit"/>
+      <plugin id="org.eclipse.m2e.workspace.cli"/>
       <plugin id="org.eclipse.osgi"/>
       <plugin id="org.eclipse.osgi.compatibility.state" fragment="true"/>
       <plugin id="org.eclipse.osgi.compatibility.state.nl_tr" fragment="true"/>
@@ -1031,7 +1070,12 @@ Public License instead of this License.  But first, please read
       <plugin id="org.sat4j.core"/>
       <plugin id="org.sat4j.pb"/>
       <plugin id="org.slf4j.api"/>
+      <plugin id="org.slf4j.apis.jcl"/>
+      <plugin id="org.slf4j.apis.log4j"/>
+      <plugin id="org.slf4j.binding.nop" fragment="true"/>
+      <plugin id="org.slf4j.binding.simple" fragment="true"/>
       <plugin id="org.slf4j.impl.log4j12" fragment="true"/>
+      <plugin id="org.slf4j.nop" fragment="true"/>
       <plugin id="org.swtchart"/>
       <plugin id="org.swtchart.ext"/>
       <plugin id="org.tukaani.xz"/>
@@ -1040,6 +1084,7 @@ Public License instead of this License.  But first, please read
       <plugin id="org.w3c.dom.smil"/>
       <plugin id="org.w3c.dom.svg"/>
       <plugin id="tr.org.liderahenk.liderconsole.core"/>
+      <plugin id="tr.org.liderahenk.liderconsole.core.tests" fragment="true"/>
       <plugin id="tr.org.liderahenk.liderconsole.rcp"/>
    </plugins>
 

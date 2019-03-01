@@ -37,6 +37,7 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
@@ -68,9 +69,11 @@ import tr.org.liderahenk.liderconsole.core.dialogs.AgentDetailDialog;
 import tr.org.liderahenk.liderconsole.core.dialogs.CommandExecutionResultDialog;
 import tr.org.liderahenk.liderconsole.core.dialogs.PolicyDefinitionDialog;
 import tr.org.liderahenk.liderconsole.core.dialogs.PolicyExecutionSelectDialog;
+import tr.org.liderahenk.liderconsole.core.dialogs.ResponseDataDialog;
 import tr.org.liderahenk.liderconsole.core.editorinput.DefaultEditorInput;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.ldap.utils.LdapUtils;
+import tr.org.liderahenk.liderconsole.core.model.CommandExecutionResult;
 import tr.org.liderahenk.liderconsole.core.model.ExecutedTask;
 import tr.org.liderahenk.liderconsole.core.model.LiderLdapEntry;
 import tr.org.liderahenk.liderconsole.core.model.Policy;
@@ -80,9 +83,9 @@ import tr.org.liderahenk.liderconsole.core.utils.SWTResourceManager;
 import tr.org.liderahenk.liderconsole.core.widgets.LiderConfirmBox;
 import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
 import tr.org.liderahenk.liderconsole.core.widgets.NotifierColorsFactory.NotifierTheme;
+import tr.org.liderahenk.liderconsole.core.xmpp.enums.StatusCode;
 import tr.org.liderahenk.liderconsole.core.xmpp.notifications.TaskNotification;
 import tr.org.liderahenk.liderconsole.core.xmpp.notifications.TaskStatusNotification;
-
 /**
  * Lider task and profiles managed by this class. Triggered when entry selected.
  * @author M. Edip YILDIZ
@@ -105,16 +108,22 @@ public class LiderManagementEditor extends EditorPart {
 	private Group groupTask;
 	private Group groupPolicy;
 	private Group groupAssignedPolicy;
+	private Group groupExecutedTask;
 
 	public static String selectedDn;
 	public static List<String> selectedDnUserList;
 	private Table tablePolicyList;
 	private Table tableAssignedPolicyList;
+	private Table tableExecutedTaskList;
 
 	private TableViewer tableViewerPolicyList;
 	private TablePolicyFilter tablePolicyFilter;
+
 	private TableViewer tableViewerAssignedPolicyList;
 	private TablePolicyFilter tableAssignedPolicyFilter;
+
+	private TableViewer tableViewerExecutedTaskList;
+	private TableTaskListFilter tableExecutedTaskFilter;
 
 	private Button btnAddPolicy;
 	private Button btnEditPolicy;
@@ -122,10 +131,12 @@ public class LiderManagementEditor extends EditorPart {
 	private Button btnRefreshPolicy;
 
 	private Button btnRefreshAssignedPolicy;
+	private Button btnRefreshExecutedTask;
 	private Button btnEditAssignedPolicy;
 
 	private Policy selectedPolicy;
 	private Policy selectedAssignedPolicy;
+	private tr.org.liderahenk.liderconsole.core.model.Command selectedExecutedTask;
 	private Button btnExecutePolicy;
 
 	private Composite compositeTask;
@@ -152,6 +163,7 @@ public class LiderManagementEditor extends EditorPart {
 	private TableViewer tableViewerTaskLog;
 	private TabFolder tabFolder;
 	private TabItem tabItemAssignedPolicy;
+	private TabItem tabItemExecutedTask;
 	private TabItem tabItemPolicy;
 	private TabItem tabItemTask;
 	private Composite compositeGroupTask;
@@ -159,6 +171,8 @@ public class LiderManagementEditor extends EditorPart {
 	private Composite compositePolicy_Inner;
 	private Composite compositeAssignedPolicy;
 	private Composite compositeAssignedPolicy_Inner;
+	private Composite compositeExecutedTask;
+	private Composite compositeExecutedTask_Inner;
 
 	boolean isPardusDeviceOrHasPardusDevice = false;
 	boolean isPardusAccount = false;
@@ -283,19 +297,28 @@ public class LiderManagementEditor extends EditorPart {
 			setPolicyArea(parent);
 		}
 		//add assigned policy tab if only one entry is selected
-		
+
 		if(selectedEntries.size() == 1) {
-			int selectedEntryType = selectedEntries.get(0).getEntryType();
-			if(selectedEntries.get(0).getEntryType() != 6) {
+			final int selectedEntryType = selectedEntries.get(0).getEntryType();
+			if(selectedEntryType != 6) {
 				setAssignedPolicyArea(parent);
+				if (selectedEntryType == 1) {
+					setExecutedTaskArea(parent);
+				}
 				tabFolder.addSelectionListener(new SelectionListener() {
-					
+
 					@Override
 					public void widgetSelected(SelectionEvent arg0) {			
 						//if ahenk is selected assigned policy will be second tab
-						if(selectedEntries.get(0).getEntryType() == 1 || selectedEntries.get(0).getEntryType() == 3) {
+						if(selectedEntryType == 1 || selectedEntryType == 3) {
 							if(tabFolder.getSelectionIndex() == 2) {
 								populateAssignedPolicyTable();
+							}
+							if(selectedEntryType == 1) {
+								if(tabFolder.getSelectionIndex() == 3) {
+									populateExecutedTaskTable();
+								}
+								
 							}
 						}
 						else {
@@ -304,12 +327,10 @@ public class LiderManagementEditor extends EditorPart {
 							}
 						}
 					}
-					
+
 					@Override
 					public void widgetDefaultSelected(SelectionEvent arg0) {
-						// TODO Auto-generated method stub
-						Notifier.error(tabFolder.getToolTipText(), " default selected one");
-						
+
 					}
 				});
 			}
@@ -659,7 +680,6 @@ public class LiderManagementEditor extends EditorPart {
 	}
 
 	private void setAssignedPolicyArea(final Composite parent) {
-		//start assigned policies
 		tabItemAssignedPolicy = new TabItem(tabFolder, SWT.NONE);
 		tabItemAssignedPolicy.setText(Messages.getString("LiderManagementEditor.tabItemAssignedPolicies.text")); //$NON-NLS-1$
 
@@ -690,7 +710,7 @@ public class LiderManagementEditor extends EditorPart {
 		btnEditAssignedPolicy.setImage(
 				SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE, "icons/16/edit.png"));
 		btnEditAssignedPolicy.setEnabled(false);
-		
+
 		btnEditAssignedPolicy.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -729,8 +749,8 @@ public class LiderManagementEditor extends EditorPart {
 		tableViewerAssignedPolicyList.refresh();
 
 		createAssignedPolicyTableColumns();
-		
-		
+
+
 		// Hook up listeners
 		tableViewerAssignedPolicyList.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override
@@ -743,7 +763,7 @@ public class LiderManagementEditor extends EditorPart {
 				}
 			}
 		});
-		
+
 		tableViewerAssignedPolicyList.addDoubleClickListener(new IDoubleClickListener() {
 			@Override
 			public void doubleClick(DoubleClickEvent event) {
@@ -758,7 +778,85 @@ public class LiderManagementEditor extends EditorPart {
 
 		selectedEntriesForTask = selectedEntries;
 	}
-	
+
+	private void setExecutedTaskArea(final Composite parent) {
+		tabItemExecutedTask = new TabItem(tabFolder, SWT.NONE);
+		tabItemExecutedTask.setText(Messages.getString("LiderManagementEditor.tabItemExecutedTask.text")); //$NON-NLS-1$
+
+		compositeExecutedTask = new Composite(tabFolder, SWT.NONE);
+		tabItemExecutedTask.setControl(compositeExecutedTask);
+
+		compositeExecutedTask.setLayout(new GridLayout(10, false));
+
+		btnRefreshExecutedTask = new Button(compositeExecutedTask, SWT.NONE);
+		btnRefreshExecutedTask.setToolTipText(Messages.getString("LiderManagementEditor.btnRefreshPolicy.toolTipText")); //$NON-NLS-1$
+		btnRefreshExecutedTask.setImage(
+				SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE, "icons/16/refresh.png"));
+		
+
+		btnRefreshExecutedTask.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				refreshExecutedTaskArea();
+			}
+
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
+
+		new Label(compositeExecutedTask, SWT.NONE);
+		new Label(compositeExecutedTask, SWT.NONE);
+		new Label(compositeExecutedTask, SWT.NONE);
+		new Label(compositeExecutedTask, SWT.NONE);
+		new Label(compositeExecutedTask, SWT.NONE);
+
+		compositeExecutedTask_Inner = new Composite(compositeExecutedTask, GridData.FILL);
+		compositeExecutedTask_Inner.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 8, 1));
+		compositeExecutedTask_Inner.setLayout(new GridLayout(1, false));
+
+		tableViewerExecutedTaskList = SWTResourceManager.createTableViewer(compositeExecutedTask_Inner);
+		new Label(compositeExecutedTask, SWT.NONE);
+		new Label(compositeExecutedTask, SWT.NONE);
+
+		tableExecutedTaskList = tableViewerExecutedTaskList.getTable();
+		tableExecutedTaskList.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+
+		tableExecutedTaskFilter = new TableTaskListFilter();
+		tableViewerExecutedTaskList.addFilter(tableExecutedTaskFilter);
+		tableViewerExecutedTaskList.refresh();
+
+		createExecutedTaskTableColumns();
+
+		// Hook up listeners
+		tableViewerExecutedTaskList.addSelectionChangedListener(new ISelectionChangedListener() {
+			@Override
+			public void selectionChanged(SelectionChangedEvent event) {
+				IStructuredSelection selection = (IStructuredSelection) tableViewerExecutedTaskList.getSelection();
+				Object firstElement = selection.getFirstElement();
+				if (firstElement instanceof tr.org.liderahenk.liderconsole.core.model.Command) {
+					setSelectedExecutedTask((tr.org.liderahenk.liderconsole.core.model.Command) firstElement);
+				}
+			}
+		});
+
+		tableViewerExecutedTaskList.addDoubleClickListener(new IDoubleClickListener() {
+			@Override
+			public void doubleClick(DoubleClickEvent event) {
+				if(selectedEntries.get(0).getEntryType() == 1 || selectedEntries.get(0).getEntryType() == 2) {
+					if(getSelectedExecutedTask().getCommandExecutions().get(0).getCommandExecutionResults() != null 
+							&& getSelectedExecutedTask().getCommandExecutions().get(0).getCommandExecutionResults().size() != 0) {
+						ResponseDataDialog dialog = new ResponseDataDialog(parent.getShell(), getSelectedExecutedTask().getCommandExecutions().get(0).getCommandExecutionResults().get(0));
+						dialog.create();
+						dialog.open();	
+					}
+				}
+			}
+		});
+
+		selectedEntriesForTask = selectedEntries;
+	}
+
 	private void getLastTasks() {
 		try {
 			List<ExecutedTask> tasks = null;
@@ -946,6 +1044,10 @@ public class LiderManagementEditor extends EditorPart {
 		tableViewerAssignedPolicyList.refresh();
 	}
 
+	public void refreshExecutedTaskArea() {
+		populateExecutedTaskTable();
+		tableViewerExecutedTaskList.refresh();
+	}
 	public class TablePolicyFilter extends ViewerFilter {
 
 		private String searchString;
@@ -1082,6 +1184,18 @@ public class LiderManagementEditor extends EditorPart {
 		}
 	}
 
+	private void populateExecutedTaskTable() {
+		try {
+			List<tr.org.liderahenk.liderconsole.core.model.Command> listExecutedTask 
+			= new ArrayList<tr.org.liderahenk.liderconsole.core.model.Command>();
+			listExecutedTask = TaskRestUtils.getExecutedTasksOfAgent(selectedEntries.get(0).getUid());
+			tableViewerExecutedTaskList.setInput(listExecutedTask != null ? listExecutedTask : new ArrayList<tr.org.liderahenk.liderconsole.core.model.Command>());
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			Notifier.error(null, Messages.getString("ERROR_ON_LIST"));
+		}
+	}
+
 	private void createAssignedPolicyTableColumns() {
 
 		// Label
@@ -1142,7 +1256,129 @@ public class LiderManagementEditor extends EditorPart {
 			}
 		});
 	}
+	
+	private void createExecutedTaskTableColumns() {
+		
+		// Plugin name
+		TableViewerColumn labelCommandClsID = SWTResourceManager.createTableViewerColumn(tableViewerExecutedTaskList,
+				Messages.getString("PLUGIN_NAME"), 200);
+		labelCommandClsID.getColumn().setAlignment(SWT.LEFT);
+		labelCommandClsID.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof tr.org.liderahenk.liderconsole.core.model.Command) {
+					return Messages.getString(((tr.org.liderahenk.liderconsole.core.model.Command) element).getTask().getPlugin().getName());
+				}
+				return Messages.getString("UNTITLED");
+			}
+		});
 
+		// Task Execute Result Message from Ahenk
+		TableViewerColumn labelColumn = SWTResourceManager.createTableViewerColumn(tableViewerExecutedTaskList,
+				Messages.getString("AHENK_TASK_EXECUTION_RESPONSE"), 300);
+		labelColumn.getColumn().setAlignment(SWT.LEFT);
+		labelColumn.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof tr.org.liderahenk.liderconsole.core.model.Command) {
+					
+					return ((tr.org.liderahenk.liderconsole.core.model.Command) element).getCommandExecutions().get(0).getCommandExecutionResults().size() != 0
+							? ((tr.org.liderahenk.liderconsole.core.model.Command) element).getCommandExecutions().get(0).getCommandExecutionResults().get(0).getResponseMessage()
+									: Messages.getString("UNTITLED");
+				}
+				return Messages.getString("UNTITLED");
+			}
+		});
+		
+		// Task execution result
+		// TASK_RECEIVED(5), TASK_PROCESSING(17), TASK_PROCESSED(6), TASK_WARNING(7)
+		// TASK_ERROR(8), TASK_TIMEOUT(9), TASK_KILLED(10), 
+		TableViewerColumn activeColumn = SWTResourceManager.createTableViewerColumn(tableViewerExecutedTaskList,
+				Messages.getString("TASK_EXECUTION_RESULT"), 200);
+		activeColumn.getColumn().setAlignment(SWT.LEFT);
+		activeColumn.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof tr.org.liderahenk.liderconsole.core.model.Command) {
+					if(((tr.org.liderahenk.liderconsole.core.model.Command) element).getCommandExecutions().get(0).getCommandExecutionResults().size() != 0) {
+						CommandExecutionResult cer = ((tr.org.liderahenk.liderconsole.core.model.Command) element).getCommandExecutions().get(0).getCommandExecutionResults().get(0);
+						String code = cer.getResponseCode().getMessage();
+						return code;
+					}
+				}
+				
+				return Messages.getString("TASK_SENT");
+			}
+			@Override
+			public Color getBackground(Object element) {
+				
+				if(((tr.org.liderahenk.liderconsole.core.model.Command) element).getCommandExecutions().get(0).getCommandExecutionResults().size() != 0) {
+					CommandExecutionResult cer = ((tr.org.liderahenk.liderconsole.core.model.Command) element).getCommandExecutions().get(0).getCommandExecutionResults().get(0);
+					if(cer.getResponseCode() == StatusCode.TASK_PROCESSED) {
+						return SWTResourceManager.getSuccessColor();
+					}
+					else {
+						return SWTResourceManager.getErrorColor();
+					}
+				}
+				else {
+					return SWTResourceManager.getWarningColor();
+				}
+
+			}
+		});
+		
+		// Task Create Date
+		TableViewerColumn createDateColumn = SWTResourceManager.createTableViewerColumn(tableViewerExecutedTaskList,
+				Messages.getString("CREATE_DATE"), 200);
+		createDateColumn.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof tr.org.liderahenk.liderconsole.core.model.Command) {
+					return ((tr.org.liderahenk.liderconsole.core.model.Command) element).getCommandExecutions().get(0).getCreateDate() != null
+							? SWTResourceManager.formatDate(((tr.org.liderahenk.liderconsole.core.model.Command) element)
+									.getCommandExecutions().get(0).getCreateDate())
+									: Messages.getString("UNTITLED");
+				}
+				return Messages.getString("UNTITLED");
+			}
+		});
+
+		// Task Execution Date
+		TableViewerColumn executeDateColumn = SWTResourceManager.createTableViewerColumn(tableViewerExecutedTaskList,
+				Messages.getString("EXECUTE_DATE"), 200);
+		executeDateColumn.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof tr.org.liderahenk.liderconsole.core.model.Command) {
+					return ((tr.org.liderahenk.liderconsole.core.model.Command) element).getCommandExecutions().get(0).getCommandExecutionResults().size() != 0
+							? SWTResourceManager.formatDate(((tr.org.liderahenk.liderconsole.core.model.Command) element)
+									.getCommandExecutions().get(0).getCommandExecutionResults().get(0).getCreateDate())
+									: Messages.getString("UNTITLED");
+				}
+				return Messages.getString("UNTITLED");
+			}
+		});
+
+		// Active
+//		TableViewerColumn activeColumn = SWTResourceManager.createTableViewerColumn(tableViewerExecutedTaskList,
+//				Messages.getString("ACTIVE"), 50);
+//		activeColumn.getColumn().setAlignment(SWT.LEFT);
+//		activeColumn.setLabelProvider(new ColumnLabelProvider() {
+//			@Override
+//			public String getText(Object element) {
+//				if (element instanceof tr.org.liderahenk.liderconsole.core.model.Command) {
+//					return ((tr.org.liderahenk.liderconsole.core.model.Command) element)
+//							.getCommandExecutions().get(0).getCommandExecutionResults().get(0).getResponseCode() == StatusCode.TASK_PROCESSED 
+//							? Messages.getString("YES") : Messages.getString("NO");
+//				}
+//				return Messages.getString("UNTITLED");
+//			}
+//		});
+		
+
+	}
+	
 	private void populateTaskTable() {
 		try {
 			IExtensionRegistry registry = Platform.getExtensionRegistry();
@@ -1281,6 +1517,14 @@ public class LiderManagementEditor extends EditorPart {
 		this.selectedAssignedPolicy = selectedAssignedPolicy;
 	}
 
+	public void setSelectedExecutedTask(tr.org.liderahenk.liderconsole.core.model.Command selectedCommand) {
+		this.selectedExecutedTask = selectedCommand;
+	}
+	
+	public tr.org.liderahenk.liderconsole.core.model.Command getSelectedExecutedTask() {
+		return selectedExecutedTask;
+	}
+	
 	public class TableTaskListFilter extends ViewerFilter {
 
 		private String searchString;
