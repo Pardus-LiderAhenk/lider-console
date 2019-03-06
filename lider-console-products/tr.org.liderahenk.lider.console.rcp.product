@@ -39,7 +39,6 @@ Apache Software Foundation http://apache.org/
       startupForegroundColor="FFFFFF" />
    <launcher name="lider-console">
       <linux icon="../lider-console-rcp/icons/liderahenk-48.xpm"/>
-      <solaris/>
       <win useIco="false">
          <bmp/>
       </win>
@@ -730,6 +729,7 @@ Public License instead of this License.  But first, please read
 
    <plugins>
       <plugin id="bcprov"/>
+      <plugin id="com.glavsoft.tightvncjviewer"/>
       <plugin id="com.google.guava"/>
       <plugin id="com.ibm.icu"/>
       <plugin id="com.itextpdf"/>
@@ -738,6 +738,25 @@ Public License instead of this License.  But first, please read
       <plugin id="javax.servlet"/>
       <plugin id="javax.xml"/>
       <plugin id="javax.xml.stream"/>
+      <plugin id="lider-console-browser"/>
+      <plugin id="lider-console-conky"/>
+      <plugin id="lider-console-disk-quota"/>
+      <plugin id="lider-console-ldap"/>
+      <plugin id="lider-console-ldap-login"/>
+      <plugin id="lider-console-local-user"/>
+      <plugin id="lider-console-login-manager"/>
+      <plugin id="lider-console-manage-root"/>
+      <plugin id="lider-console-network-manager"/>
+      <plugin id="lider-console-package-manager"/>
+      <plugin id="lider-console-password"/>
+      <plugin id="lider-console-remote-access"/>
+      <plugin id="lider-console-resource-usage"/>
+      <plugin id="lider-console-rsyslog"/>
+      <plugin id="lider-console-script"/>
+      <plugin id="lider-console-service"/>
+      <plugin id="lider-console-sudoers"/>
+      <plugin id="lider-console-usb"/>
+      <plugin id="lider-console-user-privilege"/>
       <plugin id="net.sf.ehcache"/>
       <plugin id="org.apache.batik.css"/>
       <plugin id="org.apache.batik.util"/>
