@@ -1322,7 +1322,7 @@ public class LiderManagementEditor extends EditorPart {
 					}
 				}
 				else {
-					return SWTResourceManager.getWarningColor();
+					return SWTResourceManager.getColor(135, 206, 250);
 				}
 
 			}
