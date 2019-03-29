@@ -1024,6 +1024,7 @@ public class SWTResourceManager {
 		Bundle bundle = Platform.getBundle(bundleId);
 		URL url = bundle.getEntry(relativePath);
 		try {
+			if(url !=null)
 			absPath = FileLocator.resolve(url).getPath();
 		} catch (IOException e) {
 			logger.error(e.getMessage(), e);
