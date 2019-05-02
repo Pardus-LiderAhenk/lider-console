@@ -200,28 +200,28 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 
 		});
 
-		treeViewerSearchResult = new TreeViewer(compositeTree, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
-		treeSearchResult = treeViewerSearchResult.getTree();
-		GridData gd_treeSearchResult = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1);
-		gd_treeSearchResult.heightHint = 170;
-		gd_treeSearchResult.minimumWidth = 400;
-		gd_treeSearchResult.minimumHeight = 350;
-		treeSearchResult.setLayoutData(gd_treeSearchResult);
-		treeViewerSearchResult.setUseHashlookup(true);
-
-		treeViewerSearchResult.setContentProvider(new SearchResultContentProvider());
-		treeViewerSearchResult.setLabelProvider(new SearchResultLabelProvider());
-
-		treeViewerSearchResult.addSelectionChangedListener(new ISelectionChangedListener() {
-
-			@Override
-			public void selectionChanged(SelectionChangedEvent event) {
-
-				selectEntry(event);
-
-			}
-
-		});
+//		treeViewerSearchResult = new TreeViewer(compositeTree, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER);
+//		treeSearchResult = treeViewerSearchResult.getTree();
+//		GridData gd_treeSearchResult = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 1);
+//		gd_treeSearchResult.heightHint = 170;
+//		gd_treeSearchResult.minimumWidth = 400;
+//		gd_treeSearchResult.minimumHeight = 350;
+//		treeSearchResult.setLayoutData(gd_treeSearchResult);
+//		treeViewerSearchResult.setUseHashlookup(true);
+//
+//		treeViewerSearchResult.setContentProvider(new SearchResultContentProvider());
+//		treeViewerSearchResult.setLabelProvider(new SearchResultLabelProvider());
+//
+//		treeViewerSearchResult.addSelectionChangedListener(new ISelectionChangedListener() {
+//
+//			@Override
+//			public void selectionChanged(SelectionChangedEvent event) {
+//
+//				selectEntry(event);
+//
+//			}
+//
+//		});
 
 		Connection connection = LdapConnectionListener.getConnection();
 
