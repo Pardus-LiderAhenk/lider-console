@@ -338,10 +338,25 @@ public class LiderManagementEditor extends EditorPart {
 
 		tabItem = new TabItem(tabFolder, SWT.NONE);
 		tabItem.setText(Messages.getString("ENTRY_INFO"));
-
-		TableViewer tableViewerEntryInfo = new TableViewer(tabFolder, SWT.BORDER | SWT.FULL_SELECTION);
+		compositeEntryInfo = new Composite(tabFolder, SWT.NONE);
+		tabItem.setControl(compositeEntryInfo);
+		compositeEntryInfo.setLayout(new GridLayout(2, false));
+		
+		btnAddInfo = new Button(compositeEntryInfo, SWT.NONE);
+		btnAddInfo.setText(Messages.getString("add_info")); //$NON-NLS-1$
+		btnAddInfo.setImage(SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE, "icons/16/add.png"));
+		
+		btnDeleteInfo = new Button(compositeEntryInfo, SWT.NONE);
+		btnDeleteInfo.setText(Messages.getString("delete_info")); //$NON-NLS-1$
+		
+		btnDeleteInfo.setImage(SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE, "icons/16/delete.png"));
+		
+		TableViewer tableViewerEntryInfo = new TableViewer(compositeEntryInfo, SWT.BORDER | SWT.FULL_SELECTION);
 		tableEntryInfo = tableViewerEntryInfo.getTable();
-		tabItem.setControl(tableEntryInfo);
+		tableEntryInfo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+		tabItem.setControl(compositeEntryInfo);
+		
+		
 
 		tableEntryInfo.setHeaderVisible(true);
 		tableEntryInfo.setLinesVisible(true);
@@ -440,6 +455,7 @@ public class LiderManagementEditor extends EditorPart {
 		compositeTask.setLayout(new GridLayout(1, true));
 
 		tableViewerTaskList = SWTResourceManager.createTableViewer(compositeTask);
+		new Label(compositeGroupTask, SWT.NONE);
 		tableTaskList = tableViewerTaskList.getTable();
 		tableTaskList.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 
@@ -881,6 +897,8 @@ public class LiderManagementEditor extends EditorPart {
 
 		btnAhenkInfo.setImage(
 				SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE, "icons/16/script.png"));
+		new Label(compositeInfoButtons, SWT.NONE);
+		new Label(compositeInfoButtons, SWT.NONE);
 		// btnAhenkInfo.setVisible(isPardusDeviceOrHasPardusDevice &&
 		// isSelectionSingle);
 		btnAhenkInfo.addSelectionListener(new SelectionListener() {
@@ -1596,6 +1614,9 @@ public class LiderManagementEditor extends EditorPart {
 		}
 	};
 	private TabItem tabItem;
+	private Composite compositeEntryInfo;
+	private Button btnAddInfo;
+	private Button btnDeleteInfo;
 
 	/**
 	 * 
