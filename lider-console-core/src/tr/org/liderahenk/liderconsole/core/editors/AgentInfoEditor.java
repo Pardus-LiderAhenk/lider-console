@@ -268,7 +268,9 @@ public class AgentInfoEditor extends EditorPart {
 			return agent.getDn().matches(searchString) || agent.getHostname().matches(searchString)
 					|| agent.getJid().matches(searchString) || agent.getIpAddresses().matches(searchString)
 					|| agent.getMacAddresses().matches(searchString) 
-					|| (agent.getPropertyValue("os.distributionName") + agent.getPropertyValue("os.distributionVersion")).matches(searchString);
+					|| (agent.getPropertyValue("os.distributionName") + agent.getPropertyValue("os.distributionVersion")).matches(searchString)
+					|| agent.getPropertyValue("hardware.baseboard.manufacturer").matches(searchString)
+					|| agent.getPropertyValue("hardware.model.version").matches(searchString);
 		}
 	}
 
