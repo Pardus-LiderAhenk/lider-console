@@ -104,6 +104,7 @@ public class LdapTreeContentProvider implements ITreeContentProvider {
 			List<SearchResult> entries = LdapUtils.getInstance().searchAndReturnList(
 					((LiderLdapEntry) selectedEntry).getName(), filter, null, SearchControls.ONELEVEL_SCOPE, 0,
 					LdapConnectionListener.getConnection(), LdapConnectionListener.getMonitor());
+			
 
 			if (entries != null) {
 				List<LiderLdapEntry> entryList = new ArrayList<LiderLdapEntry>();
@@ -123,6 +124,12 @@ public class LdapTreeContentProvider implements ITreeContentProvider {
 						liderLdapEntry.setChildrens(LiderCoreUtils.convertSearchResult2LiderLdapEntry(childEntries));
 					}
 
+					
+					List<String> agents = LdapUtils.getInstance().findAgents(liderLdapEntry.getName());
+					
+					liderLdapEntry.setAgentSize(agents.size());
+					
+					
 					entryList.add(liderLdapEntry);
 				}
 

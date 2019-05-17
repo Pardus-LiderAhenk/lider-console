@@ -39,6 +39,8 @@ public class LiderLdapEntry extends SearchResult {
 
 	private List<AttributeWrapper> attributeList;
 	private List<AttributeWrapper> attributeListWithoutObjectClass;
+	
+	private Integer agentSize;
 
 	private boolean isOnline = false;
 	private String sunucuNo;
@@ -322,5 +324,13 @@ public class LiderLdapEntry extends SearchResult {
 
 	public void setAttributeListWithoutObjectClass(List<AttributeWrapper> attributeListWithoutObjectClass) {
 		this.attributeListWithoutObjectClass = attributeListWithoutObjectClass;
+	}
+
+	public Integer getAgentSize() {
+		return agentSize;
+	}
+
+	public void setAgentSize(Integer agentSize) {
+		this.agentSize = agentSize;
 	}
 }

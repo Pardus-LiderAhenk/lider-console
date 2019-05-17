@@ -113,7 +113,7 @@ public class LdapTreeLabelProvider implements ILabelProvider {
 				
 				
 				if(result.getChildrens()==null) treeLabel=result.getShortName();
-				else treeLabel= result.getShortName() + " ("+ result.getChildrens().size()+")";
+				else treeLabel = result.getShortName() + " ("+ result.getChildrens().size()+")";
 				
 				return  treeLabel;
 				
@@ -126,9 +126,14 @@ public class LdapTreeLabelProvider implements ILabelProvider {
 				
 				treeLabel=result.getShortName();
 				}
-			else
+			else if(result.getAgentSize()==null || result.getAgentSize()==0) 
 			{ 
 				treeLabel= result.getShortName() + " ("+ result.getChildrens().size()+")";
+			}
+			
+			else 
+			{ 
+				treeLabel= result.getShortName() + " ("+ result.getChildrens().size()+"- " + result.getAgentSize()+")";
 			}
 			
 			if(result.is_loggin_user){

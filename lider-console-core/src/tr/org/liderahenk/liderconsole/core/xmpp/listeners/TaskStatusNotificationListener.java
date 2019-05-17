@@ -19,6 +19,7 @@
 */
 package tr.org.liderahenk.liderconsole.core.xmpp.listeners;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.regex.Pattern;
@@ -77,22 +78,30 @@ public class TaskStatusNotificationListener implements StanzaListener, StanzaFil
 	}
 
 	@Override
-	public void processPacket(Stanza packet) throws NotConnectedException {
+	public void processPacket(final Stanza packet) throws NotConnectedException {
 		try {
 			if (packet instanceof Message) {
 
-				Message msg = (Message) packet;
-				//logger.info("Task status message received from => {}, body => {}", msg.getFrom(), msg.getBody());
-
-				ObjectMapper mapper = new ObjectMapper();
-				mapper.getDeserializationConfig().setDateFormat(new SimpleDateFormat("dd-MM-yyyy HH:mm"));
 				
-				final TaskStatusNotification taskStatus = mapper.readValue(msg.getBody(),
-						TaskStatusNotification.class);
 				// Show task status notification
 				Display.getDefault().asyncExec(new Runnable() {
 					@Override
 					public void run() {
+						
+						Message msg = (Message) packet;
+						//logger.info("Task status message received from => {}, body => {}", msg.getFrom(), msg.getBody());
+
+						ObjectMapper mapper = new ObjectMapper();
+						mapper.getDeserializationConfig().setDateFormat(new SimpleDateFormat("dd-MM-yyyy HH:mm"));
+						
+						TaskStatusNotification taskStatus=null;
+						try {
+							taskStatus = mapper.readValue(msg.getBody(),
+									TaskStatusNotification.class);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 						CommandExecutionResult result = taskStatus.getResult();
 						switch (result.getResponseCode()) {
 						case TASK_PROCESSED:
@@ -112,12 +121,14 @@ public class TaskStatusNotificationListener implements StanzaListener, StanzaFil
 						default:
 							break;
 						}
+						
+						// Notify related plug-in
+						eventBroker.post(LiderConstants.EVENT_TOPICS.TASK_STATUS_NOTIFICATION_RECEIVED, taskStatus);
+						eventBroker.post(taskStatus.getPluginName().toUpperCase(Locale.ENGLISH), taskStatus);
 					}
 				});
 
-				// Notify related plug-in
-				eventBroker.post(LiderConstants.EVENT_TOPICS.TASK_STATUS_NOTIFICATION_RECEIVED, taskStatus);
-				eventBroker.post(taskStatus.getPluginName().toUpperCase(Locale.ENGLISH), taskStatus);
+				
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

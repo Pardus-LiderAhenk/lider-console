@@ -386,6 +386,8 @@ public class XMPPClient {
 					TreePaintListener.getInstance().redraw();
 					
 					notifyLdapBrowserView(onlineCount);
+					
+					TreePaintListener.getInstance().redraw();
 				}
 			}
 		});
