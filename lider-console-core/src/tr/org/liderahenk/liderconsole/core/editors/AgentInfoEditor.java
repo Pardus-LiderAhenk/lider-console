@@ -31,8 +31,6 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
-import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -57,6 +55,7 @@ import tr.org.liderahenk.liderconsole.core.dialogs.AgentDetailDialog;
 import tr.org.liderahenk.liderconsole.core.editorinput.DefaultEditorInput;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.model.Agent;
+import tr.org.liderahenk.liderconsole.core.model.FilterAgent;
 import tr.org.liderahenk.liderconsole.core.rest.utils.AgentRestUtils;
 import tr.org.liderahenk.liderconsole.core.utils.IExportableTableViewer;
 import tr.org.liderahenk.liderconsole.core.utils.SWTResourceManager;
@@ -64,7 +63,7 @@ import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
 
 /**
  * 
- * @author <a href="mailto:emre.akkaya@agem.com.tr">Emre Akkaya</a>
+ * @author <a href="mailto:hasan.kara@pardus.org.tr">Hasan Kara</a>
  *
  */
 public class AgentInfoEditor extends EditorPart {
@@ -72,14 +71,20 @@ public class AgentInfoEditor extends EditorPart {
 	private static final Logger logger = LoggerFactory.getLogger(AgentInfoEditor.class);
 
 	private TableViewer tableViewer;
-	private TableFilter tableFilter;
+	//private TableFilter tableFilter;
 	private Text txtSearch;
 	private Composite buttonComposite;
 	private Button btnViewDetail;
 	private Button btnRefreshAgent;
-
 	private Agent selectedAgent;
 
+	private List<Agent> agents;
+	
+	//to show order number on the table
+	private List<FilterAgent> filterAgentList;
+	private List<FilterAgent> filterAgentListAfterFilter;
+	
+	private Label lblTotalNumber;
 	@Override
 	public void doSave(IProgressMonitor monitor) {
 	}
@@ -212,9 +217,9 @@ public class AgentInfoEditor extends EditorPart {
 			}
 		});
 
-		tableFilter = new TableFilter();
-		tableViewer.addFilter(tableFilter);
-		tableViewer.refresh();
+		//tableFilter = new TableFilter();
+		//tableViewer.addFilter(tableFilter);
+		//tableViewer.refresh();
 	}
 
 	/**
@@ -240,10 +245,20 @@ public class AgentInfoEditor extends EditorPart {
 		txtSearch.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
-				tableFilter.setSearchText(txtSearch.getText());
-				tableViewer.refresh();
+//				tableFilter.setSearchText(txtSearch.getText());
+//				tableViewer.refresh();
+				filter(agents);
 			}
 		});
+		Composite totalNumberContainer = new Composite(parent, SWT.NONE);
+		totalNumberContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		totalNumberContainer.setLayout(new GridLayout(1, false));
+
+		lblTotalNumber = new Label(totalNumberContainer, SWT.NONE);
+		lblTotalNumber.setFont(SWTResourceManager.getFont("Sans", 9, SWT.BOLD));
+		lblTotalNumber.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+		lblTotalNumber.setText("Total Number: ");
+
 	}
 
 	/**
@@ -251,35 +266,47 @@ public class AgentInfoEditor extends EditorPart {
 	 * IP address or MAC address)
 	 *
 	 */
-	public class TableFilter extends ViewerFilter {
-
-		private String searchString;
-
-		public void setSearchText(String s) {
-			this.searchString = ".*" + s + ".*";
-		}
-
-		@Override
-		public boolean select(Viewer viewer, Object parentElement, Object element) {
-			if (searchString == null || searchString.length() == 0) {
-				return true;
-			}
-			Agent agent = (Agent) element;
-			return agent.getDn().matches(searchString) || agent.getHostname().matches(searchString)
-					|| agent.getJid().matches(searchString) || agent.getIpAddresses().matches(searchString)
-					|| agent.getMacAddresses().matches(searchString) 
-					|| (agent.getPropertyValue("os.distributionName") + agent.getPropertyValue("os.distributionVersion")).matches(searchString)
-					|| agent.getPropertyValue("hardware.baseboard.manufacturer").matches(searchString)
-					|| agent.getPropertyValue("hardware.model.version").matches(searchString);
-		}
-	}
+//	public class TableFilter extends ViewerFilter {
+//
+//		private String searchString;
+//
+//		public void setSearchText(String s) {
+//			this.searchString = ".*" + s + ".*";
+//		}
+//
+//		@Override
+//		public boolean select(Viewer viewer, Object parentElement, Object element) {
+//			if (searchString == null || searchString.length() == 0) {
+//				return true;
+//			}
+//			FilterAgent agent = (FilterAgent) element;
+//			return agent.getAgent().getDn().matches(searchString) || agent.getAgent().getHostname().matches(searchString)
+//					|| agent.getAgent().getJid().matches(searchString) || agent.getAgent().getIpAddresses().matches(searchString)
+//					|| agent.getAgent().getMacAddresses().matches(searchString) 
+//					|| (agent.getAgent().getPropertyValue("os.distributionName") + agent.getAgent().getPropertyValue("os.distributionVersion")).matches(searchString)
+//					|| agent.getAgent().getPropertyValue("hardware.baseboard.manufacturer").matches(searchString)
+//					|| agent.getAgent().getPropertyValue("hardware.model.version").matches(searchString);
+//		}
+//	}
 
 	/**
 	 * Create table columns related to agent database columns.
 	 * 
 	 */
 	private void createTableColumns() {
-
+		//order number
+		TableViewerColumn orderColumn = SWTResourceManager.createTableViewerColumn(tableViewer, " ", 40);
+		orderColumn.getColumn().setAlignment(SWT.LEFT);
+		orderColumn.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof FilterAgent) {
+					return String.valueOf(((FilterAgent) element).getOrder());
+				}
+				return Messages.getString("UNTITLED");
+			}
+		});
+		
 		// DN
 		TableViewerColumn dnColumn = SWTResourceManager.createTableViewerColumn(tableViewer, Messages.getString("DN"),
 				160);
@@ -287,13 +314,13 @@ public class AgentInfoEditor extends EditorPart {
 		dnColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof Agent) {
-					return ((Agent) element).getDn();
+				if (element instanceof FilterAgent) {
+					return ((FilterAgent) element).getAgent().getDn();
 				}
 				return Messages.getString("UNTITLED");
 			}
 		});
-
+		
 		// JID
 		TableViewerColumn jidColumn = SWTResourceManager.createTableViewerColumn(tableViewer, Messages.getString("JID"),
 				70);
@@ -301,8 +328,8 @@ public class AgentInfoEditor extends EditorPart {
 		jidColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof Agent) {
-					return ((Agent) element).getJid();
+				if (element instanceof FilterAgent) {
+					return ((FilterAgent) element).getAgent().getJid();
 				}
 				return Messages.getString("UNTITLED");
 			}
@@ -315,8 +342,8 @@ public class AgentInfoEditor extends EditorPart {
 		hostnameColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof Agent) {
-					return ((Agent) element).getHostname();
+				if (element instanceof FilterAgent) {
+					return ((FilterAgent) element).getAgent().getHostname();
 				}
 				return Messages.getString("UNTITLED");
 			}
@@ -329,8 +356,8 @@ public class AgentInfoEditor extends EditorPart {
 		ipColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof Agent) {
-					String ipAddresses = ((Agent) element).getIpAddresses();
+				if (element instanceof FilterAgent) {
+					String ipAddresses = ((FilterAgent) element).getAgent().getIpAddresses();
 					return ipAddresses != null ? ipAddresses.replace("'", "").trim() : "-";
 				}
 				return Messages.getString("UNTITLED");
@@ -344,8 +371,8 @@ public class AgentInfoEditor extends EditorPart {
 		macColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof Agent) {
-					String macAddresses = ((Agent) element).getMacAddresses();
+				if (element instanceof FilterAgent) {
+					String macAddresses = ((FilterAgent) element).getAgent().getMacAddresses();
 					return macAddresses != null ? macAddresses.replace("'", "").trim() : "-";
 				}
 				return Messages.getString("UNTITLED");
@@ -359,9 +386,9 @@ public class AgentInfoEditor extends EditorPart {
 		osNameColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof Agent) {
-					String osName = ((Agent) element).getPropertyValue("os.distributionName");
-					osName += " " + ((Agent) element).getPropertyValue("os.distributionVersion");
+				if (element instanceof FilterAgent) {
+					String osName = ((FilterAgent) element).getAgent().getPropertyValue("os.distributionName");
+					osName += " " + ((FilterAgent) element).getAgent().getPropertyValue("os.distributionVersion");
 					return osName != null ? osName.trim() : "-";
 				}
 				return Messages.getString("UNTITLED");
@@ -375,8 +402,8 @@ public class AgentInfoEditor extends EditorPart {
 		brandColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof Agent) {
-					String brand = ((Agent) element).getPropertyValue("hardware.baseboard.manufacturer");
+				if (element instanceof FilterAgent) {
+					String brand = ((FilterAgent) element).getAgent().getPropertyValue("hardware.baseboard.manufacturer");
 					return brand != null ? brand.trim() : "-";
 				}
 				return Messages.getString("UNTITLED");
@@ -390,8 +417,8 @@ public class AgentInfoEditor extends EditorPart {
 		modelColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof Agent) {
-					String model = ((Agent) element).getPropertyValue("hardware.model.version");
+				if (element instanceof FilterAgent) {
+					String model = ((FilterAgent) element).getAgent().getPropertyValue("hardware.model.version");
 					return model != null ? model.trim() : "-";
 				}
 				return Messages.getString("UNTITLED");
@@ -405,8 +432,8 @@ public class AgentInfoEditor extends EditorPart {
 		memoryColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof Agent) {
-					String memory = ((Agent) element).getPropertyValue("hardware.memory.total");
+				if (element instanceof FilterAgent) {
+					String memory = ((FilterAgent) element).getAgent().getPropertyValue("hardware.memory.total");
 					return memory != null ? memory.trim() : "-";
 				}
 				return Messages.getString("UNTITLED");
@@ -420,8 +447,8 @@ public class AgentInfoEditor extends EditorPart {
 		diskColummn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof Agent) {
-					String disk = ((Agent) element).getPropertyValue("hardware.disk.total");
+				if (element instanceof FilterAgent) {
+					String disk = ((FilterAgent) element).getAgent().getPropertyValue("hardware.disk.total");
 					return disk != null ? disk.trim() : "-";
 				}
 				return Messages.getString("UNTITLED");
@@ -434,9 +461,9 @@ public class AgentInfoEditor extends EditorPart {
 		createDateColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof Agent) {
-					return ((Agent) element).getCreateDate() != null
-							? SWTResourceManager.formatDate(((Agent) element).getCreateDate())
+				if (element instanceof FilterAgent) {
+					return ((FilterAgent) element).getAgent().getCreateDate() != null
+							? SWTResourceManager.formatDate(((FilterAgent) element).getAgent().getCreateDate())
 							: Messages.getString("UNTITLED");
 				}
 				return Messages.getString("UNTITLED");
@@ -449,9 +476,9 @@ public class AgentInfoEditor extends EditorPart {
 		modifyDateColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof Agent) {
-					return ((Agent) element).getModifyDate() != null
-							? SWTResourceManager.formatDate(((Agent) element).getModifyDate())
+				if (element instanceof FilterAgent) {
+					return ((FilterAgent) element).getAgent().getModifyDate() != null
+							? SWTResourceManager.formatDate(((FilterAgent) element).getAgent().getModifyDate())
 							: Messages.getString("UNTITLED");
 				}
 				return Messages.getString("UNTITLED");
@@ -464,14 +491,66 @@ public class AgentInfoEditor extends EditorPart {
 	 */
 	private void populateTable() {
 		try {
-			List<Agent> agents = AgentRestUtils.list(null, null, null);
-			tableViewer.setInput(agents != null ? agents : new ArrayList<Agent>());
+			agents = AgentRestUtils.list(null, null, null);
+			filter(agents);
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			Notifier.error(null, Messages.getString("ERROR_ON_LIST"));
 		}
 	}
 
+	public void filter(List<Agent> agents) {
+		FilterAgent filterAgent = null;
+		filterAgentList = new ArrayList<>();
+		filterAgentListAfterFilter = new ArrayList<>();
+		if(agents != null) {
+			for (int i = 0; i < agents.size(); i++) {
+				filterAgent = new FilterAgent();
+				filterAgent.setOrder(i+1);
+				filterAgent.setAgent(agents.get(i));
+				filterAgentList.add(filterAgent);
+				
+			}
+			
+		}
+		if(!txtSearch.getText().equals("")) {
+			String searchString = ".*" + txtSearch.getText() + ".*";
+			searchString = searchString.toLowerCase();
+			Agent agent;
+			int counter = 1;
+			Boolean matched = false;
+			for (int i = 0; i < filterAgentList.size(); i++) {
+				agent = filterAgentList.get(i).getAgent();
+				if(agent.getDn().toLowerCase().matches(searchString) 
+						|| agent.getHostname().toLowerCase().matches(searchString)
+						|| agent.getJid().toLowerCase().matches(searchString) 
+						|| agent.getIpAddresses().toLowerCase().matches(searchString)
+						|| agent.getMacAddresses().toLowerCase().matches(searchString) 
+						|| (agent.getPropertyValue("os.distributionName").toLowerCase() + agent.getPropertyValue("os.distributionVersion").toLowerCase()).matches(searchString)
+						|| agent.getPropertyValue("hardware.baseboard.manufacturer").toLowerCase().matches(searchString)
+						|| agent.getPropertyValue("hardware.model.version").toLowerCase().matches(searchString)) {
+					matched = true;
+
+				}
+				
+				if(matched) {
+					matched = false;
+					FilterAgent fa = new FilterAgent();
+					fa.setOrder(counter++);
+					fa.setAgent(agent);
+					filterAgentListAfterFilter.add(fa);
+				}
+			}
+		}
+		else {
+			
+			filterAgentListAfterFilter.addAll(filterAgentList);
+		}
+		lblTotalNumber.setText("Total Number Of Results: " + String.valueOf(filterAgentListAfterFilter.size()));
+		tableViewer.setInput(filterAgentListAfterFilter != null ? filterAgentListAfterFilter : new ArrayList<FilterAgent>());
+		tableViewer.refresh();
+	}
+	//public void filter(String text)
 	/**
 	 * Re-populate table with policies.
 	 * 
