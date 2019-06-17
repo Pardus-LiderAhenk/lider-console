@@ -2,6 +2,7 @@ package tr.org.liderahenk.liderconsole.core.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -39,6 +40,8 @@ public class LiderLdapEntry extends SearchResult {
 
 	private List<AttributeWrapper> attributeList;
 	private List<AttributeWrapper> attributeListWithoutObjectClass;
+	
+	private Map<String, Object> parameters;
 	
 	private Integer agentSize;
 
@@ -332,5 +335,13 @@ public class LiderLdapEntry extends SearchResult {
 
 	public void setAgentSize(Integer agentSize) {
 		this.agentSize = agentSize;
+	}
+
+	public Map<String, Object> getParameters() {
+		return parameters;
+	}
+
+	public void setParameters(Map<String, Object> parameters) {
+		this.parameters = parameters;
 	}
 }

@@ -6,6 +6,7 @@ import java.util.List;
 
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
+import javax.swing.tree.TreePath;
 
 import org.apache.directory.studio.connection.core.Connection;
 import org.apache.directory.studio.connection.core.io.ConnectionWrapper;
@@ -16,12 +17,14 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
@@ -253,7 +256,19 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 					if (object instanceof LiderLdapEntry) {
 						LiderLdapEntry entry = (LiderLdapEntry) object;
 						
+						org.eclipse.jface.viewers.TreePath[] pathss = treeViewer.getExpandedTreePaths();
+						Object[] elements = treeViewer.getExpandedElements(); 
+						
+						RefreshAction refreshAction = new RefreshAction(entry, pathss, elements);
+						manager.add(refreshAction);
+						
+						
+						manager.add(new Separator());
+						
+						
 						manager.add(LdapActionFactory.getInstance().createEntryInfoAction(entry));
+						
+						
 						
 
 						if (entry.getEntryType() == LiderLdapEntry.PARDUS_DEVICE) {
@@ -281,7 +296,7 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 							manager.add(LdapActionFactory.getInstance().createDeleteUserAction(entry));
 							
 						} else {
-
+							
 						}
 
 					}
@@ -686,17 +701,33 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 	// Pop Up menu actions
 
 	public class RefreshAction extends Action {
+		
+		private LiderLdapEntry entry;
+		private org.eclipse.jface.viewers.TreePath[] paths;
+		private  Object[] elements;
 
 		public RefreshAction() {
 			super(Messages.getString("refresh"));
 		}
+		
+		
 
+		public RefreshAction(LiderLdapEntry entry, org.eclipse.jface.viewers.TreePath[] paths, Object[] elements) {
+			super(Messages.getString("refresh"));
+			this.entry=entry;
+			this.paths=paths;
+			this.elements=elements;
+		}
+
+		
 		public void run() {
 
 			ConnectionWrapper connection = LdapConnectionListener.getConnection().getConnectionWrapper();
 
 			if (connection.isConnected()) {
-				treeViewer.refresh();
+				treeViewer.refresh(); 
+				treeViewer.setExpandedElements(elements); 
+				treeViewer.setExpandedTreePaths(paths);
 			}
 		}
 	}

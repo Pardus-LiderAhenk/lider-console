@@ -19,6 +19,8 @@
 */
 package tr.org.liderahenk.liderconsole.core.handlers;
 
+import java.util.Map;
+
 import org.apache.directory.studio.ldapbrowser.core.model.IBookmark;
 import org.apache.directory.studio.ldapbrowser.core.model.IEntry;
 import org.apache.directory.studio.ldapbrowser.core.model.ISearch;
@@ -52,6 +54,8 @@ public abstract class SingleSelectionHandler extends AbstractHandler {
 
 		String dn = null;
 		
+		LiderLdapEntry selectedEntry=null;
+		
 //		LiderLdapEntry entry= LiderManagementEditor.getLiderLdapEntriesForTask().get(0);
 //		if(entry!=null)
 //			dn=entry.getName();
@@ -77,6 +81,10 @@ public abstract class SingleSelectionHandler extends AbstractHandler {
 					dn = ((SearchResult) selectedElement).getDn().toString();
 				} else if (selectedElement instanceof IBookmark) {
 					dn = ((IBookmark) selectedElement).getDn().toString();
+				}
+				else if (selectedElement instanceof LiderLdapEntry) {
+					selectedEntry= (LiderLdapEntry) selectedElement;
+					dn =selectedEntry.getName();
 				} else if (selectedElement instanceof javax.naming.directory.SearchResult) {
 					dn = ((javax.naming.directory.SearchResult) selectedElement).getName();
 				} else if (selectedElement instanceof IEntry) {
@@ -93,7 +101,12 @@ public abstract class SingleSelectionHandler extends AbstractHandler {
 		if (dn == null || dn.isEmpty()) {
 			Notifier.error(null, Messages.getString("ERROR_ON_LDAP_SELECTION"));
 		} else {
+			
+			
 			executeWithDn(dn);
+			
+			if(selectedEntry!=null && selectedEntry.getParameters() !=null)
+			executeWithDnWithParam(dn,selectedEntry.getParameters());
 		}
 
 		return null;
@@ -106,5 +119,9 @@ public abstract class SingleSelectionHandler extends AbstractHandler {
 	 *            selected DN name
 	 */
 	public abstract void executeWithDn(String dn);
+	
+	public void executeWithDnWithParam(String dn, Map<String,Object> params) {
+		
+	}
 
 }

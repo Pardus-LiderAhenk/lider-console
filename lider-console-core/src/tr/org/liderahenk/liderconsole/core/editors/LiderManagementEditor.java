@@ -2,12 +2,24 @@ package tr.org.liderahenk.liderconsole.core.editors;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.core.commands.Command;
 import org.eclipse.core.commands.ExecutionEvent;
+import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.commands.IExecutionListener;
+import org.eclipse.core.commands.IParameter;
+import org.eclipse.core.commands.IParameterValues;
+import org.eclipse.core.commands.NotEnabledException;
+import org.eclipse.core.commands.NotHandledException;
+import org.eclipse.core.commands.ParameterValuesException;
+import org.eclipse.core.commands.Parameterization;
+import org.eclipse.core.commands.ParameterizedCommand;
+import org.eclipse.core.commands.common.NotDefinedException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IExtensionRegistry;
@@ -57,6 +69,7 @@ import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.commands.ICommandService;
+import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.part.EditorPart;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
@@ -185,6 +198,7 @@ public class LiderManagementEditor extends EditorPart {
 
 	private Table tableEntryInfo;
 
+	private TableViewer tableViewerEntryInfo;
 
 
 	public LiderManagementEditor() {
@@ -340,20 +354,76 @@ public class LiderManagementEditor extends EditorPart {
 		tabItem.setText(Messages.getString("ENTRY_INFO"));
 		compositeEntryInfo = new Composite(tabFolder, SWT.NONE);
 		tabItem.setControl(compositeEntryInfo);
-		compositeEntryInfo.setLayout(new GridLayout(2, false));
+		compositeEntryInfo.setLayout(new GridLayout(3, false));
 		
 		btnAddInfo = new Button(compositeEntryInfo, SWT.NONE);
 		btnAddInfo.setText(Messages.getString("add_info")); //$NON-NLS-1$
 		btnAddInfo.setImage(SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE, "icons/16/add.png"));
+		
+		btnAddInfo.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				
+				ICommandService 	commandService = (ICommandService) PlatformUI.getWorkbench().getService(ICommandService.class);
+				
+				Command command=commandService.getCommand("tr.org.liderahenk.liderconsole.commands.AddAttribute");
+						
+						
+						try {
+							
+							ExecutionEvent event= new  ExecutionEvent();
+							
+							command.executeWithChecks(event);
+							
+							
+						} catch (ExecutionException | NotDefinedException | NotEnabledException
+								| NotHandledException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+				
+				
+			}
+		});
+		
+		btnUpdateInfo = new Button(compositeEntryInfo, SWT.NONE);
+		btnUpdateInfo.setText(Messages.getString("update_info")); //$NON-NLS-1$
+		btnUpdateInfo.setImage(SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE, "icons/16/edit.png"));
+		
+		
+		btnUpdateInfo.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				
+				String commandStr="tr.org.liderahenk.liderconsole.commands.UpdateAttribute";
+				
+				updateSelectedEntryAtrribute(commandStr);
+				
+			}
+
+			
+		});
 		
 		btnDeleteInfo = new Button(compositeEntryInfo, SWT.NONE);
 		btnDeleteInfo.setText(Messages.getString("delete_info")); //$NON-NLS-1$
 		
 		btnDeleteInfo.setImage(SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE, "icons/16/delete.png"));
 		
-		TableViewer tableViewerEntryInfo = new TableViewer(compositeEntryInfo, SWT.BORDER | SWT.FULL_SELECTION);
+		
+		btnDeleteInfo.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				
+				String commandStr="tr.org.liderahenk.liderconsole.commands.DeleteAttribute";
+				
+				updateSelectedEntryAtrribute(commandStr);
+				
+			}
+		});
+		
+		tableViewerEntryInfo = new TableViewer(compositeEntryInfo, SWT.BORDER | SWT.FULL_SELECTION);
 		tableEntryInfo = tableViewerEntryInfo.getTable();
-		tableEntryInfo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+		tableEntryInfo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
 		tabItem.setControl(compositeEntryInfo);
 		
 		
@@ -373,6 +443,44 @@ public class LiderManagementEditor extends EditorPart {
 		sc.setContent(composite);
 		sc.setExpandHorizontal(true);
 		sc.setExpandVertical(true);
+	}
+	
+	
+	private void updateSelectedEntryAtrribute(String commandStr) {
+		IStructuredSelection selection = (IStructuredSelection)tableViewerEntryInfo.getSelection();
+		
+		Object [] selections = selection.toArray();
+		
+		if(selections.length==0) {
+			Notifier.notifyandShow(null, "UYARI", "Lütfen Öznitelik Seçiniz.", "Lütfen Öznitelik Seçiniz.", NotifierTheme.WARNING_THEME);
+			return;
+		}
+		
+		LiderLdapEntry.AttributeWrapper attributeWrapper= (LiderLdapEntry.AttributeWrapper)selections[0]; 
+		String name=attributeWrapper.getAttName();
+		String value=attributeWrapper.getAttValue();
+		
+		
+		if (selectedEntries != null && selectedEntries.size() > 0) {
+		 LiderLdapEntry selectedEntry=	selectedEntries.get(0);
+			
+		 Map<String, Object> params= new HashMap<>();
+		 params.put("selectedAttribute", attributeWrapper);
+		 selectedEntry.setParameters(params);
+
+		}
+		
+		
+		ICommandService 	commandService = (ICommandService) PlatformUI.getWorkbench().getService(ICommandService.class);
+		
+		Command command=commandService.getCommand(commandStr);
+				try {
+					command.executeWithChecks(new ExecutionEvent());
+					
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 	}
 
 	private void createEntryInfoTableColumns(TableViewer tableViewer) {
@@ -1617,6 +1725,7 @@ public class LiderManagementEditor extends EditorPart {
 	private Composite compositeEntryInfo;
 	private Button btnAddInfo;
 	private Button btnDeleteInfo;
+	private Button btnUpdateInfo;
 
 	/**
 	 * 
