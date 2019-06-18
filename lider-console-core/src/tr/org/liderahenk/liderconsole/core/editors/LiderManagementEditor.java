@@ -8,17 +8,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.naming.directory.SearchControls;
+import javax.naming.directory.SearchResult;
+
 import org.eclipse.core.commands.Command;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.core.commands.IExecutionListener;
-import org.eclipse.core.commands.IParameter;
-import org.eclipse.core.commands.IParameterValues;
 import org.eclipse.core.commands.NotEnabledException;
 import org.eclipse.core.commands.NotHandledException;
-import org.eclipse.core.commands.ParameterValuesException;
-import org.eclipse.core.commands.Parameterization;
-import org.eclipse.core.commands.ParameterizedCommand;
 import org.eclipse.core.commands.common.NotDefinedException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionPoint;
@@ -69,7 +66,6 @@ import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.commands.ICommandService;
-import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.part.EditorPart;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
@@ -85,6 +81,7 @@ import tr.org.liderahenk.liderconsole.core.dialogs.PolicyExecutionSelectDialog;
 import tr.org.liderahenk.liderconsole.core.dialogs.ResponseDataDialog;
 import tr.org.liderahenk.liderconsole.core.editorinput.DefaultEditorInput;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
+import tr.org.liderahenk.liderconsole.core.ldap.listeners.LdapConnectionListener;
 import tr.org.liderahenk.liderconsole.core.ldap.utils.LdapUtils;
 import tr.org.liderahenk.liderconsole.core.model.CommandExecutionResult;
 import tr.org.liderahenk.liderconsole.core.model.ExecutedTask;
@@ -354,7 +351,7 @@ public class LiderManagementEditor extends EditorPart {
 		tabItem.setText(Messages.getString("ENTRY_INFO"));
 		compositeEntryInfo = new Composite(tabFolder, SWT.NONE);
 		tabItem.setControl(compositeEntryInfo);
-		compositeEntryInfo.setLayout(new GridLayout(3, false));
+		compositeEntryInfo.setLayout(new GridLayout(4, false));
 		
 		btnAddInfo = new Button(compositeEntryInfo, SWT.NONE);
 		btnAddInfo.setText(Messages.getString("add_info")); //$NON-NLS-1$
@@ -421,9 +418,45 @@ public class LiderManagementEditor extends EditorPart {
 			}
 		});
 		
+		btnRefreshInfo = new Button(compositeEntryInfo, SWT.NONE);
+		btnRefreshInfo.setText(Messages.getString("refresh")); //$NON-NLS-1$
+		btnDeleteInfo.setImage(SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE, "icons/16/refresh.png"));
+		btnRefreshInfo.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+				String dn="";
+				
+				if(selectedUserDn!=null) dn=selectedUserDn;
+				else if(selectedEntries !=null && selectedEntries.size()>0) {
+					dn=selectedEntries.get(0).getName();
+				}
+				
+				List<SearchResult> results=	LdapUtils.getInstance().searchAndReturnList(
+						dn, 
+						"(objectClass=*)", null, SearchControls.OBJECT_SCOPE, 1,
+						LdapConnectionListener.getConnection(), LdapConnectionListener.getMonitor());
+				
+				if(results!=null && results.size()>0) {
+					SearchResult rs=results.get(0);
+					
+					LiderLdapEntry liderLdapEntry= new LiderLdapEntry(rs.getName(), rs.getObject(), rs.getAttributes(), rs);
+					
+					tableViewerEntryInfo.setInput(liderLdapEntry.getAttributeListWithoutObjectClass());
+					}
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+		
 		tableViewerEntryInfo = new TableViewer(compositeEntryInfo, SWT.BORDER | SWT.FULL_SELECTION);
 		tableEntryInfo = tableViewerEntryInfo.getTable();
-		tableEntryInfo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1));
+		tableEntryInfo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 4, 1));
 		tabItem.setControl(compositeEntryInfo);
 		
 		
@@ -1726,6 +1759,7 @@ public class LiderManagementEditor extends EditorPart {
 	private Button btnAddInfo;
 	private Button btnDeleteInfo;
 	private Button btnUpdateInfo;
+	private Button btnRefreshInfo;
 
 	/**
 	 * 

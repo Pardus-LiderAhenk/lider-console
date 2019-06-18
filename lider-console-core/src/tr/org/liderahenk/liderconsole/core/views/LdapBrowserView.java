@@ -31,6 +31,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -316,16 +317,33 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 
 		compositeInfo = new Composite(composite, SWT.NONE);
 		compositeInfo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
-		compositeInfo.setLayout(new GridLayout(2, false));
+		compositeInfo.setLayout(new GridLayout(3, false));
 
 		lblAllAgentInfo = new Label(compositeInfo, SWT.NONE);
 		lblAllAgentInfo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
-
+		
+		btnListOnlineAgent = new Button(compositeInfo, SWT.NONE);
+		btnListOnlineAgent.setText(Messages.getString("listOnlineAgents")); //$NON-NLS-1$
+		
+		btnListOnlineAgent.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+			
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
 		lbOnlineAgentslInfo = new CLabel(compositeInfo, SWT.NONE);
 		lbOnlineAgentslInfo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 
 		lblOfflineAgentInfo = new CLabel(compositeInfo, SWT.NONE);
 		lblOfflineAgentInfo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		new Label(compositeInfo, SWT.NONE);
 
 		// roster degisimlerini dinliyoruz.
 
@@ -434,6 +452,7 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 	}
 
 	public void setInputForSearchTreeviewer(Object input) {
+		if(treeViewerSearchResult!=null)
 		treeViewerSearchResult.setInput(input);
 	}
 
@@ -675,6 +694,7 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 	}
 
 	int onlineAgentCount;
+	private Button btnListOnlineAgent;
 
 	public void setlbOnlineAgentslInfo(int onlineAgentCount) {
 
@@ -731,5 +751,39 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 			}
 		}
 	}
+	
+	
+	
+//	public void openOnlineAgentsEditor() {
+//
+//		final IWorkbench workbench = PlatformUI.getWorkbench();
+//		IWorkbenchWindow[] windows = workbench.getWorkbenchWindows();
+//		if (windows != null && windows.length > 0) {
+//			IWorkbenchWindow window = windows[0];
+//			final IWorkbenchPage activePage = window.getActivePage();
+//			Display.getDefault().asyncExec(new Runnable() {
+//				@Override
+//				public void run() {
+//					try {
+//
+//						DefaultEditorInput input = new DefaultEditorInput("onlineAgents");
+//						input.setLiderLdapEntries(allAgents);
+//
+//						 LiderManagementEditor editor = (LiderManagementEditor)	 activePage.findEditor(input);
+//						//
+//						if (editor != null) {
+//							activePage.closeEditor(editor, true);
+//
+//						 }
+//
+//						activePage.openEditor(input, LiderConstants.EDITORS.LIDER_MANAGEMENT_EDITOR, false);
+//
+//					} catch (PartInitException e) {
+//						e.printStackTrace();
+//					}
+//				}
+//			});
+//		}
+//	}
 
 }
