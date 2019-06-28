@@ -2,11 +2,11 @@ package tr.org.liderahenk.liderconsole.core.model;
 
 import java.util.List;
 
-public class FilterAgent {
+public class OrderedAgent {
 
 	private int order;
 	private Agent agent;
-	public FilterAgent() {
+	public OrderedAgent() {
 		super();
 	}
 	public int getOrder() {

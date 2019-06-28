@@ -41,13 +41,56 @@ import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
 /**
  * Utility class for sending agent related requests to Lider server.
  * 
- * @author <a href="mailto:emre.akkaya@agem.com.tr">Emre Akkaya</a>
+ * @author <a href="mailto:hasan.kara@pardus.org.tr">Hasan Kara</a>
  *
  */
 public class AgentRestUtils {
 
 	private static final Logger logger = LoggerFactory.getLogger(AgentRestUtils.class);
+	/**
+	 * Send GET request to server in order to retrieve count of agents
+	 * 
+	 * @param hostname
+	 * @param dn
+	 * @return
+	 * @throws Exception
+	 */
+	public static int countOfAgents(String propertyName, String propertyValue, String type) throws Exception {
+		// Build URL
+		StringBuilder url = getBaseUrl();
+		url.append("/count?");
+		List<String> params = new ArrayList<String>();
+		if (propertyName != null) {
+			params.add("propertyName=" + propertyName);
+		}
+		if (propertyValue != null) {
+			params.add("propertyValue=" + propertyValue);
+		}
+		if (type != null) {
+			params.add("type=" + type);
+		}
+		if (!params.isEmpty()) {
+			url.append(StringUtils.join(params, "&"));
+		}
 
+		logger.debug("Sending request to URL: {}", url.toString());
+
+		// Send GET request to server
+		IResponse response = RestClient.get(url.toString());
+		int countOfAgents = 0;
+
+		if (response != null && response.getStatus() == RestResponseStatus.OK
+				&& response.getResultMap().get("countOfAgents") != null) {
+			ObjectMapper mapper = new ObjectMapper();
+			countOfAgents = mapper.readValue(mapper.writeValueAsString(response.getResultMap().get("countOfAgents")), Integer.class);
+			Notifier.success(null, Messages.getString("RECORD_LISTED"));
+		} else {
+			Notifier.error(null, Messages.getString("ERROR_ON_LIST"));
+		}
+
+		return countOfAgents;
+	}
+	
 	/**
 	 * Send GET request to server in order to retrieve desired agents.
 	 * 
@@ -95,6 +138,56 @@ public class AgentRestUtils {
 		return agents;
 	}
 
+	
+	/**
+	 * Send GET request to server in order to retrieve desired agents.
+	 * 
+	 * @param hostname
+	 * @param dn
+	 * @return
+	 * @throws Exception
+	 */
+	public static List<Agent> listAgentsWithPaging(String propertyName, String propertyValue, String type, int firstResult, int maxResult) throws Exception {
+		// Build URL
+		StringBuilder url = getBaseUrl();
+		url.append("/list/paging?");
+
+		// Append optional parameters
+		List<String> params = new ArrayList<String>();
+		params.add("firstResult=" + firstResult);
+		params.add("maxResult=" + maxResult);
+		if (propertyName != null) {
+			params.add("propertyName=" + propertyName);
+		}
+		if (propertyValue != null) {
+			params.add("propertyValue=" + propertyValue);
+		}
+		if (type != null) {
+			params.add("type=" + type);
+		}
+		if (!params.isEmpty()) {
+			url.append(StringUtils.join(params, "&"));
+		}
+		logger.debug("Sending request to URL: {}", url.toString());
+
+		// Send GET request to server
+		IResponse response = RestClient.get(url.toString());
+		List<Agent> agents = null;
+
+		if (response != null && response.getStatus() == RestResponseStatus.OK
+				&& response.getResultMap().get("agents") != null) {
+			ObjectMapper mapper = new ObjectMapper();
+			agents = mapper.readValue(mapper.writeValueAsString(response.getResultMap().get("agents")),
+					new TypeReference<List<Agent>>() {
+					});
+			Notifier.success(null, Messages.getString("RECORD_LISTED"));
+		} else {
+			Notifier.error(null, Messages.getString("ERROR_ON_LIST"));
+		}
+
+		return agents;
+	}
+	
 	/**
 	 * Send GET request to server in order to retrieve desired agent.
 	 * 

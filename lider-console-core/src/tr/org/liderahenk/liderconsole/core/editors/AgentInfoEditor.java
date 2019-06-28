@@ -34,14 +34,18 @@ import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
@@ -55,7 +59,7 @@ import tr.org.liderahenk.liderconsole.core.dialogs.AgentDetailDialog;
 import tr.org.liderahenk.liderconsole.core.editorinput.DefaultEditorInput;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.model.Agent;
-import tr.org.liderahenk.liderconsole.core.model.FilterAgent;
+import tr.org.liderahenk.liderconsole.core.model.OrderedAgent;
 import tr.org.liderahenk.liderconsole.core.rest.utils.AgentRestUtils;
 import tr.org.liderahenk.liderconsole.core.utils.IExportableTableViewer;
 import tr.org.liderahenk.liderconsole.core.utils.SWTResourceManager;
@@ -67,24 +71,44 @@ import tr.org.liderahenk.liderconsole.core.widgets.Notifier;
  *
  */
 public class AgentInfoEditor extends EditorPart {
+	public AgentInfoEditor() {
+	}
 
 	private static final Logger logger = LoggerFactory.getLogger(AgentInfoEditor.class);
 
 	private TableViewer tableViewer;
-	//private TableFilter tableFilter;
 	private Text txtSearch;
+	private String searchText;
+	private String assignedSearchText;
 	private Composite buttonComposite;
 	private Button btnViewDetail;
 	private Button btnRefreshAgent;
-	private Agent selectedAgent;
+	private OrderedAgent selectedAgent;
 
+	private int selectedPageNumber;
+	private Text txtPageNumber;
+	private Composite paginationComposite;
+	private Button btnFirstPage;
+	private Button btnLastPage;
+	private Button btnPreviousPage;
+	private Button btnNextPage;
+	private int activePage = 1;
+	private int pageSize = 30;
+	private int totalPageNumber=1;
+	
 	private List<Agent> agents;
 	
-	//to show order number on the table
-	private List<FilterAgent> filterAgentList;
-	private List<FilterAgent> filterAgentListAfterFilter;
-	
 	private Label lblTotalNumber;
+	private Label labelTotalPageInfo;
+	
+	private int countOfAgents;
+	private List<OrderedAgent> orderedAgents;
+	
+	private Combo comboFilterColumn;
+	//this value should be same name of field of Agent Class
+	private String selectedColumnValue = "";
+	private String searchIn = "";
+	
 	@Override
 	public void doSave(IProgressMonitor monitor) {
 	}
@@ -95,6 +119,9 @@ public class AgentInfoEditor extends EditorPart {
 
 	@Override
 	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
+		selectedColumnValue = "dn";
+		searchIn = "AGENT";
+		assignedSearchText = "";
 		setSite(site);
 		setInput(input);
 		setPartName(((DefaultEditorInput) input).getLabel());
@@ -127,7 +154,7 @@ public class AgentInfoEditor extends EditorPart {
 
 		buttonComposite = new Composite(parent, GridData.FILL);
 		buttonComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false));
-		buttonComposite.setLayout(new GridLayout(3, false));
+		buttonComposite.setLayout(new GridLayout(4, false));
 
 		btnViewDetail = new Button(buttonComposite, SWT.NONE);
 		btnViewDetail.setText(Messages.getString("VIEW_DETAIL"));
@@ -142,7 +169,7 @@ public class AgentInfoEditor extends EditorPart {
 					return;
 				}
 				AgentDetailDialog dialog = new AgentDetailDialog(Display.getDefault().getActiveShell(),
-						getSelectedAgent());
+						getSelectedAgent().getAgent());
 				dialog.create();
 				dialog.open();
 			}
@@ -157,6 +184,7 @@ public class AgentInfoEditor extends EditorPart {
 		btnRefreshAgent.setImage(
 				SWTResourceManager.getImage(LiderConstants.PLUGIN_IDS.LIDER_CONSOLE_CORE, "icons/16/refresh.png"));
 		btnRefreshAgent.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
+		new Label(buttonComposite, SWT.NONE);
 		btnRefreshAgent.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -194,17 +222,18 @@ public class AgentInfoEditor extends EditorPart {
 				return Messages.getString("AGENT_INFO");
 			}
 		});
-		createTableColumns();
+		getCountOfAgents(null, null, null);
+		setPagination(parent);
 		populateTable();
-
+		
 		// Hook up listeners
 		tableViewer.addSelectionChangedListener(new ISelectionChangedListener() {
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
 				IStructuredSelection selection = (IStructuredSelection) tableViewer.getSelection();
 				Object firstElement = selection.getFirstElement();
-				if (firstElement instanceof Agent) {
-					setSelectedAgent((Agent) firstElement);
+				if (firstElement instanceof OrderedAgent) {
+					setSelectedAgent((OrderedAgent) firstElement);
 				}
 				btnViewDetail.setEnabled(true);
 			}
@@ -212,16 +241,129 @@ public class AgentInfoEditor extends EditorPart {
 		tableViewer.addDoubleClickListener(new IDoubleClickListener() {
 			@Override
 			public void doubleClick(DoubleClickEvent event) {
-				AgentDetailDialog dialog = new AgentDetailDialog(parent.getShell(), getSelectedAgent());
+				AgentDetailDialog dialog = new AgentDetailDialog(parent.getShell(), getSelectedAgent().getAgent());
 				dialog.open();
 			}
 		});
-
-		//tableFilter = new TableFilter();
-		//tableViewer.addFilter(tableFilter);
-		//tableViewer.refresh();
 	}
 
+	private void setPagination(final Composite parent) {
+		paginationComposite = new Composite(parent, GridData.FILL);
+		paginationComposite.setLayoutData(new GridData(SWT.CENTER, SWT.FILL, false, false));
+		paginationComposite.setLayout(new GridLayout(8, false));
+
+		btnFirstPage = new Button(paginationComposite, SWT.CENTER);
+		btnFirstPage.setText("<<");
+		btnFirstPage.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
+		btnFirstPage.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if(activePage != 1  && totalPageNumber != 0) {
+	            	activePage = 1;
+					txtPageNumber.setText(String.valueOf(activePage));
+					populateTable();	
+				}
+			}
+		});
+
+		btnPreviousPage = new Button(paginationComposite, SWT.CENTER);
+		btnPreviousPage.setText("<");
+		btnPreviousPage.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
+		btnPreviousPage.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if((activePage - 1) >= 1) {
+					activePage--;
+					txtPageNumber.setText(String.valueOf(activePage));
+					populateTable();
+				}
+			}
+		});
+		
+		txtPageNumber = new Text(paginationComposite, SWT.BORDER);
+		txtPageNumber.setText("1    ");
+		txtPageNumber.setSize(100, 100);
+		txtPageNumber.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		txtPageNumber.addListener(SWT.FocusIn, new Listener() {
+		      public void handleEvent(Event e) {
+		    	  txtPageNumber.setText(txtPageNumber.getText().trim());
+		      }
+		    });
+		txtPageNumber.addListener(SWT.Verify, new Listener() {
+			public void handleEvent(Event e) {
+				String string = e.text;
+				char[] chars = new char[string.length()];
+				string.getChars(0, chars.length, chars, 0);
+				for (int i = 0; i < chars.length; i++) {
+					if (!('0' <= chars[i] && chars[i] <= '9')) {
+						e.doit = false;
+						return;
+					}
+				}
+			}
+		});
+		txtPageNumber.addListener(SWT.Traverse, new Listener()
+	    {
+	        @Override
+	        public void handleEvent(Event event)
+	        {
+	            if(event.detail == SWT.TRAVERSE_RETURN)
+	            {
+	            	int aPage = Integer.parseInt(txtPageNumber.getText());
+	            	if(aPage > totalPageNumber) {
+	            		activePage  = totalPageNumber;
+	            	}
+	            	else if(aPage == 0) {
+	            		activePage = 1;
+	            	}
+	            	else {
+	            		activePage = aPage;
+	            	}
+					txtPageNumber.setText(String.valueOf(activePage));
+					populateTable();
+	            }
+	        }
+	    });
+
+		btnNextPage = new Button(paginationComposite, SWT.CENTER);
+		btnNextPage.setText(">");
+		btnNextPage.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
+		btnNextPage.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if((activePage + 1) <= totalPageNumber ) {
+					activePage++;
+					txtPageNumber.setText(String.valueOf(activePage));
+					populateTable();
+				}
+			}
+		});
+
+		
+		btnLastPage = new Button(paginationComposite, SWT.CENTER);
+		btnLastPage.setText(">>");
+		btnLastPage.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
+		btnLastPage.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if(activePage != totalPageNumber && totalPageNumber != 0) {
+	            	activePage = totalPageNumber;
+					txtPageNumber.setText(String.valueOf(activePage));
+					populateTable();
+				}
+			}
+		});
+
+		
+		totalPageNumber = (int) Math.ceil(countOfAgents/(double)pageSize);
+		labelTotalPageInfo = new Label(paginationComposite, SWT.CENTER);
+		labelTotalPageInfo.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));
+		labelTotalPageInfo.setText(Messages.getString("TOTAL_PAGES") + " :" + totalPageNumber);
+		new Label(paginationComposite, SWT.NONE);
+		new Label(paginationComposite, SWT.NONE);
+		createTableColumns();
+	}
+	
 	/**
 	 * Create table filter area
 	 * 
@@ -230,34 +372,146 @@ public class AgentInfoEditor extends EditorPart {
 	private void createTableFilterArea(Composite parent) {
 		Composite filterContainer = new Composite(parent, SWT.NONE);
 		filterContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
-		filterContainer.setLayout(new GridLayout(2, false));
+		filterContainer.setLayout(new GridLayout(4, false));
 
 		// Search label
 		Label lblSearch = new Label(filterContainer, SWT.NONE);
 		lblSearch.setFont(SWTResourceManager.getFont("Sans", 9, SWT.BOLD));
-		lblSearch.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
 		lblSearch.setText(Messages.getString("SEARCH_FILTER"));
+		
+		comboFilterColumn = new Combo(filterContainer, SWT.NONE);
+		comboFilterColumn.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
+		comboFilterColumn.setItems(new String[]{
+				Messages.getString("DN"),
+				Messages.getString("JID"),
+				Messages.getString("HOSTNAME"),
+				Messages.getString("IP_ADDRESS"),
+				Messages.getString("MAC_ADDRESS"),
+				Messages.getString("OS"),
+				Messages.getString("VERSION"),
+				Messages.getString("BRAND"),
+				Messages.getString("MODEL"),
+				Messages.getString("MEMORY"),
+				Messages.getString("DISK")
+		});
+		
+		comboFilterColumn.select(0);
+		comboFilterColumn.addSelectionListener(new SelectionListener() {
+			
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				switch (comboFilterColumn.getSelectionIndex()) {
+				case 0:
+					selectedColumnValue = "dn";
+					searchIn = "AGENT";
+					break;
+				case 1:
+					selectedColumnValue = "jid";
+					searchIn = "AGENT";
+					break;
+				case 2:
+					selectedColumnValue = "hostname";
+					searchIn = "AGENT";
+					break;
+				case 3:
+					selectedColumnValue = "ipAddresses";
+					searchIn = "AGENT";
+					break;
+				case 4:
+					selectedColumnValue = "macAddresses";
+					searchIn = "AGENT";
+					break;
+				case 5:
+					selectedColumnValue = "os.distributionName";
+					searchIn = "AGENT_PROPERTY";
+					break;
+				case 6:
+					selectedColumnValue = "os.distributionVersion";
+					searchIn = "AGENT_PROPERTY";
+					break;
+				case 7:
+					selectedColumnValue = "hardware.baseboard.manufacturer";
+					searchIn = "AGENT_PROPERTY";
+					break;
+				case 8:
+					selectedColumnValue = "hardware.model.version";
+					searchIn = "AGENT_PROPERTY";
+					break;
+				case 9:
+					selectedColumnValue = "hardware.memory.total";
+					searchIn = "AGENT_PROPERTY";
+					break;
+				case 10:
+					selectedColumnValue = "hardware.disk.total";
+					searchIn = "AGENT_PROPERTY";
+					break;
 
+				default:
+					break;
+				}
+				
+			}
+			
+			@Override
+			public void widgetDefaultSelected(SelectionEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+		
 		// Filter table rows
 		txtSearch = new Text(filterContainer, SWT.BORDER | SWT.SEARCH);
 		txtSearch.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		txtSearch.setToolTipText(Messages.getString("SEARCH_AGENT_TOOLTIP"));
+		txtSearch.addListener(SWT.Traverse, new Listener()
+	    {
+	        @Override
+	        public void handleEvent(Event event)
+	        {
+	            if(event.detail == SWT.TRAVERSE_RETURN)
+	            {
+	            	searchText = txtSearch.getText();
+	            	assignedSearchText = searchText;
+	            	getCountOfAgents(selectedColumnValue, assignedSearchText, searchIn);
+	            	labelTotalPageInfo.setText(Messages.getString("TOTAL_PAGES") + " :" + String.valueOf(totalPageNumber));
+	            	int aPage = Integer.parseInt(txtPageNumber.getText().trim());
+	            	if(aPage > totalPageNumber) {
+	            		activePage  = totalPageNumber;
+	            	}
+	            	else if(aPage == 0) {
+	            		activePage = 1;
+	            	}
+	            	activePage = 1;
+					txtPageNumber.setText(String.valueOf(activePage));
+					populateTable();
+	            }
+	        }
+	    });
+		
+
 		txtSearch.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
-//				tableFilter.setSearchText(txtSearch.getText());
-//				tableViewer.refresh();
-				filter(agents);
+//				getCountOfAgents("macAddresses", txtSearch.getText(), "AGENT");
+//            	int aPage = Integer.parseInt(txtPageNumber.getText().trim());
+//            	if(aPage > pageNumber) {
+//            		activePage  = pageNumber;
+//            	}
+//            	else if(aPage == 0) {
+//            		activePage = 1;
+//            	}
+//				txtPageNumber.setText(String.valueOf(activePage));
+//				populateTable();
 			}
 		});
+		
 		Composite totalNumberContainer = new Composite(parent, SWT.NONE);
 		totalNumberContainer.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		totalNumberContainer.setLayout(new GridLayout(1, false));
 
 		lblTotalNumber = new Label(totalNumberContainer, SWT.NONE);
 		lblTotalNumber.setFont(SWTResourceManager.getFont("Sans", 9, SWT.BOLD));
-		lblTotalNumber.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
-		lblTotalNumber.setText("Total Number: ");
+		lblTotalNumber.setText(Messages.getString("FOUND") + " :" + String.valueOf(countOfAgents));
 
 	}
 
@@ -300,8 +554,8 @@ public class AgentInfoEditor extends EditorPart {
 		orderColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof FilterAgent) {
-					return String.valueOf(((FilterAgent) element).getOrder());
+				if (element instanceof OrderedAgent) {
+					return String.valueOf(((OrderedAgent) element).getOrder());
 				}
 				return Messages.getString("UNTITLED");
 			}
@@ -314,8 +568,8 @@ public class AgentInfoEditor extends EditorPart {
 		dnColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof FilterAgent) {
-					return ((FilterAgent) element).getAgent().getDn();
+				if (element instanceof OrderedAgent) {
+					return ((OrderedAgent) element).getAgent().getDn();
 				}
 				return Messages.getString("UNTITLED");
 			}
@@ -328,8 +582,8 @@ public class AgentInfoEditor extends EditorPart {
 		jidColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof FilterAgent) {
-					return ((FilterAgent) element).getAgent().getJid();
+				if (element instanceof OrderedAgent) {
+					return ((OrderedAgent) element).getAgent().getJid();
 				}
 				return Messages.getString("UNTITLED");
 			}
@@ -342,8 +596,8 @@ public class AgentInfoEditor extends EditorPart {
 		hostnameColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof FilterAgent) {
-					return ((FilterAgent) element).getAgent().getHostname();
+				if (element instanceof OrderedAgent) {
+					return ((OrderedAgent) element).getAgent().getHostname();
 				}
 				return Messages.getString("UNTITLED");
 			}
@@ -356,8 +610,8 @@ public class AgentInfoEditor extends EditorPart {
 		ipColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof FilterAgent) {
-					String ipAddresses = ((FilterAgent) element).getAgent().getIpAddresses();
+				if (element instanceof OrderedAgent) {
+					String ipAddresses = ((OrderedAgent) element).getAgent().getIpAddresses();
 					return ipAddresses != null ? ipAddresses.replace("'", "").trim() : "-";
 				}
 				return Messages.getString("UNTITLED");
@@ -371,8 +625,8 @@ public class AgentInfoEditor extends EditorPart {
 		macColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof FilterAgent) {
-					String macAddresses = ((FilterAgent) element).getAgent().getMacAddresses();
+				if (element instanceof OrderedAgent) {
+					String macAddresses = ((OrderedAgent) element).getAgent().getMacAddresses();
 					return macAddresses != null ? macAddresses.replace("'", "").trim() : "-";
 				}
 				return Messages.getString("UNTITLED");
@@ -386,9 +640,23 @@ public class AgentInfoEditor extends EditorPart {
 		osNameColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof FilterAgent) {
-					String osName = ((FilterAgent) element).getAgent().getPropertyValue("os.distributionName");
-					osName += " " + ((FilterAgent) element).getAgent().getPropertyValue("os.distributionVersion");
+				if (element instanceof OrderedAgent) {
+					String osName = ((OrderedAgent) element).getAgent().getPropertyValue("os.distributionName");
+					return osName != null ? osName.trim() : "-";
+				}
+				return Messages.getString("UNTITLED");
+			}
+		});
+		
+		//OS Version
+		TableViewerColumn osVersionColumn = SWTResourceManager.createTableViewerColumn(tableViewer,
+				Messages.getString("VERSION"), 50);
+		osVersionColumn.getColumn().setAlignment(SWT.LEFT);
+		osVersionColumn.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof OrderedAgent) {
+					String osName = ((OrderedAgent) element).getAgent().getPropertyValue("os.distributionVersion");
 					return osName != null ? osName.trim() : "-";
 				}
 				return Messages.getString("UNTITLED");
@@ -397,13 +665,13 @@ public class AgentInfoEditor extends EditorPart {
 		
 		//Brand
 		TableViewerColumn brandColumn = SWTResourceManager.createTableViewerColumn(tableViewer,
-				Messages.getString("BRAND"), 60);
+				Messages.getString("BRAND"), 50);
 		brandColumn.getColumn().setAlignment(SWT.LEFT);
 		brandColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof FilterAgent) {
-					String brand = ((FilterAgent) element).getAgent().getPropertyValue("hardware.baseboard.manufacturer");
+				if (element instanceof OrderedAgent) {
+					String brand = ((OrderedAgent) element).getAgent().getPropertyValue("hardware.baseboard.manufacturer");
 					return brand != null ? brand.trim() : "-";
 				}
 				return Messages.getString("UNTITLED");
@@ -412,13 +680,13 @@ public class AgentInfoEditor extends EditorPart {
 		
 		//Model
 		TableViewerColumn modelColumn = SWTResourceManager.createTableViewerColumn(tableViewer,
-				Messages.getString("MODEL"), 60);
+				Messages.getString("MODEL"), 50);
 		modelColumn.getColumn().setAlignment(SWT.LEFT);
 		modelColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof FilterAgent) {
-					String model = ((FilterAgent) element).getAgent().getPropertyValue("hardware.model.version");
+				if (element instanceof OrderedAgent) {
+					String model = ((OrderedAgent) element).getAgent().getPropertyValue("hardware.model.version");
 					return model != null ? model.trim() : "-";
 				}
 				return Messages.getString("UNTITLED");
@@ -432,8 +700,8 @@ public class AgentInfoEditor extends EditorPart {
 		memoryColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof FilterAgent) {
-					String memory = ((FilterAgent) element).getAgent().getPropertyValue("hardware.memory.total");
+				if (element instanceof OrderedAgent) {
+					String memory = ((OrderedAgent) element).getAgent().getPropertyValue("hardware.memory.total");
 					return memory != null ? memory.trim() : "-";
 				}
 				return Messages.getString("UNTITLED");
@@ -447,8 +715,8 @@ public class AgentInfoEditor extends EditorPart {
 		diskColummn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof FilterAgent) {
-					String disk = ((FilterAgent) element).getAgent().getPropertyValue("hardware.disk.total");
+				if (element instanceof OrderedAgent) {
+					String disk = ((OrderedAgent) element).getAgent().getPropertyValue("hardware.disk.total");
 					return disk != null ? disk.trim() : "-";
 				}
 				return Messages.getString("UNTITLED");
@@ -457,13 +725,13 @@ public class AgentInfoEditor extends EditorPart {
 		
 		// Create date
 		TableViewerColumn createDateColumn = SWTResourceManager.createTableViewerColumn(tableViewer,
-				Messages.getString("CREATE_DATE"), 150);
+				Messages.getString("CREATE_DATE"), 120);
 		createDateColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof FilterAgent) {
-					return ((FilterAgent) element).getAgent().getCreateDate() != null
-							? SWTResourceManager.formatDate(((FilterAgent) element).getAgent().getCreateDate())
+				if (element instanceof OrderedAgent) {
+					return ((OrderedAgent) element).getAgent().getCreateDate() != null
+							? SWTResourceManager.formatDate(((OrderedAgent) element).getAgent().getCreateDate())
 							: Messages.getString("UNTITLED");
 				}
 				return Messages.getString("UNTITLED");
@@ -476,9 +744,9 @@ public class AgentInfoEditor extends EditorPart {
 		modifyDateColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if (element instanceof FilterAgent) {
-					return ((FilterAgent) element).getAgent().getModifyDate() != null
-							? SWTResourceManager.formatDate(((FilterAgent) element).getAgent().getModifyDate())
+				if (element instanceof OrderedAgent) {
+					return ((OrderedAgent) element).getAgent().getModifyDate() != null
+							? SWTResourceManager.formatDate(((OrderedAgent) element).getAgent().getModifyDate())
 							: Messages.getString("UNTITLED");
 				}
 				return Messages.getString("UNTITLED");
@@ -487,75 +755,114 @@ public class AgentInfoEditor extends EditorPart {
 	}
 
 	/**
+	 * Get count of agents for pagination
+	 */
+	private void getCountOfAgents(String propertyName, String propertyValue, String type) {
+		try {
+			if(txtSearch.getText().equals("")) {
+				countOfAgents = AgentRestUtils.countOfAgents(null, null, null);
+				
+			} else {
+				countOfAgents = AgentRestUtils.countOfAgents(propertyName, propertyValue, type);
+			}
+			totalPageNumber = (int) Math.ceil(countOfAgents/(double)pageSize);
+			lblTotalNumber.setText(Messages.getString("FOUND") + " :" + String.valueOf(countOfAgents));
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+			Notifier.error(null, Messages.getString("ERROR_ON_LIST"));
+		}
+	}
+	/**
 	 * Get agents and populate the table with them.
 	 */
 	private void populateTable() {
 		try {
-			agents = AgentRestUtils.list(null, null, null);
-			filter(agents);
+			agents = AgentRestUtils.listAgentsWithPaging(selectedColumnValue, assignedSearchText, searchIn, (activePage-1)*pageSize, pageSize);
+			if(agents != null && agents.size() != 0) {
+				orderedAgents = new ArrayList<OrderedAgent>();
+				OrderedAgent orderedAgent = null;
+				for (int i = 0; i < agents.size(); i++) {
+					orderedAgent = new OrderedAgent();
+					orderedAgent.setOrder((activePage-1)*pageSize + 1 + i);
+					orderedAgent.setAgent(agents.get(i));
+					orderedAgents.add(orderedAgent);
+				}
+			}
+			else {
+				if(orderedAgents != null) {
+					orderedAgents.clear();
+				}
+			}
+			tableViewer.setInput(orderedAgents != null ? orderedAgents : new ArrayList<OrderedAgent>());
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 			Notifier.error(null, Messages.getString("ERROR_ON_LIST"));
 		}
 	}
 
-	public void filter(List<Agent> agents) {
-		FilterAgent filterAgent = null;
-		filterAgentList = new ArrayList<>();
-		filterAgentListAfterFilter = new ArrayList<>();
-		if(agents != null) {
-			for (int i = 0; i < agents.size(); i++) {
-				filterAgent = new FilterAgent();
-				filterAgent.setOrder(i+1);
-				filterAgent.setAgent(agents.get(i));
-				filterAgentList.add(filterAgent);
-				
-			}
-			
-		}
-		if(!txtSearch.getText().equals("")) {
-			String searchString = ".*" + txtSearch.getText() + ".*";
-			searchString = searchString.toLowerCase();
-			Agent agent;
-			int counter = 1;
-			Boolean matched = false;
-			for (int i = 0; i < filterAgentList.size(); i++) {
-				agent = filterAgentList.get(i).getAgent();
-				if(agent.getDn().toLowerCase().matches(searchString) 
-						|| agent.getHostname().toLowerCase().matches(searchString)
-						|| agent.getJid().toLowerCase().matches(searchString) 
-						|| agent.getIpAddresses().toLowerCase().matches(searchString)
-						|| agent.getMacAddresses().toLowerCase().matches(searchString) 
-						|| (agent.getPropertyValue("os.distributionName").toLowerCase() + agent.getPropertyValue("os.distributionVersion").toLowerCase()).matches(searchString)
-						|| agent.getPropertyValue("hardware.baseboard.manufacturer").toLowerCase().matches(searchString)
-						|| agent.getPropertyValue("hardware.model.version").toLowerCase().matches(searchString)) {
-					matched = true;
-
-				}
-				
-				if(matched) {
-					matched = false;
-					FilterAgent fa = new FilterAgent();
-					fa.setOrder(counter++);
-					fa.setAgent(agent);
-					filterAgentListAfterFilter.add(fa);
-				}
-			}
-		}
-		else {
-			
-			filterAgentListAfterFilter.addAll(filterAgentList);
-		}
-		lblTotalNumber.setText("Total Number Of Results: " + String.valueOf(filterAgentListAfterFilter.size()));
-		tableViewer.setInput(filterAgentListAfterFilter != null ? filterAgentListAfterFilter : new ArrayList<FilterAgent>());
-		tableViewer.refresh();
-	}
+//	public void filter(List<Agent> agents) {
+//		FilterAgent filterAgent = null;
+////		if(filterAgentList != null)
+////			filterAgentList.clear();
+//		if(filterAgentListAfterFilter != null)
+//			filterAgentListAfterFilter.clear();
+//		filterAgentList = new ArrayList<>();
+//		filterAgentListAfterFilter = new ArrayList<>();
+//		if(agents != null) {
+//			for (int i = 0; i < agents.size(); i++) {
+//				filterAgent = new FilterAgent();
+//				filterAgent.setOrder((activePage-1)*pageSize + 1 + i);
+//				filterAgent.setAgent(agents.get(i));
+//				filterAgentList.add(filterAgent);
+//				
+//			}
+//			
+//		}
+//		if(!txtSearch.getText().equals("")) {
+//			String searchString = ".*" + txtSearch.getText() + ".*";
+//			searchString = searchString.toLowerCase();
+//			Agent agent;
+//			int counter = 1;
+//			Boolean matched = false;
+//			for (int i = 0; i < filterAgentList.size(); i++) {
+//				agent = filterAgentList.get(i).getAgent();
+//				if(agent.getDn().toLowerCase().matches(searchString) 
+//						|| agent.getHostname().toLowerCase().matches(searchString)
+//						|| agent.getJid().toLowerCase().matches(searchString) 
+//						|| agent.getIpAddresses().toLowerCase().matches(searchString)
+//						|| agent.getMacAddresses().toLowerCase().matches(searchString) 
+//						|| (agent.getPropertyValue("os.distributionName").toLowerCase() + agent.getPropertyValue("os.distributionVersion").toLowerCase()).matches(searchString)
+//						|| agent.getPropertyValue("hardware.baseboard.manufacturer").toLowerCase().matches(searchString)
+//						|| agent.getPropertyValue("hardware.model.version").toLowerCase().matches(searchString)) {
+//					matched = true;
+//
+//				}
+//				
+//				if(matched) {
+//					matched = false;
+//					FilterAgent fa = new FilterAgent();
+//					fa.setOrder(counter++);
+//					fa.setAgent(agent);
+//					filterAgentListAfterFilter.add(fa);
+//				}
+//			}
+//		}
+//		else {
+//			
+//			filterAgentListAfterFilter.addAll(filterAgentList);
+//		}
+//		lblTotalNumber.setText("Total Number Of Results: " + countOfAgents);
+//		tableViewer.setInput(filterAgentListAfterFilter != null ? filterAgentListAfterFilter : new ArrayList<FilterAgent>());
+//		tableViewer.refresh();
+//	}
 	//public void filter(String text)
 	/**
 	 * Re-populate table with policies.
 	 * 
 	 */
 	public void refresh() {
+		getCountOfAgents(selectedColumnValue, assignedSearchText, searchIn);
+		labelTotalPageInfo.setText(Messages.getString("TOTAL_PAGES") + " :" + String.valueOf(totalPageNumber));
 		populateTable();
 		tableViewer.refresh();
 	}
@@ -564,11 +871,11 @@ public class AgentInfoEditor extends EditorPart {
 	public void setFocus() {
 	}
 
-	public Agent getSelectedAgent() {
+	public OrderedAgent getSelectedAgent() {
 		return selectedAgent;
 	}
 
-	public void setSelectedAgent(Agent selectedAgent) {
+	public void setSelectedAgent(OrderedAgent selectedAgent) {
 		this.selectedAgent = selectedAgent;
 	}
 
