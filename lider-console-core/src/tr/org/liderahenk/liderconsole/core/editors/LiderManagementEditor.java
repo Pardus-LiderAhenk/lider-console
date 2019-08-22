@@ -1646,7 +1646,8 @@ public class LiderManagementEditor extends EditorPart {
 		});
 		// Task Description
 		TableViewerColumn taskDescriptionColumn = SWTResourceManager.createTableViewerColumn(tableViewerTaskList,
-				Messages.getString("TASK_LIST"), 350);
+				Messages.getString("COMMENT"), 350);
+		
 		taskDescriptionColumn.getColumn().setAlignment(SWT.LEFT);
 		taskDescriptionColumn.setLabelProvider(new ColumnLabelProvider() {
 			@Override
