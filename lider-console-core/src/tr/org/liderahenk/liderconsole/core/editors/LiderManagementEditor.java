@@ -967,7 +967,8 @@ public class LiderManagementEditor extends EditorPart {
 		new Label(compositeExecutedTask, SWT.NONE);
 		new Label(compositeExecutedTask, SWT.NONE);
 		new Label(compositeExecutedTask, SWT.NONE);
-
+		new Label(compositeExecutedTask, SWT.NONE);
+		
 		compositeExecutedTask_Inner = new Composite(compositeExecutedTask, GridData.FILL);
 		compositeExecutedTask_Inner.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 8, 1));
 		compositeExecutedTask_Inner.setLayout(new GridLayout(1, false));
@@ -1371,6 +1372,20 @@ public class LiderManagementEditor extends EditorPart {
 			}
 		});
 
+		//Policy assigner UID
+		TableViewerColumn labelPolicyAssigner = SWTResourceManager.createTableViewerColumn(tableViewerAssignedPolicyList,
+				Messages.getString("ASSIGNER_OF_POLICY"), 180);
+		labelPolicyAssigner.getColumn().setAlignment(SWT.LEFT);
+		labelPolicyAssigner.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof Policy) {
+					return ((Policy) element).getCommandOwnerUid();
+				}
+				return Messages.getString("UNTITLED");
+			}
+		});
+		
 		// Create date
 		TableViewerColumn createDateColumn = SWTResourceManager.createTableViewerColumn(tableViewerAssignedPolicyList,
 				Messages.getString("CREATE_DATE"), 200);
@@ -1420,7 +1435,7 @@ public class LiderManagementEditor extends EditorPart {
 		
 		// Plugin name
 		TableViewerColumn labelCommandClsID = SWTResourceManager.createTableViewerColumn(tableViewerExecutedTaskList,
-				Messages.getString("PLUGIN_NAME"), 200);
+				Messages.getString("PLUGIN_NAME"), 180);
 		labelCommandClsID.getColumn().setAlignment(SWT.LEFT);
 		labelCommandClsID.setLabelProvider(new ColumnLabelProvider() {
 			@Override
@@ -1432,6 +1447,20 @@ public class LiderManagementEditor extends EditorPart {
 			}
 		});
 
+		// Owner UID
+		TableViewerColumn labelOwnerUID = SWTResourceManager.createTableViewerColumn(tableViewerExecutedTaskList,
+				Messages.getString("OWNER_UID"), 150);
+		labelOwnerUID.getColumn().setAlignment(SWT.LEFT);
+		labelOwnerUID.setLabelProvider(new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof tr.org.liderahenk.liderconsole.core.model.Command) {
+					return ((tr.org.liderahenk.liderconsole.core.model.Command) element).getCommandOwnerUid();
+				}
+				return Messages.getString("UNTITLED");
+			}
+		});
+		
 		// Task Execute Result Message from Ahenk
 		TableViewerColumn labelColumn = SWTResourceManager.createTableViewerColumn(tableViewerExecutedTaskList,
 				Messages.getString("AHENK_TASK_EXECUTION_RESPONSE"), 300);

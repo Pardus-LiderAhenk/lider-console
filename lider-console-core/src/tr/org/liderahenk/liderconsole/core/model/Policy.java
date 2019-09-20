@@ -51,11 +51,13 @@ public class Policy implements Serializable {
 	
 	private String responseMessage;
 
+	private String commandOwnerUid;
+	
 	public Policy() {
 	}
 
 	public Policy(Long id, String label, String description, boolean active, boolean deleted, Set<Profile> profiles,
-			Date createDate, Date modifyDate, String policyVersion, String responseMessage) {
+			Date createDate, Date modifyDate, String policyVersion, String responseMessage, String commandOwnerUid) {
 		this.id = id;
 		this.label = label;
 		this.description = description;
@@ -65,6 +67,7 @@ public class Policy implements Serializable {
 		this.createDate = createDate;
 		this.modifyDate = modifyDate;
 		this.policyVersion = policyVersion;
+		this.commandOwnerUid = commandOwnerUid;
 	}
 
 	public Long getId() {
@@ -147,4 +150,13 @@ public class Policy implements Serializable {
 		this.responseMessage = responseMessage;
 	}
 
+	public String getCommandOwnerUid() {
+		return commandOwnerUid;
+	}
+
+	public void setCommandOwnerUid(String commandOwnerUid) {
+		this.commandOwnerUid = commandOwnerUid;
+	}
+
+	
 }
