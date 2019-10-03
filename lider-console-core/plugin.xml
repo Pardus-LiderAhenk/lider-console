@@ -100,6 +100,12 @@
             id="tr.org.liderahenk.liderconsole.core.commands.RegistrationTemplate"
             name="%command.registration.template">
       </command>
+      
+       <command
+            categoryId="tr.org.liderahenk.liderconsole.commands.category"
+            id="tr.org.liderahenk.liderconsole.core.commands.ActiveDirectoryCommand"
+            name="%command.editor.lider.activeDirectoryManager">
+      </command>
      
    </extension>
    
@@ -150,6 +156,12 @@
             class="tr.org.liderahenk.liderconsole.core.handlers.RegistrationTemplateHandler"
             commandId="tr.org.liderahenk.liderconsole.core.commands.RegistrationTemplate">
       </handler>
+      
+	  <handler
+            class="tr.org.liderahenk.liderconsole.core.handlers.ActiveDirectoryHandler"
+            commandId="tr.org.liderahenk.liderconsole.core.commands.ActiveDirectoryCommand">
+      </handler>
+	  
 	  <handler
             class="tr.org.liderahenk.liderconsole.core.handlers.PolicyExecutionSelectHandler"
             commandId="tr.org.liderahenk.liderconsole.core.commands.PolicyExecutionSelect">
@@ -499,7 +511,7 @@
             
          <command
                commandId="tr.org.liderahenk.liderconsole.core.commands.AgentInfo"
-               icon="icons/16/script-code.png"
+               icon="icons/16/ahenkler.png"
                label="Agent Info"
                style="push">
             <visibleWhen>
@@ -634,6 +646,21 @@
             </visibleWhen>
         </command>
 		
+		<command
+	          commandId="tr.org.liderahenk.liderconsole.core.commands.ActiveDirectoryCommand"
+	          id="tr.org.liderahenk.liderconsole.core.commands.ActiveDirectoryCommand"
+	          icon="icons/16/adImages.png"
+	          tooltip="%command.editor.lider.activeDirectoryManager">
+	           <visibleWhen>
+               <with
+                     variable="tr.org.liderahenk.liderconsole.core.sourceproviders.main.available">
+                  <equals
+                        value="true">
+                  </equals>
+               </with>
+            </visibleWhen>
+        </command>
+		
          
          
       </toolbar>
@@ -731,6 +758,25 @@
 		    id="tr.org.liderahenk.liderconsole.core.editors.RegistrationTemplateEditor"
 		    name="%editor.registration.template">
 	    </editor> 
+	    
+	    <editor
+	       class="tr.org.liderahenk.liderconsole.core.editors.OnlineAgentsEditor"
+	       default="true"
+	       icon="icons/16/ahenkler.png"
+	       id="tr.org.liderahenk.liderconsole.core.editors.OnlineAgentsEditor"
+	       name="%editor.lider.onlineAgents">
+		</editor>
+
+	    <editor
+	       class="tr.org.liderahenk.liderconsole.core.editors.ActiveDirectoryEditor"
+	       default="true"
+	       icon="icons/16/adImages.png"
+	       id="tr.org.liderahenk.liderconsole.core.editors.ActiveDirectoryEditor"
+	       name="%editor.lider.activeDirectoryManager">
+		</editor>
+		
+		
+		
 	</extension>
 
 	<!-- LISTENERS -->	
