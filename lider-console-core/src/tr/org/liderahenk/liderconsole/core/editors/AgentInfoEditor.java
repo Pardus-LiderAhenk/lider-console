@@ -777,7 +777,7 @@ public class AgentInfoEditor extends EditorPart {
 	 */
 	private void populateTable() {
 		try {
-			agents = AgentRestUtils.listAgentsWithPaging(selectedColumnValue, assignedSearchText, searchIn, (activePage-1)*pageSize, pageSize);
+			agents = AgentRestUtils.listAgentsWithPaging(selectedColumnValue, txtSearch.getText(), searchIn, (activePage-1)*pageSize, pageSize);
 			if(agents != null && agents.size() != 0) {
 				orderedAgents = new ArrayList<OrderedAgent>();
 				OrderedAgent orderedAgent = null;
@@ -861,8 +861,10 @@ public class AgentInfoEditor extends EditorPart {
 	 * 
 	 */
 	public void refresh() {
-		getCountOfAgents(selectedColumnValue, assignedSearchText, searchIn);
+		getCountOfAgents(selectedColumnValue, txtSearch.getText() == null ? "" : txtSearch.getText() , searchIn);
 		labelTotalPageInfo.setText(Messages.getString("TOTAL_PAGES") + " :" + String.valueOf(totalPageNumber));
+    	activePage = 1;
+		txtPageNumber.setText(String.valueOf(activePage));
 		populateTable();
 		tableViewer.refresh();
 	}
