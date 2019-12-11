@@ -61,10 +61,12 @@ public class LiderConstants {
 		public static final String REPORT_TEMPLATE_EDITOR = "tr.org.liderahenk.liderconsole.core.editors.ReportTemplateEditor";
 		public static final String REPORT_VIEW_EDITOR = "tr.org.liderahenk.liderconsole.core.editors.ReportViewEditor";
 		public static final String LIDER_MANAGEMENT_EDITOR = "tr.org.liderahenk.liderconsole.core.editors.LiderManagementEditor";
+		public static final String LIDER_ONLINE_AGENTS_EDITOR = "tr.org.liderahenk.liderconsole.core.editors.OnlineAgentsEditor";
 		public static final String LIDER_MAINPAGE_EDITOR = "tr.org.liderahenk.liderconsole.core.editors.LiderMainEditor";
 		public static final String LIDER_MAILCONFIGURATION_EDITOR = "tr.org.liderahenk.liderconsole.core.editors.MailConfigurationEditor";
 		public static final String LIDER_SERVICEREPORTONLINEUSER_EDITOR = "tr.org.liderahenk.liderconsole.core.editors.ServiceReportOnlineAhenkEditor";
 		public static final String REGISTRATION_TEMPLATE_EDITOR = "tr.org.liderahenk.liderconsole.core.editors.RegistrationTemplateEditor";
+		public static final String ACTIVE_DIRECTORY_EDITOR = "tr.org.liderahenk.liderconsole.core.editors.ActiveDirectoryEditor";
 	}
 
 	public static final class EXTENSION_POINTS {

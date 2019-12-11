@@ -57,6 +57,7 @@ import org.slf4j.LoggerFactory;
 import tr.org.liderahenk.liderconsole.core.constants.LiderConstants;
 import tr.org.liderahenk.liderconsole.core.editorinput.DefaultEditorInput;
 import tr.org.liderahenk.liderconsole.core.editors.LiderManagementEditor;
+import tr.org.liderahenk.liderconsole.core.editors.OnlineAgentsEditor;
 import tr.org.liderahenk.liderconsole.core.i18n.Messages;
 import tr.org.liderahenk.liderconsole.core.ldap.listeners.LdapConnectionListener;
 import tr.org.liderahenk.liderconsole.core.ldap.utils.LdapUtils;
@@ -330,6 +331,37 @@ public class LdapBrowserView extends ViewPart implements ILdapBrowserView {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 			
+
+
+				final IWorkbench workbench = PlatformUI.getWorkbench();
+				IWorkbenchWindow[] windows = workbench.getWorkbenchWindows();
+				if (windows != null && windows.length > 0) {
+					IWorkbenchWindow window = windows[0];
+					final IWorkbenchPage activePage = window.getActivePage();
+					Display.getDefault().asyncExec(new Runnable() {
+						@Override
+						public void run() {
+							try {
+
+								DefaultEditorInput input = new DefaultEditorInput("online_agents");
+
+								 OnlineAgentsEditor editor = (OnlineAgentsEditor)activePage.findEditor(input);
+								//
+								if (editor != null) {
+									activePage.closeEditor(editor, true);
+
+								 }
+
+								activePage.openEditor(input, LiderConstants.EDITORS.LIDER_ONLINE_AGENTS_EDITOR, false);
+
+							} catch (PartInitException e) {
+								e.printStackTrace();
+							}
+						}
+					});
+				}
+			
+				
 			}
 			
 			@Override
